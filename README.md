@@ -1,4 +1,4 @@
-## XXXXX Project by :  
+## Team 10's Project by :  
   
 ## Details about the project
  
