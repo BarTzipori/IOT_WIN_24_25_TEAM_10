@@ -8,7 +8,6 @@ vibrationMotor motor1(16); // Motor 1 on pin 25
 vibrationMotor motor2(25); // Motor 2 on pin 25
 
 void setup() {
-
 }
 
 void loop() {
