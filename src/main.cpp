@@ -1,11 +1,14 @@
 #include "vibrationMotor.h"
 
+#define MOTOR_1_PIN 16
+#define MOTOR_2_PIN 25
+
 //Purpose:
 //This is a small unit test to test the vibrationMotor class. It will test the shortBuzz and longBuzz patterns.
 //This test aims to ensure that the vibrationMotor class is functioning correctly, and that the vibration patterns are working as expected.
 //The patterns for the vibration motor are defined in the vibrationPattern enum in the vibrationMotor.h file.
-vibrationMotor motor1(16); // Motor 1 on pin 25
-vibrationMotor motor2(25); // Motor 2 on pin 25
+vibrationMotor motor1(MOTOR_1_PIN); // Motor 1 on pin 16
+vibrationMotor motor2(MOTOR_2_PIN); // Motor 2 on pin 25
 
 void setup() {
 }
