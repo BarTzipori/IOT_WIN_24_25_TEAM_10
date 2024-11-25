@@ -38,7 +38,7 @@ void vibrationMotor::vibrate(vibrationPattern pattern) {
             break;
         case vibrationPattern::doubleBuzz:
             // Double buzz
-            multipleVibrations(5, 350, motorPin);
+            multipleVibrations(2, 350, motorPin);
             break;
         case vibrationPattern::pulseBuzz:
             // Pulse buzz
