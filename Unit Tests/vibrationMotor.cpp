@@ -16,9 +16,9 @@ void vibrationMotor::vibrate(vibrationPattern pattern) {
         case vibrationPattern::shortBuzz:
             // Short buzz
             digitalWrite(motorPin, HIGH);
-            delay(50);
+            delay(250);
             digitalWrite(motorPin, LOW);
-            delay(50);
+            delay(250);
             break;
         case vibrationPattern::longBuzz:
             // Long buzz
@@ -31,18 +31,18 @@ void vibrationMotor::vibrate(vibrationPattern pattern) {
             // Double buzz
             for (int i = 0; i < 2; i++) {
                 digitalWrite(motorPin, HIGH);
-                delay(50);
+                delay(250);
                 digitalWrite(motorPin, LOW);
-                delay(50);
+                delay(250);
             }
             break;
         case vibrationPattern::pulseBuzz:
             // Pulse buzz
             for (int i = 0; i < 3; i++) {
                 digitalWrite(motorPin, HIGH);
-                delay(50);
+                delay(250);
                 digitalWrite(motorPin, LOW);
-                delay(50);
+                delay(250);
             }
             break;
     }
