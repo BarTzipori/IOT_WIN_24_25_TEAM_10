@@ -8,6 +8,7 @@
         {
             "name": "PlatformIO",
             "includePath": [
+                "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/include",
                 "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/src",
                 "/Users/bartzipori/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/newlib/platform_include",
                 "/Users/bartzipori/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include",
@@ -243,6 +244,7 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
+                    "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/include",
                     "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/src",
                     "/Users/bartzipori/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/newlib/platform_include",
                     "/Users/bartzipori/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include",

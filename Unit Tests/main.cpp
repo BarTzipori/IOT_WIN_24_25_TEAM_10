@@ -8,6 +8,11 @@
 vibrationMotor motor1(25); // Motor 1 on pin 25
 vibrationMotor motor2(26); // Motor 2 on pin 26
 
+void setup() {
+    //Initializaiton code
+    motor1.activate(500); // Vibrate motor 1 for 500ms
+}
+
 void loop() {
   // Test Motor 1 with Short Buzz
   motor1.vibrate(vibrationPattern::shortBuzz);

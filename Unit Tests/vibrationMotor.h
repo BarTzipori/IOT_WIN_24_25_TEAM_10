@@ -17,6 +17,7 @@ class vibrationMotor {
     public:
         vibrationMotor(int pin);
         ~vibrationMotor() = default;
+        void activate(int duration);
         void vibrate(vibrationPattern pattern);
 };
 #endif

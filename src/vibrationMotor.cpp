@@ -5,6 +5,12 @@ vibrationMotor::vibrationMotor(int motorPin) : motorPin(motorPin) {
   pinMode(motorPin, OUTPUT);
 }
 
+void vibrationMotor::activate(int duration) {
+    digitalWrite(motorPin, HIGH);
+    delay(duration);
+    digitalWrite(motorPin, LOW);
+}
+
 void vibrationMotor::vibrate(vibrationPattern pattern) {
     switch (pattern) {
         case vibrationPattern::shortBuzz:

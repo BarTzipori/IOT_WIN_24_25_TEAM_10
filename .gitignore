@@ -1,1 +1,17 @@
 ESP32/SECRETS.h
+# PlatformIO build files
+.pio/
+.vscode/
+
+# Libraries installed by PlatformIO
+.libdeps/
+
+# Other unnecessary files
+*.elf
+*.bin
+*.map
+*.hex
+
+# IDE-specific files
+*.DS_Store
+Thumbs.db
