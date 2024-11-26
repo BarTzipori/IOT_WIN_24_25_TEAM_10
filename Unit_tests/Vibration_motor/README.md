@@ -23,4 +23,3 @@ The test will cycle through the vibration pattern of two vibration motors.
 ```markdown
 ![Alt text](pics\wiring_example_vibration_motors.jpeg)
 
-
