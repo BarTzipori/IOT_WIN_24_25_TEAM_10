@@ -1,7 +1,7 @@
-# [Vibration Motor Unit Test]
+# Vibration Motor Unit Test
 
 ## Description of the Test
-[The test will cycle through the vibration pattern of two vibration motors.]
+The test will cycle through the vibration pattern of two vibration motors.
 
 ---
 
@@ -14,11 +14,11 @@
 
 ## Wiring Guide
 ### Components:
-1X ESP32 card
-2X Vibration motors
-6X Jumper wires
+1. 1X ESP32-S3 card
+2. 2X Vibration motors
+3. 6X Jumper wires
 
 ### Wiring Diagram:
 [Add a wiring diagram image here. To embed an image, use:]
 ```markdown
-![Wiring Diagram](path_to_your_diagram.png)
+![Wiring Diagram](Unit Tests/Vibration motor/pics/VibrationMotors.jpeg)

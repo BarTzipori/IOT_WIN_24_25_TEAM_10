@@ -1,7 +1,7 @@
 #include "vibrationMotor.h"
 
 #define MOTOR_1_PIN 16
-#define MOTOR_2_PIN 25
+#define MOTOR_2_PIN 40
 
 //Purpose:
 //This is a small unit test to test the vibrationMotor class. It will test the shortBuzz and longBuzz patterns.
