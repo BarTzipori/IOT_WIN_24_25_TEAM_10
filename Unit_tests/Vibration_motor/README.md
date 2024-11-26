@@ -21,6 +21,6 @@ The test will cycle through the vibration pattern of two vibration motors.
 ### Wiring Diagram:
 
 ```markdown
-![img](Unit_tests/Vibration_motor/pics/wiring_example_vibtation_motors.jpeg)
+![Alt text](pics\wiring_example_vibration_motors.jpeg)
 
 
