@@ -78,21 +78,6 @@ void setup() {
         Serial.println(distance_sensors[i]->sensorID(), HEX);
     }
   }
-  //start ranging for all sensors
-  for(int i  = 0; i < distance_sensors.size(); i++) {
-    if (!distance_sensors[i]->startRanging()) {
-      Serial.print("Error on start ranging of sensor:");
-      Serial.print(i);
-      Serial.println(distance_sensors[i]->vl_status);
-    } else {
-        Serial.println(F("Ranging started"));
-          distance_sensors[i]->setTimingBudget(50);
-          Serial.print(F("Timing budget (ms): "));
-          // Valid timing budgets: 15, 20, 33, 50, 100, 200 and 500ms!
-          Serial.println(distance_sensors[i]->getTimingBudget());
-    }
-    delay(100);
-  }
   /*
   vl.VL53L1X_SetDistanceThreshold(100, 300, 3, 1);
   vl.VL53L1X_SetInterruptPolarity(0);
@@ -119,8 +104,8 @@ void loop() {
     } else {
       Serial.println(F("Data not ready"));
     }
-    delay(200);
+    delay(20);
   }
   Serial.println();
-  delay(2000);
+  delay(1000);
 }
