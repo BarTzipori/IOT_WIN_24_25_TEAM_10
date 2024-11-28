@@ -35,7 +35,7 @@ void enableOnlyOneSensor(size_t index) {
         while (1) delay(100);
     }
 
-    distance_sensors[index]->setTimingBudget(50); // Set timing budget
+    distance_sensors[index]->setTimingBudget(50); //Set timing budget
 }
 
 // Helper function to disable all sensors
