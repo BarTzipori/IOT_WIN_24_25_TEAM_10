@@ -1,4 +1,4 @@
-# Vibration Motor Unit Test
+# Distance Sensor Unit Test
 
 ## Description of the Test
 The test will cycle through the vibration pattern of two vibration motors.
