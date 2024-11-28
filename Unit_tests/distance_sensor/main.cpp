@@ -1,9 +1,10 @@
 
-#include <Arduino.h>
+#include <VL53L1X.h>
 
 void setup() {
     // Initialize serial communication at 115200 baud
     Serial.begin(115200);
+    Serial.setDebugOutput(true);
 
     // Give some time for the Serial Monitor to initialize
     delay(1000);
