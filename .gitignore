@@ -3,8 +3,9 @@ ESP32/SECRETS.h
 .pio/
 .vscode/
 
-# Libraries installed by PlatformIO
-.libdeps/
+#src and include folders
+./src 
+./include
 
 # Other unnecessary files
 *.elf
