@@ -7,9 +7,6 @@ ESP32/SECRETS.h
 ./src 
 ./include
 
-# Libraries installed by PlatformIO
-.libdeps/
-
 # Other unnecessary files
 *.elf
 *.bin
