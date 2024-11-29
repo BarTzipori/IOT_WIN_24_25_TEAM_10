@@ -88,7 +88,6 @@ void loop() {
   int16_t distance;
   for (int i = 0; i < distance_sensors.size(); i++) {
     enableOnlyOneSensor(i); // Enable only one sensor
-    delay(100); // Stabilize
     if(distance_sensors[i]->dataReady()) {
       distance = distance_sensors[i]->distance();
       if (distance == -1) {
@@ -104,8 +103,7 @@ void loop() {
     } else {
       Serial.println(F("Data not ready"));
     }
-    delay(20);
   }
   Serial.println();
-  delay(1000);
+  delay(100);
 }
