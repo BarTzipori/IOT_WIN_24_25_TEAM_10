@@ -1,236 +1,96 @@
-/****************************************************************************/	
-//	Function: Cpp file for Red Serial MP3 Player module
-//	Hardware: Serial MP3 Player A
-//	Arduino IDE: Arduino-1.6.5
-//	Author:	 Fred	
-//	Date: 	 2017.05.20
-//	by OPEN-SMART Team
-//
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License, or (at your option) any later version.
-//
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-//
-/****************************************************************************/
+/************************************************* ************************************************** ******
+* OPEN-SMART Red Serial MP3 Player Lesson 1: Play a song
+NOTE!!! First of all you should download the voice resources from our google drive:
+https://drive.google.com/drive/folders/0B6uNNXJ2z4CxaFVzZEZZVTR5Snc?usp=sharing
+
+
+Then unzip it and find the 01 and 02 folder and put them into your TF card (should not larger than 32GB). 
+
+* You can learn how to play a song with its index in the TF card.
+*
+* The following functions are available:
+*
+/--------basic operations---------------/
+mp3.play();
+mp3.pause();
+mp3.nextSong();
+mp3.previousSong();
+mp3.volumeUp();
+mp3.volumeDown();
+mp3.forward();    //fast forward
+mp3.rewind();     //fast rewind
+mp3.stopPlay();  
+mp3.stopInject(); //when you inject a song, this operation can stop it and come back to the song befor you inject
+mp3.singleCycle();//it can be set to cycle play the currently playing song 
+mp3.allCycle();   //to cycle play all the songs in the TF card
+/--------------------------------/
+
+mp3.playWithIndex(int8_t index);//play the song according to the physical index of song in the TF card
+
+mp3.injectWithIndex(int8_t index);//inject a song according to the physical index of song in the TF card when it is playing song.
+
+mp3.setVolume(int8_t vol);//vol is 0~0x1e, 30 adjustable level
+
+mp3.playWithFileName(int8_t directory, int8_t file);//play a song according to the folder name and prefix of its file name
+                                                            //foler name must be 01 02 03...09 10...99
+                                                            //prefix of file name must be 001...009 010...099
+
+mp3.playWithVolume(int8_t index, int8_t volume);//play the song according to the physical index of song in the TF card and the volume set
+
+mp3.cyclePlay(int16_t index);//single cycle play a song according to the physical index of song in the TF
+
+mp3.playCombine(int16_t folderAndIndex[], int8_t number);//play combination of the songs with its folder name and physical index
+      //folderAndIndex: high 8bit is folder name(01 02 ...09 10 11...99) , low 8bit is index of the song
+      //number is how many songs you want to play combination
+
+About SoftwareSerial library:
+The library has the following known limitations:
+If using multiple software serial ports, only one can receive data at a time.
+
+Not all pins on the Mega and Mega 2560 support change interrupts, so only the following can be used for RX: 
+10, 11, 12, 13, 14, 15, 50, 51, 52, 53, A8 (62), A9 (63), A10 (64), A11 (65), A12 (66), A13 (67), A14 (68), A15 (69).
+
+Not all pins on the Leonardo and Micro support change interrupts, so only the following can be used for RX: 
+8, 9, 10, 11, 14 (MISO), 15 (SCK), 16 (MOSI).
+On Arduino or Genuino 101 the current maximum RX speed is 57600bps.
+On Arduino or Genuino 101 RX doesn't work on Pin 13.
+
+Store: dx.com/440175
+https://open-smart.aliexpress.com/store/1199788
+
+************************************************** **************************************************/
 #include <SoftwareSerial.h>
 #include "RedMP3.h"
 
-MP3::MP3(uint8_t rxd, uint8_t txd):myMP3(txd, rxd)
+#define MP3_RX 7//RX of Serial MP3 module connect to D7 of Arduino
+#define MP3_TX 8//TX to D8, note that D8 can not be used as RX on Mega2560, you should modify this if you donot use Arduino UNO
+MP3 mp3(MP3_RX, MP3_TX);
+int8_t volume = 0x1a;//0~0x1e (30 adjustable level)
+int8_t folderName = 0x01;//folder name must be 01 02 03 04 ...
+int8_t fileName = 0x01; // prefix of file name must be 001xxx 002xxx 003xxx 004xxx ...
+
+void setup()
 {
-  myMP3.begin(9600);//baud rate is 9600bps
-}
-void MP3::begin()
-{
-  sendCommand(CMD_SEL_DEV, DEV_TF);//select the TF card  
-  delay(100);
-}
-void MP3::play()
-{
-  sendCommand(CMD_PLAY);
-}
-void MP3::pause()
-{
-  sendCommand(CMD_PAUSE);
+  Serial.begin(115200);
+  delay(500);//Requires 500ms to wait for the MP3 module to initialize  
+  //mp3.playWithVolume(index_number,volume);
+  //delay(50);//you should wait for >=50ms between two commands
 }
 
-void MP3::nextSong()
+void loop()
 {
-  sendCommand(CMD_NEXT_SONG);
+  Serial.println("palying sound");
+  mp3.setVolume(0x10);
+  mp3.playWithFileName(0x01,0x01);
+  delay(1000);
+  mp3.setVolume(0x15);
+  mp3.playWithFileName(0x01,0x02);
+  delay(1000);
+  mp3.setVolume(0x1e);
+  mp3.playWithFileName(0x01,0x03);
+  delay(5000);//you should wait for >=50ms between two commands
 }
 
-void MP3::previousSong()
-{
-  sendCommand(CMD_PREV_SONG);
-}
-
-void MP3::volumeUp()
-{
-  sendCommand(CMD_VOLUME_UP);
-}
-
-void MP3::volumeDown()
-{
-  sendCommand(CMD_VOLUME_DOWN);
-}
-
-void MP3::forward()
-{
-  sendCommand(CMD_FORWARD);
-}
-
-void MP3::rewind()
-{
-  sendCommand(CMD_REWIND);
-}
-
-void MP3::stopPlay()
-{
-  sendCommand(CMD_STOP);
-}
-
-void MP3::stopInject()
-{
-  sendCommand(CMD_STOP_INJECT);
-}
-void MP3::singleCycle()
-{
-  mp3_5bytes(CMD_SET_PLAY_MODE, SINGLE_CYCLE);
-}	
-void MP3::allCycle()
-{
-  mp3_5bytes(CMD_SET_PLAY_MODE, ALL_CYCLE);
-}
-
-void MP3::playWithIndex(int8_t index)
-{
-  sendCommand(CMD_PLAY_W_INDEX,index);
-}
-
-void MP3::injectWithIndex(int8_t index)
-{
-  sendCommand(CMD_INJECT_W_INDEX,index);
-}
-
-uint8_t MP3::getStatus()
-{
-  int dat;
-  while(myMP3.available())dat = myMP3.read();
-  sendCommand(CMD_CHECK_STATUS);
-  while(myMP3.available()<9);
-  while(myMP3.read() != CMD_CHECK_STATUS)//the status come after the command 
-  	{
-  	  
-	//  Serial.print(dat,HEX);
-	//  Serial.print(" ");
-  	}
-  dat = myMP3.read();
- // Serial.print("*");
-//  Serial.println(dat);
-  return dat;
-  
-}
-
-void MP3::setVolume(int8_t vol)
-{
-  mp3_5bytes(CMD_SET_VOLUME, vol);
-}
-
-void MP3::playWithFileName(int8_t directory, int8_t file)
-{
-  int16_t dat;
-  dat = ((int16_t)directory) << 8;
-  dat |= file;
-  sendCommand(CMD_PLAY_FILE_NAME, dat);
-}
-
-void MP3::playWithVolume(int8_t index, int8_t volume)
-{
-  if(volume < 0) volume = 0;          //min volume
-  else if(volume > 0x1e) volume = 0x1e;//max volume
-  int16_t dat;
-  dat = ((int16_t)volume) << 8;
-  dat |= index;
-  mp3_6bytes(CMD_PLAY_W_VOL, dat);
-}
-
-
-/*cycle play with an index*/
-void MP3::cyclePlay(int16_t index)
-{
-  mp3_6bytes(CMD_SET_PLAY_MODE,index);
-}
-
-void MP3::setCyleMode(int8_t AllSingle)
-{
- //AllSingle parameter should be 0 or 1, 0 is all songs cycle play, 1 is single cycle play
-  if((AllSingle == 0) || (AllSingle == 1))
-    mp3_5bytes(CMD_SET_PLAY_MODE,AllSingle);
-}
-
-
-void MP3::playCombine(int16_t folderAndIndex[], int8_t number)
-{
-  if(number > 15) return;//number of songs combined can not be more than 15
-  uint8_t nbytes;//the number of bytes of the command with starting byte and ending byte
-  nbytes = 2*number + 4;
-  uint8_t Send_buf[nbytes];
-  Send_buf[0] = 0x7e; //starting byte
-  Send_buf[1] = nbytes - 2; //the number of bytes of the command without starting byte and ending byte
-  Send_buf[2] = CMD_PLAY_COMBINE; 
-  for(uint8_t i=0; i < number; i++)//
-  {
-    Send_buf[i*2+3] = (folderAndIndex[i])>>8;
-	Send_buf[i*2+4] = folderAndIndex[i];
-  }
-  Send_buf[nbytes - 1] = 0xef;
-  sendBytes(Send_buf, nbytes);
-}
-
-
-void MP3::sendCommand(int8_t command, int16_t dat)
-{
-  delay(20);
-  if((command == CMD_PLAY_W_VOL)||(command == CMD_SET_PLAY_MODE)||(command == CMD_PLAY_COMBINE))
-  	return;
-  else if(command < 0x1F) 
-  {
-	mp3Basic(command);
-  }
-  else if(command < 0x40)
-  { 
-	mp3_5bytes(command, dat);
-  }
-  else if(command < 0x50)
-  { 
-	mp3_6bytes(command, dat);
-  }
-  else return;
- 
-}
-
-void MP3::mp3Basic(int8_t command)
-{
-  uint8_t Send_buf[4];
-  Send_buf[0] = 0x7e; //starting byte
-  Send_buf[1] = 0x02; //the number of bytes of the command without starting byte and ending byte
-  Send_buf[2] = command; 
-  Send_buf[3] = 0xef; //
-  sendBytes(Send_buf, 4);
-}
-void MP3::mp3_5bytes(int8_t command, uint8_t dat)
-{
-  uint8_t Send_buf[5];
-  Send_buf[0] = 0x7e; //starting byte
-  Send_buf[1] = 0x03; //the number of bytes of the command without starting byte and ending byte
-  Send_buf[2] = command; 
-  Send_buf[3] = dat; //
-  Send_buf[4] = 0xef; //
-  sendBytes(Send_buf, 5);
-}
-void MP3::mp3_6bytes(int8_t command, int16_t dat)
-{
-  uint8_t Send_buf[6];
-  Send_buf[0] = 0x7e; //starting byte
-  Send_buf[1] = 0x04; //the number of bytes of the command without starting byte and ending byte
-  Send_buf[2] = command; 
-  Send_buf[3] = (int8_t)(dat >> 8);//datah
-  Send_buf[4] = (int8_t)(dat); //datal
-  Send_buf[5] = 0xef; //
-  sendBytes(Send_buf,6);
-}
-void MP3::sendBytes(uint8_t buf[], uint8_t nbytes)
-{
-  for(uint8_t i=0; i < nbytes; i++)//
-  {
-    myMP3.write(buf[i]) ;
-  }
-}
+/*********************************************************************************************************
+The end of file
+*********************************************************************************************************/
