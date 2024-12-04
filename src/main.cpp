@@ -26,6 +26,7 @@ MPU9250_WE myMPU9250 = MPU9250_WE(MPU9250_ADDR);
 
 void setup() {
   Serial.begin(115200);
+  delay(2000);
   Wire.begin(18,17);
   Wire.begin();
   if(!myMPU9250.init()){
@@ -44,6 +45,7 @@ void setup() {
    * depend on the positioning.
    * This function needs to be called at the beginning since it can overwrite your settings!
    */
+  delay(15000);
   Serial.println("Position you MPU9250 flat and don't move it - calibrating...");
   delay(1000);
   myMPU9250.autoOffsets();
@@ -108,6 +110,13 @@ void loop() {
   Serial.print("Resultant g: ");
   Serial.println(resultantG);
 
+  Serial.println("Acceleration in mss (x,y,z):");
+  Serial.print(gValue.x * 9.8);
+  Serial.print("   ");
+  Serial.print(gValue.y * 9.8);
+  Serial.print("   ");
+  Serial.println(gValue.z * 9.8);
+
   Serial.println("Gyroscope data in degrees/s: ");
   Serial.print(gyr.x);
   Serial.print("   ");
@@ -121,7 +130,7 @@ void loop() {
   Serial.print(magValue.y);
   Serial.print("   ");
   Serial.println(magValue.z);
-  
+
 /* This method provides quite precise values for x/y 
    angles up 60°. */
   Serial.print("Angle x = ");
@@ -129,20 +138,19 @@ void loop() {
   Serial.print("  |  Angle y = ");
   Serial.print(angles.y);
   Serial.print("  |  Angle z = ");
-  Serial.println(angles.z);
+  Serial.print(angles.z);
 
 /* Pitch and roll consider all axes for calculation. According to my experience
    it provides more reliable results at higher angles (>60°) */
   float pitch = myMPU9250.getPitch();
   float roll  = myMPU9250.getRoll();
   
-  Serial.print("Pitch   = "); 
+  Serial.print("  |  Pitch   = "); 
   Serial.print(pitch); 
   Serial.print("  |  Roll    = "); 
   Serial.println(roll); 
   
   Serial.println();
-  
-  delay(1000);
+  delay(2000);
   
 }
