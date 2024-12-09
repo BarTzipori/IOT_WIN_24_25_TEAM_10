@@ -10,9 +10,8 @@
             "includePath": [
                 "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/include",
                 "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/src",
+                "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/MPU9250",
                 "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/Adafruit Unified Sensor",
-                "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/MPU9250_WE/src",
-                "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/Bolder Flight Systems MPU9250/src",
                 "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/EspSoftwareSerial/src",
                 "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/ghostl/src",
                 "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/Adafruit BusIO",
@@ -256,9 +255,8 @@
                 "path": [
                     "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/include",
                     "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/src",
+                    "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/MPU9250",
                     "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/Adafruit Unified Sensor",
-                    "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/MPU9250_WE/src",
-                    "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/Bolder Flight Systems MPU9250/src",
                     "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/EspSoftwareSerial/src",
                     "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/ghostl/src",
                     "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/Adafruit BusIO",
