@@ -2,14 +2,17 @@
 #include <Arduino.h>
 
 MPU9250 mpu;
-
-void print_roll_pitch_yaw() {
-    Serial.print("Yaw, Pitch, Roll: ");
-    Serial.print(mpu.getYaw(), 2);
-    Serial.print(", ");
-    Serial.print(mpu.getPitch(), 2);
-    Serial.print(", ");
-    Serial.println(mpu.getRoll(), 2);
+double yaw_offset=0;
+void print_roll_pitch_yaw(float offset)
+{
+  Serial.print("Yaw, Pitch, Roll: ");
+  Serial.print(mpu.getYaw()-offset, 2);
+  Serial.print(", ");
+  Serial.print(mpu.getPitch(), 2);
+  Serial.print(", ");
+  Serial.println(mpu.getRoll(), 2);
+  Serial.print(",offset ");
+  Serial.println(offset, 2);
 }
 void print_calibration() {
     Serial.println("< calibration parameters >");
@@ -78,22 +81,37 @@ void setup() {
     Serial.println("Please Wave device in a figure eight until done.");
     delay(5000);
     mpu.calibrateMag();
+    Serial.println("done calibrating");
+
 
     print_calibration();
-    mpu.verbose(false);
-    mpu.setMagneticDeclination(5);
-    mpu.setFilterIterations(20);
+    mpu.verbose(true);
+    mpu.setMagneticDeclination(5.14);
+    mpu.setFilterIterations(10);
     mpu.selectFilter(QuatFilterSel::MADGWICK);
+
+    
 }
-
-void loop() {
-    if (mpu.update()) {
-        static uint32_t prev_ms = millis();
-        if (millis() > prev_ms + 25) {
-            print_roll_pitch_yaw();
-            prev_ms = millis();
-        }
-        printSensorData();
-
+int indx = 0;
+void loop()
+{
+  indx++;
+  if (mpu.update())
+  {
+    static uint32_t prev_ms = millis();
+    if (millis() > prev_ms + 25)
+    {
+      print_roll_pitch_yaw(yaw_offset);
+      prev_ms = millis();
     }
+    if(indx==1000){
+      Serial.println("put systen in wanted direction");
+      delay(5000);
+      yaw_offset=mpu.getYaw();
+      Serial.print(",offset ");
+      Serial.println(yaw_offset, 2);
+      delay(5000);
+    }
+    // printSensorData();
+  }
 }
