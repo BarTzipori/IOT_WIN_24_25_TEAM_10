@@ -6,7 +6,7 @@
 #define IRQ_PIN 2
 #define XSHUT_PIN_1 4
 #define XSHUT_PIN_2 5
-
+#define STACK_SIZE 2048
 
 Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
 Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
@@ -19,7 +19,7 @@ bool isSensorConnected(uint8_t address) {
     Wire.beginTransmission(address);
     return (Wire.endTransmission() == 0); // Returns true if sensor is responsive
 }
-
+.,
 // Helper function to initialize a sensor with a unique address
 bool initializeSensor(Adafruit_VL53L1X* sensor, int xshut_pin, int i2c_address) {
     // Enable the desired sensor
@@ -87,11 +87,13 @@ void printSensorsData(int delay_in_ms) {
   delay(delay_in_ms);
 }
 
+
+
 void setup() {
   Serial.begin(115200);
   Wire.begin(18,17);
   while (!Serial) delay(10);
-
+  xTaskCreate()
   // Initialize XSHUT pins
   for (size_t i = 0; i < distance_sensors_xshut_pins.size(); i++) {
       pinMode(distance_sensors_xshut_pins[i], OUTPUT);
