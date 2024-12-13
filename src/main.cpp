@@ -219,17 +219,21 @@ void loop() {
   if (mpu.update())
   {
     static uint32_t prev_ms = millis();
-    if (millis() > prev_ms + 250)
-    {
+    if (millis() > prev_ms + 25) {
+
       sensor_data.setPitch(mpu.getPitch());
-      sensor_data.setYaw(mpu.getYaw());
+      int yaw = mpu.getYaw();
+      if(yaw < 0 ) {
+        yaw = 360 + yaw;
+      }
+      sensor_data.setYaw(yaw);
       sensor_data.setRoll(mpu.getRoll());
       sensor_data.setAccelX(mpu.getLinearAccX());
       sensor_data.setAccelY(mpu.getLinearAccY());
       sensor_data.setAccelZ(mpu.getLinearAccZ());
+      sensor_data.setlastUpdateTime(millis());
       sensor_data.printData();
       prev_ms = millis();
     }
-    // printSensorData();
   }
 }
