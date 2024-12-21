@@ -8,8 +8,8 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/include",
                 "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/src",
+                "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/Adafruit HMC5883 Unified",
                 "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/MPU9250",
                 "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/Adafruit Unified Sensor",
                 "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/EspSoftwareSerial/src",
@@ -253,8 +253,8 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/include",
                     "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/src",
+                    "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/Adafruit HMC5883 Unified",
                     "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/MPU9250",
                     "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/Adafruit Unified Sensor",
                     "/Users/bartzipori/VScode projects/IOT_WIN_24_25_TEAM_10/.pio/libdeps/freenove_esp32_s3_wroom/EspSoftwareSerial/src",

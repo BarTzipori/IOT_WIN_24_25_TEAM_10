@@ -92,25 +92,15 @@ void setup() {
 
     
 }
-int indx = 0;
 void loop()
 {
-  indx++;
   if (mpu.update())
   {
     static uint32_t prev_ms = millis();
     if (millis() > prev_ms + 25)
     {
-      print_roll_pitch_yaw(yaw_offset);
+      print_roll_pitch_yaw(0);
       prev_ms = millis();
-    }
-    if(indx==1000){
-      Serial.println("put systen in wanted direction");
-      delay(5000);
-      yaw_offset=mpu.getYaw();
-      Serial.print(",offset ");
-      Serial.println(yaw_offset, 2);
-      delay(5000);
     }
     // printSensorData();
   }
