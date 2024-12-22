@@ -97,25 +97,7 @@ void setup() {
       }
   }
 
-  // calibrate anytime you want to
-  Serial.println("Accel Gyro calibration will start in 5sec.");
-  Serial.println("Please leave the device still on the flat plane.");
-  mpu.verbose(true);
-  delay(5000);
-  mpu.calibrateAccelGyro();
-
-  Serial.println("Mag calibration will start in 5sec.");
-  Serial.println("Please Wave device in a figure eight until done.");
-  delay(5000);
-  mpu.calibrateMag();
-  Serial.println("done calibrating");
-
-  printMPUCalibration(&mpu);
-  mpu.verbose(true);
-  mpu.setMagneticDeclination(5.14);
-  mpu.setFilterIterations(10);
-  mpu.selectFilter(QuatFilterSel::MADGWICK);
-  
+  calibrateMPU(MPU9250* mpu);
   xTaskCreate(printVL53L1XSensorsData, "printVL53L1XSensorsData", STACK_SIZE, &DistanceSensorDelay, 3, nullptr);
   //xTaskCreate(printMPUSensorData, "printMPUSensorsData", STACK_SIZE, &DistanceSensorDelay, 1, nullptr);
 }
