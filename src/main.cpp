@@ -1,13 +1,14 @@
 
+#include <Arduino.h>
+#include <vector>
+#include <utility>
 #include "Adafruit_VL53L1X.h"
 #include "MPU9250.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
-#include <Arduino.h>
 #include "sensorData.h"
-#include <vector>
-#include <utility>
+#include "sensorHelperFunctions.h"
 
 #define IRQ_PIN 2
 #define XSHUT_PIN_1 4
@@ -20,103 +21,7 @@ std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2};
 std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, 0x30},  {&vl53_2, 0x31}};
 MPU9250 mpu;
 SensorData sensor_data;
-static int DistanceSensorDelay =  250;
-
-void print_roll_pitch_yaw()
-{
-  Serial.print("Yaw, Pitch, Roll: ");
-  Serial.print(mpu.getYaw(), 2);
-  Serial.print(", ");
-  Serial.print(mpu.getPitch(), 2);
-  Serial.print(", ");
-  Serial.println(mpu.getRoll(), 2);
-}
-
-void print_calibration() {
-    Serial.println("< calibration parameters >");
-    Serial.println("accel bias [g]: ");
-    Serial.print(mpu.getAccBiasX() * 1000.f / (float)MPU9250::CALIB_ACCEL_SENSITIVITY);
-    Serial.print(", ");
-    Serial.print(mpu.getAccBiasY() * 1000.f / (float)MPU9250::CALIB_ACCEL_SENSITIVITY);
-    Serial.print(", ");
-    Serial.print(mpu.getAccBiasZ() * 1000.f / (float)MPU9250::CALIB_ACCEL_SENSITIVITY);
-    Serial.println();
-    Serial.println("gyro bias [deg/s]: ");
-    Serial.print(mpu.getGyroBiasX() / (float)MPU9250::CALIB_GYRO_SENSITIVITY);
-    Serial.print(", ");
-    Serial.print(mpu.getGyroBiasY() / (float)MPU9250::CALIB_GYRO_SENSITIVITY);
-    Serial.print(", ");
-    Serial.print(mpu.getGyroBiasZ() / (float)MPU9250::CALIB_GYRO_SENSITIVITY);
-    Serial.println();
-    Serial.println("mag bias [mG]: ");
-    Serial.print(mpu.getMagBiasX());
-    Serial.print(", ");
-    Serial.print(mpu.getMagBiasY());
-    Serial.print(", ");
-    Serial.print(mpu.getMagBiasZ());
-    Serial.println();
-    Serial.println("mag scale []: ");
-    Serial.print(mpu.getMagScaleX());
-    Serial.print(", ");
-    Serial.print(mpu.getMagScaleY());
-    Serial.print(", ");
-    Serial.print(mpu.getMagScaleZ());
-    Serial.println();
-}
-void printSensorData() {
-      Serial.println("accel x: ");
-      Serial.println(mpu.getAccX());
-      Serial.println(mpu.getLinearAccX());
-
-      Serial.println("accel y: ");
-      Serial.println(mpu.getAccY());
-      Serial.println(mpu.getLinearAccY());
-      Serial.println("accel z: ");
-      Serial.println(mpu.getAccZ());
-      Serial.println(mpu.getLinearAccZ());
-}
-
-// Helper function to check if sensor is connected
-bool isVL53L1XSensorConnected(uint8_t address) {
-    Wire.beginTransmission(address);
-    return (Wire.endTransmission() == 0); // Returns true if sensor is responsive
-}
-
-// Helper function to initialize a sensor with a unique address
-bool initializeVL53L1XSensor(Adafruit_VL53L1X* sensor, int xshut_pin, int i2c_address) {
-    // Enable the desired sensor
-    digitalWrite(xshut_pin, HIGH); // Pull XSHUT HIGH to enable
-    delay(10); // Allow stabilization
-    Serial.print("Sensor: ");
-    Serial.print(xshut_pin);
-    Serial.println(" connected, initializing."); 
-    // initialize the sensor
-    if (!sensor->begin(i2c_address, &Wire)) {
-        Serial.printf("Error reinitializing sensor %d\n", index);
-        return false;
-    }
-    // Start ranging 
-    if (!sensor->startRanging()) {
-        Serial.printf("Error starting ranging on sensor %d\n", index);
-        return false;
-    }
-    sensor->setTimingBudget(50); //Set timing budget
-    return true;
-}
-
-// Helper function to disable all sensors
-void disableAllVL53L1XSensors() {
-    for (size_t i = 0; i < distance_sensors_xshut_pins.size(); i++) {
-        digitalWrite(distance_sensors_xshut_pins[i], LOW);
-    }
-}
-
-// Helper function to enable all sensors
-void enableAllVL53L1XSensors() {
-    for (size_t i = 0; i < distance_sensors_xshut_pins.size(); i++) {
-        digitalWrite(distance_sensors_xshut_pins[i], HIGH);
-    }
-}
+static int DistanceSensorDelay =  25;
 
 // Helper function to print sensor data
 void printVL53L1XSensorsData(void *pvParameters) {
@@ -164,7 +69,7 @@ void printMPUSensorData(void *pvParameters) {
         // Update MPU data
         if (mpu.update()) {
             // Print roll, pitch, and yaw every 25 ms
-            print_roll_pitch_yaw();
+            printMPURollPitchYaw(&mpu);
         }
         // Wait for the next cycle (250 ms period)
         vTaskDelayUntil(&lastWakeTime, period);
@@ -205,7 +110,7 @@ void setup() {
   mpu.calibrateMag();
   Serial.println("done calibrating");
 
-  print_calibration();
+  printMPUCalibration(&mpu);
   mpu.verbose(true);
   mpu.setMagneticDeclination(5.14);
   mpu.setFilterIterations(10);

@@ -1,18 +1,25 @@
 #include "MPU9250.h"
+#include "eeprom_utils.h"
 #include <Arduino.h>
 
 MPU9250 mpu;
 double yaw_offset=0;
-void print_roll_pitch_yaw(float offset)
+bool calibration_needed = false;
+
+void print_roll_pitch_yaw()
 {
   Serial.print("Yaw, Pitch, Roll: ");
-  Serial.print(mpu.getYaw()-offset, 2);
+  float yaw = mpu.getYaw();
+  if (yaw < 0)
+  {
+    yaw += 360;
+  }
+  Serial.print(yaw, 2);
   Serial.print(", ");
   Serial.print(mpu.getPitch(), 2);
   Serial.print(", ");
   Serial.println(mpu.getRoll(), 2);
-  Serial.print(",offset ");
-  Serial.println(offset, 2);
+
 }
 void print_calibration() {
     Serial.println("< calibration parameters >");
@@ -71,47 +78,46 @@ void setup() {
     }
 
     // calibrate anytime you want to
-    Serial.println("Accel Gyro calibration will start in 5sec.");
-    Serial.println("Please leave the device still on the flat plane.");
-    mpu.verbose(true);
-    delay(5000);
-    mpu.calibrateAccelGyro();
+    #if defined(ESP_PLATFORM) || defined(ESP8266)
+        EEPROM.begin(0x80);
+    #endif
 
-    Serial.println("Mag calibration will start in 5sec.");
-    Serial.println("Please Wave device in a figure eight until done.");
     delay(5000);
-    mpu.calibrateMag();
-    Serial.println("done calibrating");
+    if(calibration_needed) {
+      // calibrate anytime you want to
+      Serial.println("Accel Gyro calibration will start in 5sec.");
+      Serial.println("Please leave the device still on the flat plane.");
+      mpu.verbose(true);
+      delay(5000);
+      mpu.calibrateAccelGyro();
 
+      Serial.println("Mag calibration will start in 5sec.");
+      Serial.println("Please Wave device in a figure eight until done.");
+      delay(5000);
+      mpu.calibrateMag();
+      Serial.println("done calibrating");
+      // save to eeprom
+      saveCalibration();
+    } 
+    // load from eeprom
+    loadCalibration();
 
     print_calibration();
-    mpu.verbose(true);
+    mpu.ahrs(true);
     mpu.setMagneticDeclination(5.14);
     mpu.setFilterIterations(10);
     mpu.selectFilter(QuatFilterSel::MADGWICK);
-
-    
 }
-int indx = 0;
+
 void loop()
 {
-  indx++;
   if (mpu.update())
   {
     static uint32_t prev_ms = millis();
     if (millis() > prev_ms + 25)
     {
-      print_roll_pitch_yaw(yaw_offset);
+      print_roll_pitch_yaw();
       prev_ms = millis();
     }
-    if(indx==1000){
-      Serial.println("put systen in wanted direction");
-      delay(5000);
-      yaw_offset=mpu.getYaw();
-      Serial.print(",offset ");
-      Serial.println(yaw_offset, 2);
-      delay(5000);
-    }
-    // printSensorData();
   }
 }
