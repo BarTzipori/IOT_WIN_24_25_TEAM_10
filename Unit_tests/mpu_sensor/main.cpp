@@ -4,7 +4,7 @@
 
 MPU9250 mpu;
 double yaw_offset=0;
-bool calibration_needed = true;
+bool calibration_needed = false;
 
 void print_roll_pitch_yaw()
 {
