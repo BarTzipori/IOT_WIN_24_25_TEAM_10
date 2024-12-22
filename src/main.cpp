@@ -3,7 +3,7 @@
 #include <Arduino.h>
 
 MPU9250 mpu;
-double yaw_offset=0;
+
 bool calibration_needed = false;
 
 void print_roll_pitch_yaw()
@@ -19,8 +19,8 @@ void print_roll_pitch_yaw()
   Serial.print(mpu.getPitch(), 2);
   Serial.print(", ");
   Serial.println(mpu.getRoll(), 2);
-
 }
+
 void print_calibration() {
     Serial.println("< calibration parameters >");
     Serial.println("accel bias [g]: ");
@@ -52,6 +52,7 @@ void print_calibration() {
     Serial.print(mpu.getMagScaleZ());
     Serial.println();
 }
+
 void printSensorData() {
       Serial.println("accel x: ");
       Serial.println(mpu.getAccX());
