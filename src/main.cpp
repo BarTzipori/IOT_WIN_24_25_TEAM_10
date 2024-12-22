@@ -22,6 +22,7 @@ std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, 0x3
 MPU9250 mpu;
 SensorData sensor_data;
 static int DistanceSensorDelay =  25;
+bool calibration_needed = true;
 
 // Helper function to print sensor data
 void printVL53L1XSensorsData(void *pvParameters) {
@@ -83,6 +84,11 @@ void setup() {
 
   while (!Serial) delay(10);
 
+  // calibrate anytime you want to
+  //#if defined(ESP_PLATFORM) || defined(ESP8266)
+  //    EEPROM.begin(0x80);
+  //#endif
+
   // Initialize XSHUT pins
   for (size_t i = 0; i < distance_sensors_xshut_pins.size(); i++) {
       pinMode(distance_sensors_xshut_pins[i], OUTPUT);
@@ -97,7 +103,7 @@ void setup() {
       }
   }
 
-  calibrateMPU(MPU9250* mpu);
+  calibrateMPU(&mpu, calibration_needed);
   xTaskCreate(printVL53L1XSensorsData, "printVL53L1XSensorsData", STACK_SIZE, &DistanceSensorDelay, 3, nullptr);
   //xTaskCreate(printMPUSensorData, "printMPUSensorsData", STACK_SIZE, &DistanceSensorDelay, 1, nullptr);
 }
