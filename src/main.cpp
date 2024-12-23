@@ -68,7 +68,7 @@ void printSensorData() {
 
 void setup() {
     Serial.begin(115200);
-    Wire.begin(18, 17);
+    Wire.begin(17, 18);
     delay(2000);
 
     if (!mpu.setup(0x68)) {  // change to your own address
