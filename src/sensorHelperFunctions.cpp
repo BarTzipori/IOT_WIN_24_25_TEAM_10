@@ -113,5 +113,7 @@ void calibrateMPU(MPU9250& mpu, bool calibration_needed) {
     mpu.setMagneticDeclination(5.14);
     mpu.setFilterIterations(10);
     mpu.selectFilter(QuatFilterSel::MADGWICK);
+    Wire1.beginTransmission(0x68); //test for multiple busses
+
 }
 
