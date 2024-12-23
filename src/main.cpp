@@ -82,6 +82,7 @@ void setup() {
   Serial.begin(115200);
   Wire.begin(17,18);
   Wire.setClock(100000); // Set I2C clock speed to 100 kHz
+  TwoWire Wire1(1);
   Wire1.begin(15,16);
   Wire1.setClock(100000); // Set I2C clock speed to 100 kHz
 
