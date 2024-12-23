@@ -107,12 +107,10 @@ void calibrateMPU(MPU9250& mpu, bool calibration_needed) {
     loadCalibration();
     delay(5000);
     Serial.println("MPU calibration loaded");
-
     printMPUCalibration(&mpu);
     mpu.ahrs(true);
     mpu.setMagneticDeclination(5.14);
-    mpu.setFilterIterations(10);
+    mpu.setFilterIterations(20);
     mpu.selectFilter(QuatFilterSel::MADGWICK);
-
 }
 

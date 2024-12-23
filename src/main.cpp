@@ -21,7 +21,7 @@ std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2};
 std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, 0x60},  {&vl53_2, 0x61}};
 MPU9250 mpu;
 SensorData sensor_data;
-static int DistanceSensorDelay = 250;
+static int DistanceSensorDelay = 100;
 bool calibration_needed = false;
 bool system_calibrated = false;
 TwoWire secondBus = TwoWire(1);
@@ -30,6 +30,7 @@ TwoWire secondBus = TwoWire(1);
 void sampleVL53L1XSensorsData(void *pvParameters) {
   int delay_in_ms = *(int *)pvParameters;
   while(true) {
+    vTaskDelay(delay_in_ms);
     for (int i = 0; i < distance_sensors.size(); i++) {
       if(!isVL53L1XSensorConnected(distance_sensors[i].second, &secondBus)) {
           Serial.print("Sensor: ");
@@ -37,7 +38,7 @@ void sampleVL53L1XSensorsData(void *pvParameters) {
           Serial.println(" not connected");
           continue;
       } else {
-          vTaskDelay(delay_in_ms);
+          
           if(distance_sensors[i].first->dataReady()) {
               int distance = distance_sensors[i].first->distance();
               if (distance == -1) {
@@ -69,9 +70,8 @@ void sampleMPUSensorData(void *pvParameters) {
     int delay_in_ms = *(int *)pvParameters;
     while (true) {
         // Update MPU data
+        vTaskDelay(250);
         if (mpu.update()) {
-            // Print roll, pitch, and yaw every 25 ms
-          printMPURollPitchYaw(&mpu);
           sensor_data.setPitch(mpu.getPitch());
           int yaw = mpu.getYaw();
           if(yaw < 0 ) {
@@ -85,7 +85,7 @@ void sampleMPUSensorData(void *pvParameters) {
           sensor_data.setlastUpdateTime(millis());
         }
         // Wait for the next cycle
-        vTaskDelay(delay_in_ms);
+        vTaskDelay(250);
     }
 }
 
@@ -93,9 +93,9 @@ void setup() {
   Serial.begin(115200);
   delay(100);
   Wire.begin(17,18);
-  Wire.setClock(400000); // Set I2C clock speed to 100 kHz
+  Wire.setClock(100000); // Set I2C clock speed to 100 kHz
   secondBus.begin(15,16);
-  secondBus.setClock(400000); // Set I2C clock speed to 100 kHz
+  secondBus.setClock(100000); // Set I2C clock speed to 100 kHz
 
   while (!Serial) delay(10);
 
@@ -119,14 +119,19 @@ void setup() {
   system_calibrated = true;
   
   //Creates threaded tasks
-  //xTaskCreate(sampleVL53L1XSensorsData, "sampleVL53L1XSensorsData", STACK_SIZE, &DistanceSensorDelay, 3, nullptr);
-  xTaskCreate(sampleMPUSensorData, "sampleMPUSensorsData", STACK_SIZE, &DistanceSensorDelay, 3, nullptr);
+  xTaskCreate(sampleVL53L1XSensorsData, "sampleVL53L1XSensorsData", STACK_SIZE, &DistanceSensorDelay, 3, nullptr);
+  xTaskCreate(sampleMPUSensorData, "sampleMPUSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
 }
 
 void loop() {
   delay(100);
   if(system_calibrated) {
-    printMPURollPitchYaw(&mpu);
-    sensor_data.printData();
+    static uint32_t prev_ms = millis();
+    if (millis() > prev_ms + 250)
+    {
+      printMPURollPitchYaw(&mpu);
+      sensor_data.printData();
+      prev_ms = millis();
+    }
   }
 }
