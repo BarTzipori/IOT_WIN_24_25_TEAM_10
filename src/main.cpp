@@ -22,16 +22,17 @@ std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, 0x3
 MPU9250 mpu;
 SensorData sensor_data;
 static int DistanceSensorDelay =  25;
-bool calibration_needed = true;
+bool calibration_needed = false;
+bool system_calibrated = false;
 
 // Helper function to print sensor data
 void printVL53L1XSensorsData(void *pvParameters) {
   int delay_in_ms = *(int *)pvParameters;
-  while(true) {
+  while(true && system_calibrated) {
     for (int i = 0; i < distance_sensors.size(); i++) {
       if(!isVL53L1XSensorConnected(distance_sensors[i].second)) {
           Serial.print("Sensor: ");
-          Serial.print(i);
+          Serial.print(i+1);
           Serial.println(" not connected");
           continue;
       } else {
@@ -58,7 +59,7 @@ void printVL53L1XSensorsData(void *pvParameters) {
           }   
       }
     }
-    vTaskDelay(delay_in_ms / portTICK_PERIOD_MS);
+    vTaskDelay(delay_in_ms);
   }
 }
 
@@ -104,12 +105,16 @@ void setup() {
   }
 
   calibrateMPU(&mpu, calibration_needed);
+  delay(1000);
+  system_calibrated = true;
   xTaskCreate(printVL53L1XSensorsData, "printVL53L1XSensorsData", STACK_SIZE, &DistanceSensorDelay, 3, nullptr);
   //xTaskCreate(printMPUSensorData, "printMPUSensorsData", STACK_SIZE, &DistanceSensorDelay, 1, nullptr);
 }
 
 void loop() {
-  if (mpu.update())
+  delay(25);
+  sensor_data.printData();
+  /*if (mpu.update())
   {
     static uint32_t prev_ms = millis();
     if (millis() > prev_ms + 25) {
@@ -128,5 +133,5 @@ void loop() {
       sensor_data.printData();
       prev_ms = millis();
     }
-  }
+  }*/
 }
