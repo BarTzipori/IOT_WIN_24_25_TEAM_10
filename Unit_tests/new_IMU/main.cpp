@@ -59,9 +59,9 @@ void printSensorData() {
 void setup() {
     Serial.begin(115200);
     Wire.begin(18, 17);
-    delay(2000);
+    delay(5000);
 
-    if (!mpu.setup(0x70)) {  // change to your own address
+    if (!mpu.setup(0x68)) {  // change to your own address
         while (1) {
             Serial.println("MPU connection failed. Please check your connection with `connection_check` example.");
             delay(5000);
