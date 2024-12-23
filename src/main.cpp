@@ -70,7 +70,6 @@ void sampleMPUSensorData(void *pvParameters) {
     int delay_in_ms = *(int *)pvParameters;
     while (true) {
         // Update MPU data
-        vTaskDelay(250);
         if (mpu.update()) {
           sensor_data.setPitch(mpu.getPitch());
           int yaw = mpu.getYaw();
@@ -85,7 +84,7 @@ void sampleMPUSensorData(void *pvParameters) {
           sensor_data.setlastUpdateTime(millis());
         }
         // Wait for the next cycle
-        vTaskDelay(250);
+        vTaskDelay(delay_in_ms);
     }
 }
 
@@ -94,8 +93,9 @@ void setup() {
   delay(100);
   Wire.begin(17,18);
   Wire.setClock(100000); // Set I2C clock speed to 100 kHz
+  delay(100);
   secondBus.begin(15,16);
-  secondBus.setClock(100000); // Set I2C clock speed to 100 kHz
+  secondBus.setClock(400000); // Set I2C clock speed to 100 kHz
 
   while (!Serial) delay(10);
 
@@ -129,7 +129,7 @@ void loop() {
     static uint32_t prev_ms = millis();
     if (millis() > prev_ms + 250)
     {
-      printMPURollPitchYaw(&mpu);
+      //printMPURollPitchYaw(&mpu);
       sensor_data.printData();
       prev_ms = millis();
     }
