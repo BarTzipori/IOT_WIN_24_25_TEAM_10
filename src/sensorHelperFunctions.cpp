@@ -82,7 +82,7 @@ void enableAllVL53L1XSensors(std::vector<int>* distance_sensors_xshut_pins) {
     }
 }
 
-void calibrateMPU(MPU9250* mpu, bool calibration_needed) {
+void calibrateMPU(MPU9250& mpu, bool calibration_needed) {
     #if defined(ESP_PLATFORM) || defined(ESP8266)
         EEPROM.begin(0x80);
     #endif
@@ -90,14 +90,14 @@ void calibrateMPU(MPU9250* mpu, bool calibration_needed) {
       // calibrate anytime you want to
       Serial.println("Accel Gyro calibration will start in 5sec.");
       Serial.println("Please leave the device still on the flat plane.");
-      mpu->verbose(true);
+      mpu.verbose(true);
       delay(5000);
-      mpu->calibrateAccelGyro();
+      mpu.calibrateAccelGyro();
 
       Serial.println("Mag calibration will start in 5sec.");
       Serial.println("Please Wave device in a figure eight until done.");
       delay(5000);
-      mpu->calibrateMag();
+      mpu.calibrateMag();
       Serial.println("done calibrating");
       // save to eeprom
       saveCalibration();
@@ -105,12 +105,13 @@ void calibrateMPU(MPU9250* mpu, bool calibration_needed) {
     } 
     // load from eeprom
     loadCalibration();
+    delay(5000);
     Serial.println("MPU calibration loaded");
 
-    printMPUCalibration(mpu);
-    mpu->ahrs(true);
-    mpu->setMagneticDeclination(5.14);
-    mpu->setFilterIterations(10);
-    mpu->selectFilter(QuatFilterSel::MADGWICK);
+    printMPUCalibration(&mpu);
+    mpu.ahrs(true);
+    mpu.setMagneticDeclination(5.14);
+    mpu.setFilterIterations(10);
+    mpu.selectFilter(QuatFilterSel::MADGWICK);
 }
 

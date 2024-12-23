@@ -28,7 +28,8 @@ bool system_calibrated = false;
 // Helper function to print sensor data
 void printVL53L1XSensorsData(void *pvParameters) {
   int delay_in_ms = *(int *)pvParameters;
-  while(true && system_calibrated) {
+  vTaskDelay(1000);
+  while(true) {
     for (int i = 0; i < distance_sensors.size(); i++) {
       if(!isVL53L1XSensorConnected(distance_sensors[i].second)) {
           Serial.print("Sensor: ");
@@ -91,11 +92,11 @@ void setup() {
   //#endif
 
   // Initialize XSHUT pins
-  for (size_t i = 0; i < distance_sensors_xshut_pins.size(); i++) {
-      pinMode(distance_sensors_xshut_pins[i], OUTPUT);
-  }
-  initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second);
-  initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second);  
+  //for (size_t i = 0; i < distance_sensors_xshut_pins.size(); i++) {
+  //    pinMode(distance_sensors_xshut_pins[i], OUTPUT);
+  //}
+  //initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second);
+  //initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second);  
 
   if (!mpu.setup(0x68)) {  // change to your own address
       while (1) {
@@ -103,35 +104,35 @@ void setup() {
           delay(5000);
       }
   }
-
-  calibrateMPU(&mpu, calibration_needed);
-  delay(1000);
+  calibrateMPU(mpu, calibration_needed);
+  delay(15000);
   system_calibrated = true;
-  xTaskCreate(printVL53L1XSensorsData, "printVL53L1XSensorsData", STACK_SIZE, &DistanceSensorDelay, 3, nullptr);
+  //xTaskCreate(printVL53L1XSensorsData, "printVL53L1XSensorsData", STACK_SIZE, &DistanceSensorDelay, 3, nullptr);
   //xTaskCreate(printMPUSensorData, "printMPUSensorsData", STACK_SIZE, &DistanceSensorDelay, 1, nullptr);
 }
 
 void loop() {
-  delay(25);
-  sensor_data.printData();
-  /*if (mpu.update())
-  {
-    static uint32_t prev_ms = millis();
-    if (millis() > prev_ms + 25) {
+  delay(250);
+  if(system_calibrated) {
+    if (mpu.update())
+    {
+      static uint32_t prev_ms = millis();
+      if (millis() > prev_ms + 250) {
 
-      sensor_data.setPitch(mpu.getPitch());
-      int yaw = mpu.getYaw();
-      if(yaw < 0 ) {
-        yaw = 360 + yaw;
+        sensor_data.setPitch(mpu.getPitch());
+        int yaw = mpu.getYaw();
+        if(yaw < 0 ) {
+          yaw = 360 + yaw;
+        }
+        sensor_data.setYaw(yaw);
+        sensor_data.setRoll(mpu.getRoll());
+        sensor_data.setAccelX(mpu.getLinearAccX());
+        sensor_data.setAccelY(mpu.getLinearAccY());
+        sensor_data.setAccelZ(mpu.getLinearAccZ());
+        sensor_data.setlastUpdateTime(millis());
+        sensor_data.printData();
+        prev_ms = millis();
       }
-      sensor_data.setYaw(yaw);
-      sensor_data.setRoll(mpu.getRoll());
-      sensor_data.setAccelX(mpu.getLinearAccX());
-      sensor_data.setAccelY(mpu.getLinearAccY());
-      sensor_data.setAccelZ(mpu.getLinearAccZ());
-      sensor_data.setlastUpdateTime(millis());
-      sensor_data.printData();
-      prev_ms = millis();
     }
-  }*/
+  }
 }
