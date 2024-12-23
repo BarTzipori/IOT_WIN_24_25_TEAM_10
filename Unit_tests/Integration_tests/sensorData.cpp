@@ -24,22 +24,30 @@ void SensorData::setSensor1Distance(int distance) {
 void SensorData::setSensor2Distance(int distance) {
     this->sensor2distance = distance;
 }
+
+void SensorData::setlastUpdateTime(uint32_t distance) {
+    this->lastUpdateTime = distance;
+}
+
 void SensorData::printData() const {
     Serial.print("MPU Data -> Pitch: ");
-    Serial.print(this->pitch);
-    Serial.print(", Yaw: ");
-    Serial.print(this->yaw);
+    Serial.print(this->pitch,2);
     Serial.print(", Roll: ");
-    Serial.print(this->roll);
+    Serial.print(this->roll,2);
+    Serial.print(", Yaw: ");
+    Serial.print(this->yaw,2);
     Serial.print(", AccelX: ");
-    Serial.print(this->accelX);
+    Serial.print(this->accelX,2);
     Serial.print(", AccelY: ");
-    Serial.print(this->accelY);
+    Serial.print(this->accelY,2);
     Serial.print(", AccelZ: ");
-    Serial.println(this->accelZ);
+    Serial.println(this->accelZ,2);
     Serial.print("Distance Sensors -> Sensor1: ");
     Serial.print(this->sensor1distance);
     Serial.print(" mm, Sensor2: ");
     Serial.print(this->sensor2distance);
-    Serial.println(" mm");
+    Serial.print(" mm");
+    Serial.print(" Last update time: ");
+    Serial.println(this->lastUpdateTime);
+    Serial.println();
 }
