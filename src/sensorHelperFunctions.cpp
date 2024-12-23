@@ -55,16 +55,16 @@ void printMPUSensorData(MPU9250* mpu) {
 }
 
 // Helper function to check if sensor is connected
-bool isVL53L1XSensorConnected(uint8_t address) {
-    Wire.beginTransmission(address);
-    return (Wire.endTransmission() == 0); // Returns true if sensor is responsive
+bool isVL53L1XSensorConnected(uint8_t address, TwoWire* wire) {
+    wire->beginTransmission(address);
+    return (wire->endTransmission() == 0); // Returns true if sensor is responsive
 }
 
-bool initializeVL53L1XSensor(Adafruit_VL53L1X* sensor, int xshut_pin, int i2c_address) {
+bool initializeVL53L1XSensor(Adafruit_VL53L1X* sensor, int xshut_pin, int i2c_address, TwoWire* sensor_wire) {
     pinMode(xshut_pin, OUTPUT);
     digitalWrite(xshut_pin, LOW);
-    delay(10);
-    sensor->begin(i2c_address);
+    delay(100);
+    sensor->begin(i2c_address, sensor_wire);
     sensor->setTimingBudget(50000);
     sensor->startRanging();
     return true;
@@ -113,7 +113,6 @@ void calibrateMPU(MPU9250& mpu, bool calibration_needed) {
     mpu.setMagneticDeclination(5.14);
     mpu.setFilterIterations(10);
     mpu.selectFilter(QuatFilterSel::MADGWICK);
-    Wire1.beginTransmission(0x68); //test for multiple busses
 
 }
 
