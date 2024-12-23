@@ -28,7 +28,6 @@ bool system_calibrated = false;
 // Helper function to print sensor data
 void printVL53L1XSensorsData(void *pvParameters) {
   int delay_in_ms = *(int *)pvParameters;
-  vTaskDelay(1000);
   while(true) {
     for (int i = 0; i < distance_sensors.size(); i++) {
       if(!isVL53L1XSensorConnected(distance_sensors[i].second)) {
@@ -94,11 +93,11 @@ void setup() {
   //#endif
 
   // Initialize XSHUT pins
-  //for (size_t i = 0; i < distance_sensors_xshut_pins.size(); i++) {
-  //    pinMode(distance_sensors_xshut_pins[i], OUTPUT);
-  //}
-  //initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second);
-  //initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second);  
+  for (size_t i = 0; i < distance_sensors_xshut_pins.size(); i++) {
+      pinMode(distance_sensors_xshut_pins[i], OUTPUT);
+  }
+  initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second);
+  initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second);  
 
   if (!mpu.setup(0x68)) {  // change to your own address
       while (1) {
