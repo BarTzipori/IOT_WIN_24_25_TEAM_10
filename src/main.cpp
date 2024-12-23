@@ -21,7 +21,7 @@ std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2};
 std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, 0x30},  {&vl53_2, 0x31}};
 MPU9250 mpu;
 SensorData sensor_data;
-static int DistanceSensorDelay =  25;
+static int DistanceSensorDelay = 50;
 bool calibration_needed = false;
 bool system_calibrated = false;
 
@@ -39,7 +39,7 @@ void printVL53L1XSensorsData(void *pvParameters) {
           if(distance_sensors[i].first->dataReady()) {
               int distance = distance_sensors[i].first->distance();
               if (distance == -1) {
-                Serial.print(F("Couldn't get distance: "));
+                //Serial.print(F("Couldn't get distance: "));
                 Serial.println(distance_sensors[i].first->vl_status);
                 if(i == 0) {
                   sensor_data.setSensor1Distance(distance);
