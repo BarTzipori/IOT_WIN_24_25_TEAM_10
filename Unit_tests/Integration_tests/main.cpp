@@ -21,7 +21,7 @@ std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2};
 std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, 0x60},  {&vl53_2, 0x61}};
 MPU9250 mpu;
 SensorData sensor_data;
-static int DistanceSensorDelay = 100;
+static int DistanceSensorDelay = 1000;
 bool calibration_needed = false;
 bool system_calibrated = false;
 TwoWire secondBus = TwoWire(1);
@@ -30,7 +30,6 @@ TwoWire secondBus = TwoWire(1);
 void sampleVL53L1XSensorsData(void *pvParameters) {
   int delay_in_ms = *(int *)pvParameters;
   while(true) {
-    vTaskDelay(delay_in_ms);
     for (int i = 0; i < distance_sensors.size(); i++) {
       if(!isVL53L1XSensorConnected(distance_sensors[i].second, &secondBus)) {
           Serial.print("Sensor: ");
@@ -38,7 +37,7 @@ void sampleVL53L1XSensorsData(void *pvParameters) {
           Serial.println(" not connected");
           continue;
       } else {
-          
+          delay(delay_in_ms);
           if(distance_sensors[i].first->dataReady()) {
               int distance = distance_sensors[i].first->distance();
               if (distance == -1) {
@@ -62,7 +61,9 @@ void sampleVL53L1XSensorsData(void *pvParameters) {
           }   
       }
     }
-    vTaskDelay(delay_in_ms);
+    Wire.endTransmission(0x60);
+    Wire.endTransmission(0x61);
+    vTaskDelay(pdMS_TO_TICKS(delay_in_ms));
   }
 }
 //samples MPU sensor data
@@ -70,6 +71,7 @@ void sampleMPUSensorData(void *pvParameters) {
     int delay_in_ms = *(int *)pvParameters;
     while (true) {
         // Update MPU data
+        vTaskDelay(200);
         if (mpu.update()) {
           sensor_data.setPitch(mpu.getPitch());
           int yaw = mpu.getYaw();
@@ -84,7 +86,7 @@ void sampleMPUSensorData(void *pvParameters) {
           sensor_data.setlastUpdateTime(millis());
         }
         // Wait for the next cycle
-        vTaskDelay(delay_in_ms);
+        vTaskDelay(pdMS_TO_TICKS(delay_in_ms));
     }
 }
 
@@ -119,19 +121,21 @@ void setup() {
   system_calibrated = true;
   
   //Creates threaded tasks
-  xTaskCreate(sampleVL53L1XSensorsData, "sampleVL53L1XSensorsData", STACK_SIZE, &DistanceSensorDelay, 3, nullptr);
-  xTaskCreate(sampleMPUSensorData, "sampleMPUSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
+  //xTaskCreate(sampleMPUSensorData, "sampleMPUSensorsData", STACK_SIZE, &DistanceSensorDelay, 0, nullptr);
+  xTaskCreate(sampleVL53L1XSensorsData, "sampleVL53L1XSensorsData", STACK_SIZE, &DistanceSensorDelay, 0, nullptr);
 }
 
 void loop() {
   delay(100);
   if(system_calibrated) {
     static uint32_t prev_ms = millis();
-    if (millis() > prev_ms + 250)
-    {
-      //printMPURollPitchYaw(&mpu);
-      sensor_data.printData();
-      prev_ms = millis();
+    if(mpu.update()) {
+      if (millis() > prev_ms + 25)
+      {
+        printMPURollPitchYaw(&mpu);
+        sensor_data.printData();
+        prev_ms = millis();
+      }
     }
   }
 }
