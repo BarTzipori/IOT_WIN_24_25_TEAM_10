@@ -129,8 +129,8 @@ void loop() {
   if (mpu.update() && system_calibrated) {
         sensor_data.printData();
           if(sensor_data.getDistanceSensor1() < 500 && sensor_data.getDistanceSensor2() < 500 && sensor_data.getDistanceSensor1() != -1 && sensor_data.getDistanceSensor2() != -1) {
-            motor1.vibrate(vibrationPattern::shortBuzz);
-            motor2.vibrate(vibrationPattern::shortBuzz);
+            motor1.vibrate(vibrationPattern::doubleBuzz);
+            motor2.vibrate(vibrationPattern::doubleBuzz);
           }
   }
   delay(100);
