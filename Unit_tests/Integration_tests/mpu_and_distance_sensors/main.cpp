@@ -9,6 +9,7 @@
 #include "freertos/semphr.h"
 #include "sensorData.h"
 #include "sensorHelperFunctions.h"
+#include "vibrationMotor.h"
 
 #define IRQ_PIN 2
 #define XSHUT_PIN_1 4
@@ -17,6 +18,8 @@
 #define MPU9250_ADDRESS 0x68
 #define VL53L1X_ADDRESS 0x60
 #define VL53L1X_ADDRESS_2 0x61
+#define MOTOR_1_PIN 41
+#define MOTOR_2_PIN 42
 
 Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
 Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
@@ -25,6 +28,8 @@ std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2};
 std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}};
 std::vector<std::pair<MPU9250*, int>> mpu_sensors = {{&mpu, MPU9250_ADDRESS}};
 SensorData sensor_data;
+vibrationMotor motor1(MOTOR_1_PIN); 
+vibrationMotor motor2(MOTOR_2_PIN);  
 
 static int DistanceSensorDelay = 75;
 bool calibration_needed = false;
@@ -123,6 +128,17 @@ void setup() {
 void loop() {
   if (mpu.update() && system_calibrated) {
         sensor_data.printData();
+          if(sensor_data.getDistanceSensor1() < 500 && sensor_data.getDistanceSensor2() < 500 && sensor_data.getDistanceSensor1() != -1 && sensor_data.getDistanceSensor2() != -1) {
+            motor1.vibrate(vibrationPattern::shortBuzz);
+            motor2.vibrate(vibrationPattern::shortBuzz);
+          }
   }
   delay(100);
 }
+
+
+
+
+
+
+
