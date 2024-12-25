@@ -1,4 +1,7 @@
 #include "sd_read_write.h"
+#include <string.h>
+#include "settings.h"
+
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
     Serial.printf("Listing directory: %s\n", dirname);
@@ -113,7 +116,6 @@ void deleteFile(fs::FS &fs, const char * path){
 }
 
 void testFileIO(fs::FS &fs, const char * path){
-
     File file = fs.open(path);
     static uint8_t buf[512];
     size_t len = 0;
@@ -155,3 +157,47 @@ void testFileIO(fs::FS &fs, const char * path){
 }
 
 
+bool isExist(fs::FS &fs ,const char * dirname,const char * filename)
+{
+    File root = fs.open(dirname);
+    if(!root){
+        Serial.println("Failed to open directory");
+        return false;
+    }
+
+        File file = root.openNextFile();
+    while(file){
+        Serial.println(file.name());
+        Serial.println(filename);
+        Serial.println(strcmp(file.name(),filename));
+        if(file.isDirectory()){
+            continue;
+        } else {
+            Serial.print("  FILE: ");
+            Serial.print(file.name());
+            Serial.print("  SIZE: ");
+            Serial.println(file.size());
+            if(strcmp(file.name(),filename)==0)
+                return true;
+        }
+        file = root.openNextFile();
+}
+return false;
+}
+
+settings readSettings(fs::FS &fs, const char *path)
+{
+    Serial.printf("Reading file: %s\n", path);
+
+    File file = fs.open(path);
+    if(!file){
+        Serial.println("Failed to open file for reading");
+        return setting(0,0,0,0,0);
+    }
+
+    Serial.print("Read from file: ");
+    while(file.available()){
+        Serial.write(file.read());
+
+    }
+}
