@@ -1,10 +1,10 @@
 ESP32/SECRETS.h
 # PlatformIO build files
-.pio/
+
 .vscode/
 
 #src and include folders
-./src 
+
 ./include
 
 # Other unnecessary files
