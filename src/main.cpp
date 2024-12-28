@@ -236,4 +236,5 @@ void loop() {
       vTaskDelay(1000);
     }
   }
+  vTaskDelay(50);
 }
