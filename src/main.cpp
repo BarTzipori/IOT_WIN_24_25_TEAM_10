@@ -193,5 +193,5 @@ void loop() {
       motor2.vibrate(vibrationPattern::pulseBuzz);
     }
   }
-  delay(100);
+  delay(50);
 }
