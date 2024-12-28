@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'result_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -51,6 +55,7 @@ class SettingsQuestionnaire extends StatefulWidget {
 class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
   late List<SettingsItem> _data;
   final TextEditingController _heightController = TextEditingController();
+  final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
 
   @override
   void initState() {
@@ -69,17 +74,17 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       SettingsItem(
         headerValue: '1. Sound or Vibration',
         expandedValue: 'Choose between sound or vibration alerts',
-        options: ['Sound', 'Vibration', 'Both'],
+        options: ['Sound', 'Vibration'],
       ),
       SettingsItem(
         headerValue: '2. Sound Type',
         expandedValue: 'Select the type of sound alert',
-        options: ['Sound 1', 'Sound 2', 'Sound 3', 'None'],
+        options: ['Sound 1', 'Sound 2', 'Sound 3'],
       ),
       SettingsItem(
         headerValue: '3. Vibration Type',
         expandedValue: 'Select the type of vibration alert',
-        options: ['Vibration 1', 'Vibration 2', 'Vibration 3', 'None'],
+        options: ['Vibration 1', 'Vibration 2', 'Vibration 3'],
       ),
       SettingsItem(
         headerValue: '4. Notification Timing',
@@ -95,6 +100,30 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       ),
     ];
   }
+
+  Future<void> _saveSettingsToDatabase() async {
+    try {
+      final Map<String, dynamic> settingsData = {
+        'soundOrVibration': _data[0].selectedOption,
+        'soundType': _data[1].selectedOption,
+        'vibrationType': _data[2].selectedOption,
+        'notificationTiming': _data[3].selectedOption,
+        'userHeight': _data[4].textController?.text,
+      };
+
+      // Store data under "System_Settings/settings"
+      await _databaseRef.child('System_Settings/settings').set(settingsData);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Settings saved successfully!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save settings: $e')),
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -161,14 +190,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ResultPage(settingsData: _data),
-                    ),
-                  );
-                },
+                onPressed: _saveSettingsToDatabase,
                 child: const Text('Save'),
               ),
             ],
