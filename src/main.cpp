@@ -22,8 +22,8 @@
 #define MOTOR_1_PIN 41
 #define MOTOR_2_PIN 42
 #define ON_OFF_BUTTON_PIN 19
-#define LONG_PRESS_TIME 5000
-#define SHORT_PRESS_TIME 5000
+#define LONG_PRESS_TIME 10000
+#define SHORT_PRESS_TIME 10000
 
 Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
 Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
@@ -185,6 +185,7 @@ void loop() {
       calibration_needed = false;
     }
   }
+  //sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on) {
     sensor_data.printData();
     if(sensor_data.getDistanceSensor1() < 500 && sensor_data.getDistanceSensor2() < 500 && sensor_data.getDistanceSensor1() != -1 && sensor_data.getDistanceSensor2() != -1) {
