@@ -43,5 +43,20 @@ void vibrationMotor::vibrate(vibrationPattern pattern) {
         case vibrationPattern::pulseBuzz:
             // Pulse buzz
             multipleVibrations(5, 250, motorPin);
+        case vibrationPattern::powerONBuzz:
+            // Triple buzz
+            multipleVibrations(3, 250, motorPin);
+            break;
+        case vibrationPattern::powerOFFBuzz:
+            // Long buzz for shutdown
+            digitalWrite(motorPin, HIGH);
+            delay(500);
+            digitalWrite(motorPin, LOW);
+            delay(100);
+            break;
+        case vibrationPattern::recalibrationBuzz:
+            // Triple buzz
+            multipleVibrations(8, 250, motorPin);
+            break;
     }
 }

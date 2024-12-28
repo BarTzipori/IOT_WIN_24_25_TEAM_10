@@ -8,7 +8,10 @@ enum class vibrationPattern {
   shortBuzz,
   longBuzz,
   doubleBuzz,
-  pulseBuzz
+  pulseBuzz,
+  powerONBuzz,
+  powerOFFBuzz,
+  recalibrationBuzz
 };
 
 class vibrationMotor {

@@ -35,6 +35,7 @@ SensorData sensor_data;
 vibrationMotor motor1(MOTOR_1_PIN); 
 vibrationMotor motor2(MOTOR_2_PIN);  
 ezButton onOffButton(ON_OFF_BUTTON_PIN);
+vibrationPattern vib_pattern = vibrationPattern::shortBuzz;
 TwoWire secondBus = TwoWire(1);
 
 static int DistanceSensorDelay = 75;
@@ -164,9 +165,11 @@ void loop() {
       if(is_system_on) {
         is_system_on = false;
         Serial.println("System shut down");
+        motor1.vibrate(vibrationPattern::powerOFFBuzz);
       } else {
         is_system_on = true;
         Serial.println("Powering on system");
+        motor1.vibrate(vibrationPattern::powerONBuzz);
       }
     }
   }
@@ -178,6 +181,7 @@ void loop() {
       is_system_on = false;
       system_calibrated = false;
       calibration_needed = true;
+      motor1.vibrate(vibrationPattern::recalibrationBuzz);
       calibrateMPU(mpu, calibration_needed);
       delay(10000);
       system_calibrated = true;
@@ -189,8 +193,8 @@ void loop() {
   if (mpu.update() && system_calibrated && is_system_on) {
     sensor_data.printData();
     if(sensor_data.getDistanceSensor1() < 500 && sensor_data.getDistanceSensor2() < 500 && sensor_data.getDistanceSensor1() != -1 && sensor_data.getDistanceSensor2() != -1) {
-      motor1.vibrate(vibrationPattern::pulseBuzz);
-      motor2.vibrate(vibrationPattern::pulseBuzz);
+      motor1.vibrate(vib_pattern);
+      motor2.vibrate(vib_pattern);
     }
   }
   delay(50);
