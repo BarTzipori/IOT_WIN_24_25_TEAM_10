@@ -13,6 +13,7 @@
 #include "sensorHelperFunctions.h"
 #include "vibrationMotor.h"
 #include "RedMP3.h"
+#include "collisionDetectionAlgorithm.h"
 
 #define IRQ_PIN 2
 #define XSHUT_PIN_1 4
@@ -33,13 +34,14 @@ Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
 Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
 MPU9250 mpu;
 MP3 mp3(MP3_RX, MP3_TX);
+vibrationMotor motor1(MOTOR_1_PIN); 
+vibrationMotor motor2(MOTOR_2_PIN);  
+ezButton onOffButton(ON_OFF_BUTTON_PIN);
+
 std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2};
 std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}};
 std::vector<std::pair<MPU9250*, int>> mpu_sensors = {{&mpu, MPU9250_ADDRESS}};
 SensorData sensor_data;
-vibrationMotor motor1(MOTOR_1_PIN); 
-vibrationMotor motor2(MOTOR_2_PIN);  
-ezButton onOffButton(ON_OFF_BUTTON_PIN);
 //default vibration pattern
 vibrationPattern vib_pattern = vibrationPattern::shortBuzz;
 TwoWire secondBus = TwoWire(1);
@@ -57,6 +59,7 @@ unsigned long pressed_time = 0;
 unsigned long released_time = 0;
 bool is_pressing = false;
 bool is_long_press = false;
+float velocity = 0;
 
 
 //Samples sensors data
@@ -106,9 +109,10 @@ void sampleSensorsData(void *pvParameters) {
         }
         sensor_data.setYaw(yaw);
         sensor_data.setRoll(mpu_sensors[0].first->getRoll());
-        sensor_data.setAccelX(mpu_sensors[0].first->getLinearAccX());
-        sensor_data.setAccelY(mpu_sensors[0].first->getLinearAccY());
+        sensor_data.setAccelX(mpu_sensors[0].first->getAccX());
+        sensor_data.setAccelY(mpu_sensors[0].first->getAccY());
         sensor_data.setAccelZ(mpu_sensors[0].first->getLinearAccZ());
+        sensor_data.updateLinearAccelX();
         sensor_data.setlastUpdateTime(millis());
       }
     }
@@ -202,6 +206,7 @@ void loop() {
         is_system_on = true;
         Serial.println("Powering on system");
         motor1.vibrate(vibrationPattern::powerONBuzz);
+        velocity = 0;
       }
     }
   }
@@ -224,7 +229,9 @@ void loop() {
   //sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on) {
     sensor_data.printData();
-    if(sensor_data.getDistanceSensor1() < 500 && sensor_data.getDistanceSensor2() < 500 && sensor_data.getDistanceSensor1() != -1 && sensor_data.getDistanceSensor2() != -1) {
+    calculateVelocity(sensor_data, velocity, 50);
+    Serial.println(velocity);
+    /*if(sensor_data.getDistanceSensor1() < 500 && sensor_data.getDistanceSensor2() < 500 && sensor_data.getDistanceSensor1() != -1 && sensor_data.getDistanceSensor2() != -1) {
     
       xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor1, 1, nullptr);
       xTaskCreate(vibrateMotorsAsTask, "vibrateMotor2", STACK_SIZE, &motor2, 1, nullptr);
@@ -234,7 +241,7 @@ void loop() {
       audio_params[2] = (void*)(uintptr_t)0x01;       //file name
       xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
       vTaskDelay(1000);
-    }
+    }*/
   }
-  vTaskDelay(50);
+  vTaskDelay(10);
 }
