@@ -111,7 +111,7 @@ void sampleSensorsData(void *pvParameters) {
         sensor_data.setRoll(mpu_sensors[0].first->getRoll());
         sensor_data.setAccelX(mpu_sensors[0].first->getAccX());
         sensor_data.setAccelY(mpu_sensors[0].first->getAccY());
-        sensor_data.setAccelZ(mpu_sensors[0].first->getLinearAccZ());
+        sensor_data.setAccelZ(mpu_sensors[0].first->getAccZ());
         sensor_data.updateLinearAccelX();
         sensor_data.setlastUpdateTime(millis());
       }
@@ -229,7 +229,7 @@ void loop() {
   //sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on) {
     sensor_data.printData();
-    calculateVelocity(sensor_data, velocity, 50);
+    calculateVelocity(sensor_data, velocity, 5);
     Serial.print("Velocity: ");
     Serial.println(velocity);
     if(sensor_data.getDistanceSensor1() < 500 && sensor_data.getDistanceSensor2() < 500 && sensor_data.getDistanceSensor1() != -1 && sensor_data.getDistanceSensor2() != -1) {

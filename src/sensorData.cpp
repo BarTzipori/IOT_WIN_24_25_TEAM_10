@@ -29,7 +29,7 @@ void SensorData::setlastUpdateTime(uint32_t distance) {
     this->lastUpdateTime = distance;
 }
 void SensorData::updateLinearAccelX() {
-    this->linearAccelX = fabs(accelZ)*cos(90-this->pitch);
+    linearAccelX = accelX - (accelZ)*sin(pitch);
 }
 
 void SensorData::printData() const {

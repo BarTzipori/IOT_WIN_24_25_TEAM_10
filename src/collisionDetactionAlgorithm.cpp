@@ -11,7 +11,7 @@ void calculateVelocity(const SensorData& sensorData, float &velocity, float delt
         accelX = 0.0f;
     }
     // Integrate acceleration to update velocity
-    velocity += fabs(accelX) * deltaTime/1000;
+    velocity += accelX * deltaTime/1000;
 
     // Apply threshold to determine if velocity is effectively zero
     if (velocity < VELOCITY_THRESHOLD) {
