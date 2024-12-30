@@ -50,7 +50,7 @@ int8_t volume = 0x1a;//0~0x1e (30 adjustable level)
 int8_t folderName = 0x01;//folder name must be 01 02 03 04 ...
 int8_t fileName = 0x01; // prefix of file name must be 001xxx 002xxx 003xxx 004xxx ...
 
-static int DistanceSensorDelay = 75;
+static int DistanceSensorDelay = 50;
 bool calibration_needed = false;
 bool system_calibrated = false;
 bool mpu_updated = false;
@@ -146,7 +146,7 @@ void setup() {
   Wire.setClock(100000); // Set I2C clock speed to 100 kHz
   delay(100);
   secondBus.begin(15,16);
-  secondBus.setClock(100000); // Set I2C clock speed to 100 kHz
+  secondBus.setClock(400000); // Set I2C clock speed to 100 kHz
 
   //onOffButton.setDebounceTime(50);
 
@@ -230,8 +230,9 @@ void loop() {
   if (mpu.update() && system_calibrated && is_system_on) {
     sensor_data.printData();
     calculateVelocity(sensor_data, velocity, 50);
+    Serial.print("Velocity: ");
     Serial.println(velocity);
-    /*if(sensor_data.getDistanceSensor1() < 500 && sensor_data.getDistanceSensor2() < 500 && sensor_data.getDistanceSensor1() != -1 && sensor_data.getDistanceSensor2() != -1) {
+    if(sensor_data.getDistanceSensor1() < 500 && sensor_data.getDistanceSensor2() < 500 && sensor_data.getDistanceSensor1() != -1 && sensor_data.getDistanceSensor2() != -1) {
     
       xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor1, 1, nullptr);
       xTaskCreate(vibrateMotorsAsTask, "vibrateMotor2", STACK_SIZE, &motor2, 1, nullptr);
@@ -241,7 +242,7 @@ void loop() {
       audio_params[2] = (void*)(uintptr_t)0x01;       //file name
       xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
       vTaskDelay(1000);
-    }*/
+    }
   }
-  vTaskDelay(10);
+  vTaskDelay(50);
 }
