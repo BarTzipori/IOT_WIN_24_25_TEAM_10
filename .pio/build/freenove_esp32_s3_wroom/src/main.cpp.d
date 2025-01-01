@@ -288,8 +288,7 @@
  .pio/libdeps/freenove_esp32_s3_wroom/Firebase\ ESP32\ Client/src/addons/TokenHelper.h \
  .pio/libdeps/freenove_esp32_s3_wroom/Firebase\ ESP32\ Client/src/Firebase.h \
  .pio/libdeps/freenove_esp32_s3_wroom/Firebase\ ESP32\ Client/src/addons/RTDBHelper.h \
- src/sd_read_write.h \
+ src/sd_read_write.h src/settings.h \
  /Users/matan/.platformio/packages/framework-arduinoespressif32/libraries/SD_MMC/src/SD_MMC.h \
  /Users/matan/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/driver/include/driver/sdmmc_types.h \
- /Users/matan/.platformio/packages/framework-arduinoespressif32/libraries/SD_MMC/src/sd_defines.h \
- src/settings.h
+ /Users/matan/.platformio/packages/framework-arduinoespressif32/libraries/SD_MMC/src/sd_defines.h

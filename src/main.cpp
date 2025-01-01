@@ -90,9 +90,119 @@ bool WifiSetup()
       }
 }
 
-bool wifi_flag;
+void init_sd_card()
+{
+  if (isExist(SD_MMC, "/Settings", "setting.txt"))
+          Serial.println("setting file exist!");
+          else  {
+              createDir(SD_MMC, "/Settings");
+              writeFile(SD_MMC, "/Settings/setting.txt", "Mode: Both\n");
+              appendFile(SD_MMC, "/Settings/setting.txt", "Sound: Sound_1\n");
+              appendFile(SD_MMC, "/Settings/setting.txt", "Viberation: Viberation_1\n");
+              appendFile(SD_MMC, "/Settings/setting.txt", "Timing: 0.5s\n");
+              appendFile(SD_MMC, "/Settings/setting.txt", "Height: 1.65\n");
+              endFile(SD_MMC, "/Settings/setting.txt");
+              Serial.println("created setting file");
+                    }
+}
 
-void setup() {
+void setupFirebase(){
+  config.api_key = API_KEY;
+  config.database_url = FIREBASE_HOST;
+
+  auth.user.email = USER_EMAIL;
+  auth.user.password = USER_PASSWORD;
+
+  Firebase.begin(&config, &auth);
+  Firebase.reconnectWiFi(true);
+
+  config.token_status_callback = tokenStatusCallback;
+}
+
+settings getFirebaseSettings()
+{
+  
+  String mode, viberation, timming, sound;
+  double height;
+  if (Firebase.getString(firebaseData, "/System_Settings/Vibration"))
+  {
+    viberation = firebaseData.stringData()
+  } else {
+    Serial.println("Failed to get viberation: " + firebaseData.errorReason());
+}
+
+if (Firebase.getString(firebaseData, "/System_Settings/Sound")) {
+    sound = firebaseData.stringData();
+    //Serial.println("Sound: " + sound);
+  } else {
+      Serial.println("Failed to get sound: " + firebaseData.errorReason());
+  }
+
+
+  if (Firebase.getString(firebaseData, "/System_Settings/Mode")) {
+    mode = firebaseData.stringData();
+    //Serial.println("Mode: " + mode);
+  } else {
+      Serial.println("Failed to get mode: " + firebaseData.errorReason());
+  }
+
+  if (Firebase.getString(firebaseData, "/System_Settings/Timing")) {
+    timming = firebaseData.stringData();
+    //Serial.println("Timing: " + timming);
+  } else {
+      Serial.println("Failed to get timing: " + firebaseData.errorReason());
+  }
+  
+    if (Firebase.getDouble(firebaseData, "/System_Settings/Height")) {
+    height = firebaseData.doubleData();
+    //Serial.print("Height: ");
+    // Serial.println(height);
+    } else {
+      Serial.println("Failed to get height: " + firebaseData.errorReason());
+  }
+  return settings(mode, sound, viberation, timming, height);
+}
+
+void storeFirebaseSetting(settings s)
+{
+   if (Firebase.setString(firebaseData, "/System_Settings/Sound", s.Sound))
+ {
+   Serial.println("sound stored successfully");
+  } else {
+    Serial.println("Error storing sound: " + firebaseData.errorReason());
+  }
+
+  if (Firebase.setString(firebaseData, "/System_Settings/Vibration", s.Viberation)) {
+    Serial.println("vibration stored successfully");
+  } else {
+    Serial.println("Error storing vibration: " + firebaseData.errorReason());
+  }
+
+  if (Firebase.setString(firebaseData, "/System_Settings/Mode", s.Mode)) {
+    Serial.println("mode stored successfully");
+  } else {
+    Serial.println("Error storing mode: " + firebaseData.errorReason());
+  }
+
+   if (Firebase.setString(firebaseData, "/System_Settings/Timing",s.timing)) {
+    Serial.println("timing stored successfully");
+  } else {
+    Serial.println("Error storing timing: " + firebaseData.errorReason());
+  }
+
+   if (Firebase.setInt(firebaseData, "/System_Settings/Height", s.height)) {
+    Serial.println("height stored successfully");
+  } else {
+    Serial.println("Error storing height: " + firebaseData.errorReason());
+  }
+}
+
+bool wifi_flag;
+settings setting;
+
+
+void setup()
+{
   Serial.begin(115200);
   delay(5000);
   Serial.println("Begin");
@@ -102,111 +212,20 @@ void setup() {
  wifi_flag = WifiSetup();
 
   // Initialize Firebase
-      setupSDCard();
-      if (isExist(SD_MMC, "/Settings", "setting.txt"))
-          Serial.println("setting file exist!");
-          else  {
-              createDir(SD_MMC, "/Settings");
-              writeFile(SD_MMC, "/Settings/setting.txt", "Mode: Both\n");
-              appendFile(SD_MMC, "/Settings/setting.txt", "Sound: Sound_1\n");
-              appendFile(SD_MMC, "/Settings/setting.txt", "Viberation: Viberation_1\n");
-              appendFile(SD_MMC, "/Settings/setting.txt", "Timing: 0.5s\n");
-              appendFile(SD_MMC, "/Settings/setting.txt", "Height: 1.65\n");
-              Serial.println("created setting file");
-          }
-          readFile(SD_MMC, "/Settings/setting.txt");
-
-          config.api_key = API_KEY;
-          config.database_url = FIREBASE_HOST;
-
-          auth.user.email = USER_EMAIL;
-          auth.user.password = USER_PASSWORD;
-
-          Firebase.begin(&config, &auth);
-          Firebase.reconnectWiFi(true);
-
-          config.token_status_callback = tokenStatusCallback;
-
-          // Store multiple string variables in Firebase
-          String var1 = "Sound_1";
-          String var2 = "Viberation_1";
-          String var3 = "Both";
-          String var4 = "0.5s";
-          double var5 = 1.68;
-
-          // Push data to Firebase
-          if (Firebase.setString(firebaseData, "/System_Settings/Sound", var1))
-          {
-              Serial.println("var1 stored successfully");
-  } else {
-    Serial.println("Error storing var1: " + firebaseData.errorReason());
-  }
-
-  if (Firebase.setString(firebaseData, "/System_Settings/Vibration", var2)) {
-    Serial.println("var2 stored successfully");
-  } else {
-    Serial.println("Error storing var2: " + firebaseData.errorReason());
-  }
-
-  if (Firebase.setString(firebaseData, "/System_Settings/Mode", var3)) {
-    Serial.println("var3 stored successfully");
-  } else {
-    Serial.println("Error storing var3: " + firebaseData.errorReason());
-  }
-
-   if (Firebase.setString(firebaseData, "/System_Settings/Timing", var4)) {
-    Serial.println("var4 stored successfully");
-  } else {
-    Serial.println("Error storing var4: " + firebaseData.errorReason());
-  }
-
-   if (Firebase.setInt(firebaseData, "/System_Settings/Height", var5)) {
-    Serial.println("var5 stored successfully");
-  } else {
-    Serial.println("Error storing var5: " + firebaseData.errorReason());
-  }
+ setupSDCard();
+ init_sd_card();
+ setting = readSettings(SD_MMC, "/Settings/setting.txt");
+ if (wifi_flag){
+   setupFirebase();
+   settings fb_setting = getFirebaseSettings();
+   setting.updateSettings(fb_setting);
+ }
 }
-String mode, viberation, timming, sound;
-double height;
+
 
 void loop() {
   // Nothing here
-  if (Firebase.getString(firebaseData, "/System_Settings/Vibration")) {
-    viberation = firebaseData.stringData();
-    Serial.println("Viberation: " + viberation);
-  } else {
-    Serial.println("Failed to get var1: " + firebaseData.errorReason());
-}
-
-if (Firebase.getString(firebaseData, "/System_Settings/Sound")) {
-    sound = firebaseData.stringData();
-    Serial.println("Sound: " + sound);
-  } else {
-      Serial.println("Failed to get var2: " + firebaseData.errorReason());
-  }
-
-
-  if (Firebase.getString(firebaseData, "/System_Settings/Mode")) {
-    mode = firebaseData.stringData();
-    Serial.println("Mode: " + mode);
-  } else {
-      Serial.println("Failed to get var3: " + firebaseData.errorReason());
-  }
-
-  if (Firebase.getString(firebaseData, "/System_Settings/Timing")) {
-    timming = firebaseData.stringData();
-    Serial.println("Timing: " + timming);
-  } else {
-      Serial.println("Failed to get var4: " + firebaseData.errorReason());
-  }
   
-    if (Firebase.getDouble(firebaseData, "/System_Settings/Height")) {
-    height = firebaseData.doubleData();
-    Serial.print("Height: ");
-     Serial.println(height);
-    } else {
-      Serial.println("Failed to get var4: " + firebaseData.errorReason());
-  }
 
-  delay(10000);
+  //delay(10000);
 }

@@ -1,7 +1,7 @@
 #include "sd_read_write.h"
 #include <string.h>
 #include "settings.h"
-
+#include <vector>
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
     Serial.printf("Listing directory: %s\n", dirname);
@@ -77,7 +77,10 @@ void writeFile(fs::FS &fs, const char * path, const char * message){
     }
     if(file.print(message)){
         Serial.println("File written");
-    } else {
+        file.close();
+    }
+    else
+    {
         Serial.println("Write failed");
     }
 }
@@ -90,9 +93,12 @@ void appendFile(fs::FS &fs, const char * path, const char * message){
         Serial.println("Failed to open file for appending");
         return;
     }
-    if(file.print(message)){
+    if(file.printf(message)){
         Serial.println("Message appended");
-    } else {
+        file.close();
+    }
+    else
+    {
         Serial.println("Append failed");
     }
 }
@@ -177,27 +183,100 @@ bool isExist(fs::FS &fs ,const char * dirname,const char * filename)
             Serial.print(file.name());
             Serial.print("  SIZE: ");
             Serial.println(file.size());
-            if(strcmp(file.name(),filename)==0)
+            if(strcmp(file.name(),filename)==0){
+                file.close();
                 return true;
+            }
         }
         file = root.openNextFile();
 }
+file.close();
 return false;
 }
 
 settings readSettings(fs::FS &fs, const char *path)
 {
     Serial.printf("Reading file: %s\n", path);
-
+    std::vector<String> tokens;
+    String m_mode, m_sound, m_viberation, m_timing;
+    double m_height;
     File file = fs.open(path);
     if(!file){
         Serial.println("Failed to open file for reading");
-        return setting(0,0,0,0,0);
+        return settings("def","def","def","def",0);
     }
 
-    Serial.print("Read from file: ");
+    Serial.println("Read from file: ");
     while(file.available()){
-        Serial.write(file.read());
+        //int tmp = file.read();
+        //Serial.printf("%c",tmp);
 
+        //Serial.write(file.read());
+
+
+        String line = file.readStringUntil('\n'); // Read until the newline character
+       tokens = parseString(line);
+
+        //Serial.println((tokens[0] == "Height:"));
+
+       //for (String str : tokens)
+         //  Serial.println(str);
+
+        if (tokens[0]=="Mode:")
+           {
+               m_mode = tokens[1];
+           }
+
+        if (tokens[0]=="Sound:")
+           {
+               m_sound = tokens[1];
+           }
+
+        if (tokens[0]=="Viberation:")
+           {
+               m_viberation = tokens[1];
+           }
+
+           if (tokens[0]=="Timing:")
+           {
+               m_timing = tokens[1];
+           }
+
+        if (tokens[0]=="Height:")
+        {
+            m_height = tokens[1].toDouble();
+        }
     }
+    file.close();
+    return settings(m_mode,m_sound,m_viberation,m_timing,m_height);
+}
+
+
+void endFile(fs::FS &fs,const char *path)
+{
+    File file = fs.open(path);
+    file.write(0x1A); // Control-Z, often used as an EOF marker
+
+    file.close();
+}
+
+std::vector<String> parseString(String input)
+{
+    std::vector<String> tmp;
+    while (input.length() > 0)
+    {
+        int spaceIndex = input.indexOf(' '); // Find the first space
+        if (spaceIndex == -1) {
+            // No more spaces, print the remaining part
+            //Serial.println(input);
+            tmp.push_back(input);
+            break;
+        }
+
+        String token = input.substring(0, spaceIndex); // Extract the token
+        //Serial.println(token); // Print the token
+        tmp.push_back(token);
+        input = input.substring(spaceIndex + 1); // Update the string, remove the token
+    }
+    return tmp;
 }
