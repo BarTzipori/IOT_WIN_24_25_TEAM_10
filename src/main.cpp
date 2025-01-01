@@ -13,33 +13,42 @@
 #include "sensorHelperFunctions.h"
 #include "vibrationMotor.h"
 #include "RedMP3.h"
+#include "collisionDetectionAlgorithm.h"
 
 #define IRQ_PIN 2
 #define XSHUT_PIN_1 4
 #define XSHUT_PIN_2 5
+#define XSHUT_PIN_3 6
+#define XSHUT_PIN_4 7
 #define STACK_SIZE 2048
 #define MPU9250_ADDRESS 0x68
 #define VL53L1X_ADDRESS 0x60
 #define VL53L1X_ADDRESS_2 0x61
-#define MOTOR_1_PIN 41
-#define MOTOR_2_PIN 42
-#define MP3_RX 7
-#define MP3_TX 8
-#define ON_OFF_BUTTON_PIN 19
+#define VL53L1X_ADDRESS_3 0x62
+#define VL53L1X_ADDRESS_4 0x63
+#define MOTOR_1_PIN 46
+#define MOTOR_2_PIN 46
+#define MP3_RX 12
+#define MP3_TX 11
+#define ON_OFF_BUTTON_PIN 20
 #define LONG_PRESS_TIME 10000
 #define SHORT_PRESS_TIME 10000
+#define OBSTACLE_DISTANCE 300
 
 Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
 Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
+Adafruit_VL53L1X vl53_3 = Adafruit_VL53L1X(XSHUT_PIN_3, IRQ_PIN);
+Adafruit_VL53L1X vl53_4 = Adafruit_VL53L1X(XSHUT_PIN_4, IRQ_PIN);
 MPU9250 mpu;
 MP3 mp3(MP3_RX, MP3_TX);
+vibrationMotor motor1(MOTOR_1_PIN); 
+vibrationMotor motor2(MOTOR_2_PIN);  
+ezButton onOffButton(ON_OFF_BUTTON_PIN);
+
 std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2};
 std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}};
 std::vector<std::pair<MPU9250*, int>> mpu_sensors = {{&mpu, MPU9250_ADDRESS}};
 SensorData sensor_data;
-vibrationMotor motor1(MOTOR_1_PIN); 
-vibrationMotor motor2(MOTOR_2_PIN);  
-ezButton onOffButton(ON_OFF_BUTTON_PIN);
 //default vibration pattern
 vibrationPattern vib_pattern = vibrationPattern::shortBuzz;
 TwoWire secondBus = TwoWire(1);
@@ -48,7 +57,7 @@ int8_t volume = 0x1a;//0~0x1e (30 adjustable level)
 int8_t folderName = 0x01;//folder name must be 01 02 03 04 ...
 int8_t fileName = 0x01; // prefix of file name must be 001xxx 002xxx 003xxx 004xxx ...
 
-static int DistanceSensorDelay = 75;
+static int DistanceSensorDelay = 50;
 bool calibration_needed = false;
 bool system_calibrated = false;
 bool mpu_updated = false;
@@ -57,6 +66,7 @@ unsigned long pressed_time = 0;
 unsigned long released_time = 0;
 bool is_pressing = false;
 bool is_long_press = false;
+float velocity = 0;
 
 
 //Samples sensors data
@@ -109,6 +119,7 @@ void sampleSensorsData(void *pvParameters) {
         sensor_data.setAccelX(mpu_sensors[0].first->getLinearAccX());
         sensor_data.setAccelY(mpu_sensors[0].first->getLinearAccY());
         sensor_data.setAccelZ(mpu_sensors[0].first->getLinearAccZ());
+        sensor_data.updateLinearAccelX();
         sensor_data.setlastUpdateTime(millis());
       }
     }
@@ -134,15 +145,24 @@ void playMP3AsTask(void *pvParameters) {
   // Task is done, so delete itself
   vTaskDelete(NULL);
 }
+void calculateVelocityAsTask(void *pvParameters) {
+  int delay_in_ms = *(int *)pvParameters;
+  while(true) {
+    calculateVelocity(sensor_data, velocity, 5);
+    Serial.print("Velocity: ");
+    Serial.println(velocity);
+    vTaskDelay(delay_in_ms);
+  }
+}
 
 void setup() {
   Serial.begin(115200);
   delay(100);
-  Wire.begin(17,18);
+  Wire.begin(41,42);
   Wire.setClock(100000); // Set I2C clock speed to 100 kHz
   delay(100);
   secondBus.begin(15,16);
-  secondBus.setClock(100000); // Set I2C clock speed to 100 kHz
+  secondBus.setClock(400000); // Set I2C clock speed to 100 kHz
 
   //onOffButton.setDebounceTime(50);
 
@@ -157,6 +177,8 @@ void setup() {
   // Initialize Distance measuring sensors
   initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
   initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
+  //initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
+  //initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
 
   //Initializes MPU
   if (!mpu.setup(MPU9250_ADDRESS)) {  // change to your own address
@@ -173,6 +195,7 @@ void setup() {
   Serial.println("Waiting for system to be powered on");
   //Creates threaded tasks
   xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 3, nullptr);
+  //xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &DistanceSensorDelay, 1, nullptr);
 }
 
 void loop() {
@@ -202,6 +225,7 @@ void loop() {
         is_system_on = true;
         Serial.println("Powering on system");
         motor1.vibrate(vibrationPattern::powerONBuzz);
+        velocity = 0;
       }
     }
   }
@@ -224,10 +248,10 @@ void loop() {
   //sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on) {
     sensor_data.printData();
-    if(sensor_data.getDistanceSensor1() < 500 && sensor_data.getDistanceSensor2() < 500 && sensor_data.getDistanceSensor1() != -1 && sensor_data.getDistanceSensor2() != -1) {
+    if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
     
-      xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor1, 1, nullptr);
-      xTaskCreate(vibrateMotorsAsTask, "vibrateMotor2", STACK_SIZE, &motor2, 1, nullptr);
+      xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
+      //xTaskCreate(vibrateMotorsAsTask, "vibrateMotor2", STACK_SIZE, &motor2, 1, nullptr);
       static void* audio_params[3];
       audio_params[0] = (void*)&mp3;                  // pointer to MP3
       audio_params[1] = (void*)(uintptr_t)0x01;       //dir name

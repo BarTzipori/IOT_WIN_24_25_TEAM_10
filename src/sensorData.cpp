@@ -28,6 +28,9 @@ void SensorData::setSensor2Distance(int distance) {
 void SensorData::setlastUpdateTime(uint32_t distance) {
     this->lastUpdateTime = distance;
 }
+void SensorData::updateLinearAccelX() {
+    linearAccelX = accelX - (accelZ)*sin(pitch);
+}
 
 void SensorData::printData() const {
     Serial.print("MPU Data -> Pitch: ");
@@ -38,6 +41,8 @@ void SensorData::printData() const {
     Serial.print(this->yaw,2);
     Serial.print(", AccelX: ");
     Serial.print(this->accelX,2);
+    Serial.print(", LinearAccelX: ");
+    Serial.print(this->linearAccelX,2);
     Serial.print(", AccelY: ");
     Serial.print(this->accelY,2);
     Serial.print(", AccelZ: ");
