@@ -18,20 +18,26 @@
 #define IRQ_PIN 2
 #define XSHUT_PIN_1 4
 #define XSHUT_PIN_2 5
+#define XSHUT_PIN_3 6
+#define XSHUT_PIN_4 7
 #define STACK_SIZE 2048
 #define MPU9250_ADDRESS 0x68
 #define VL53L1X_ADDRESS 0x60
 #define VL53L1X_ADDRESS_2 0x61
-#define MOTOR_1_PIN 41
-#define MOTOR_2_PIN 42
-#define MP3_RX 7
-#define MP3_TX 8
-#define ON_OFF_BUTTON_PIN 19
+#define VL53L1X_ADDRESS_3 0x62
+#define VL53L1X_ADDRESS_4 0x63
+#define MOTOR_1_PIN 46
+#define MOTOR_2_PIN 46
+#define MP3_RX 12
+#define MP3_TX 11
+#define ON_OFF_BUTTON_PIN 20
 #define LONG_PRESS_TIME 10000
 #define SHORT_PRESS_TIME 10000
 
 Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
 Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
+Adafruit_VL53L1X vl53_3 = Adafruit_VL53L1X(XSHUT_PIN_3, IRQ_PIN);
+Adafruit_VL53L1X vl53_4 = Adafruit_VL53L1X(XSHUT_PIN_4, IRQ_PIN);
 MPU9250 mpu;
 MP3 mp3(MP3_RX, MP3_TX);
 vibrationMotor motor1(MOTOR_1_PIN); 
@@ -39,7 +45,7 @@ vibrationMotor motor2(MOTOR_2_PIN);
 ezButton onOffButton(ON_OFF_BUTTON_PIN);
 
 std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2};
-std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}};
+std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}, {&vl53_3, VL53L1X_ADDRESS_3}, {&vl53_4, VL53L1X_ADDRESS_4}};
 std::vector<std::pair<MPU9250*, int>> mpu_sensors = {{&mpu, MPU9250_ADDRESS}};
 SensorData sensor_data;
 //default vibration pattern
@@ -138,11 +144,20 @@ void playMP3AsTask(void *pvParameters) {
   // Task is done, so delete itself
   vTaskDelete(NULL);
 }
+void calculateVelocityAsTask(void *pvParameters) {
+  int delay_in_ms = *(int *)pvParameters;
+  while(true) {
+    calculateVelocity(sensor_data, velocity, 5);
+    Serial.print("Velocity: ");
+    Serial.println(velocity);
+    vTaskDelay(delay_in_ms);
+  }
+}
 
 void setup() {
   Serial.begin(115200);
   delay(100);
-  Wire.begin(17,18);
+  Wire.begin(41,42);
   Wire.setClock(100000); // Set I2C clock speed to 100 kHz
   delay(100);
   secondBus.begin(15,16);
@@ -161,6 +176,8 @@ void setup() {
   // Initialize Distance measuring sensors
   initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
   initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
+  //initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
+  //initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
 
   //Initializes MPU
   if (!mpu.setup(MPU9250_ADDRESS)) {  // change to your own address
@@ -177,6 +194,7 @@ void setup() {
   Serial.println("Waiting for system to be powered on");
   //Creates threaded tasks
   xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 3, nullptr);
+  xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &DistanceSensorDelay, 1, nullptr);
 }
 
 void loop() {
@@ -229,9 +247,6 @@ void loop() {
   //sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on) {
     sensor_data.printData();
-    calculateVelocity(sensor_data, velocity, 5);
-    Serial.print("Velocity: ");
-    Serial.println(velocity);
     if(sensor_data.getDistanceSensor1() < 500 && sensor_data.getDistanceSensor2() < 500 && sensor_data.getDistanceSensor1() != -1 && sensor_data.getDistanceSensor2() != -1) {
     
       xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor1, 1, nullptr);
