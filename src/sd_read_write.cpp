@@ -1,6 +1,6 @@
 #include "sd_read_write.h"
 #include <string.h>
-#include "settings.h"
+#include "systemSettings.h"
 #include <vector>
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
@@ -194,7 +194,7 @@ file.close();
 return false;
 }
 
-settings readSettings(fs::FS &fs, const char *path)
+systemSettings readSettings(fs::FS &fs, const char *path)
 {
     Serial.printf("Reading file: %s\n", path);
     std::vector<String> tokens;
@@ -203,7 +203,7 @@ settings readSettings(fs::FS &fs, const char *path)
     File file = fs.open(path);
     if(!file){
         Serial.println("Failed to open file for reading");
-        return settings("def","def","def","def",0);
+        return systemSettings("def","def","def","def",0);
     }
 
     Serial.println("Read from file: ");
@@ -248,7 +248,7 @@ settings readSettings(fs::FS &fs, const char *path)
         }
     }
     file.close();
-    return settings(m_mode,m_sound,m_viberation,m_timing,m_height);
+    return systemSettings(m_mode,m_sound,m_viberation,m_timing,m_height);
 }
 
 

@@ -1,6 +1,6 @@
-#include "settings.h"
+#include "systemSettings.h"
 
-settings::settings(String m,String s, String v,String t,int h)
+systemSettings::systemSettings(String m,String s, String v,String t,int h)
 {
     Mode = m;
     Sound = s;
@@ -9,7 +9,7 @@ settings::settings(String m,String s, String v,String t,int h)
     height = h;
 }
 
-void settings::updateSettings(settings s)
+void systemSettings::updateSettings(systemSettings s)
 {
     Mode = s.Mode;
     Sound = s.Sound;

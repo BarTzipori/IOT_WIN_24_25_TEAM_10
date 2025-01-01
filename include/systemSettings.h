@@ -1,18 +1,28 @@
-#ifndef _SETTINGS_H
-#define _SETTINGS_H
+#ifndef _SYSTEM_SETTINGS_H
+#define _SYSTEM_SETTINGS_H
+
 #include <Arduino.h>
 
-class settings
+class systemSettings
 {
-    public:
+    private:
     String Mode;
     String Sound;
     String Viberation;
     String timing;
     double height;
-    settings(String m, String s, String v, String t, int h);
 
-    void updateSettings(settings s);
+    public:
+    systemSettings(): Mode("default"), Sound("default"), Viberation("default"), timing("default"), height(0.0) {};
+    systemSettings(String m, String s, String v, String t, int h);
+    
+    String getMode() const {return Mode;}
+    String getSound() const {return Sound;}
+    String getViberation() const {return Viberation;}
+    String getTiming() const {return timing;}
+    double getHeight() const {return height;}
+
+    void updateSettings(systemSettings s);
 };
 
 #endif
