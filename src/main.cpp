@@ -33,6 +33,7 @@
 #define ON_OFF_BUTTON_PIN 20
 #define LONG_PRESS_TIME 10000
 #define SHORT_PRESS_TIME 10000
+#define OBSTACLE_DISTANCE 300
 
 Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
 Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
@@ -115,9 +116,9 @@ void sampleSensorsData(void *pvParameters) {
         }
         sensor_data.setYaw(yaw);
         sensor_data.setRoll(mpu_sensors[0].first->getRoll());
-        sensor_data.setAccelX(mpu_sensors[0].first->getAccX());
-        sensor_data.setAccelY(mpu_sensors[0].first->getAccY());
-        sensor_data.setAccelZ(mpu_sensors[0].first->getAccZ());
+        sensor_data.setAccelX(mpu_sensors[0].first->getLinearAccX());
+        sensor_data.setAccelY(mpu_sensors[0].first->getLinearAccY());
+        sensor_data.setAccelZ(mpu_sensors[0].first->getLinearAccZ());
         sensor_data.updateLinearAccelX();
         sensor_data.setlastUpdateTime(millis());
       }
@@ -194,7 +195,7 @@ void setup() {
   Serial.println("Waiting for system to be powered on");
   //Creates threaded tasks
   xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 3, nullptr);
-  xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &DistanceSensorDelay, 1, nullptr);
+  //xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &DistanceSensorDelay, 1, nullptr);
 }
 
 void loop() {
@@ -247,10 +248,10 @@ void loop() {
   //sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on) {
     sensor_data.printData();
-    if(sensor_data.getDistanceSensor1() < 500 && sensor_data.getDistanceSensor2() < 500 && sensor_data.getDistanceSensor1() != -1 && sensor_data.getDistanceSensor2() != -1) {
+    if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
     
-      xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor1, 1, nullptr);
-      xTaskCreate(vibrateMotorsAsTask, "vibrateMotor2", STACK_SIZE, &motor2, 1, nullptr);
+      xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
+      //xTaskCreate(vibrateMotorsAsTask, "vibrateMotor2", STACK_SIZE, &motor2, 1, nullptr);
       static void* audio_params[3];
       audio_params[0] = (void*)&mp3;                  // pointer to MP3
       audio_params[1] = (void*)(uintptr_t)0x01;       //dir name
