@@ -213,11 +213,10 @@ systemSettings readSettings(fs::FS &fs, const char *path)
 
         //Serial.write(file.read());
 
-
         String line = file.readStringUntil('\n'); // Read until the newline character
-       tokens = parseString(line);
+        tokens = parseString(line);
 
-        //Serial.println((tokens[0] == "Height:"));
+        Serial.println(line);
 
        //for (String str : tokens)
          //  Serial.println(str);
