@@ -15,11 +15,13 @@ private:
     float linearAccelX;
     int sensor1distance;
     int sensor2distance;
+    int sensor3distance;
+    int sensor4distance;
     uint32_t lastUpdateTime; // Holds the timestamp in ms or µs
 
 public:
     // Constructor
-    SensorData(): pitch(0.0), yaw(0.0), roll(0.0), accelX(0.0), accelY(0.0), accelZ(0.0), linearAccelX(0), sensor1distance(0), sensor2distance(0), lastUpdateTime(0) {}
+    SensorData(): pitch(0.0), yaw(0.0), roll(0.0), accelX(0.0), accelY(0.0), accelZ(0.0), linearAccelX(0), sensor1distance(0), sensor2distance(0), sensor3distance(0), sensor4distance(0), lastUpdateTime(0) {}
 
     void setPitch(float pitchValue);
     void setYaw(float yawValue);
@@ -43,6 +45,8 @@ public:
 
     int getDistanceSensor1() const { return sensor1distance; }
     int getDistanceSensor2() const { return sensor2distance; }
+    int getDistanceSensor3() const { return sensor3distance; }
+    int getDistanceSensor4() const { return sensor4distance; }
     uint32_t getlastUpdateTime() const { return lastUpdateTime; }
 
     // Print all data (for debugging or logging)
