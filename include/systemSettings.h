@@ -23,6 +23,7 @@ class systemSettings
     double getHeight() const {return height;}
 
     void updateSettings(systemSettings s);
+    void print();
 };
 
 #endif

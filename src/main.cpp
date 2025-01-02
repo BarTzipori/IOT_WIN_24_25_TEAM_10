@@ -268,6 +268,27 @@ void storeFirebaseSetting(systemSettings& s)
   }
 }
 
+void updateSDSettings(systemSettings &s)
+{
+    deleteFile(SD_MMC, "/Settings/setting.txt");
+    String mode("Mode: ");
+    mode = mode + String(s.getMode());
+    writeFile(SD_MMC, "/Settings/setting.txt", mode);
+    String sound("Sound: ");
+    sound = sound + String(s.getSound());
+    appendFile(SD_MMC, "/Settings/setting.txt", sound);
+    String vibration("Vibration: ");
+    vibration = vibration + String(s.getViberation());
+    appendFile(SD_MMC, "/Settings/setting.txt", vibration);
+    String timing("Timing: ");
+    timing = timing + String(s.getTiming());
+    appendFile(SD_MMC, "/Settings/setting.txt", timing);
+    String height("Height: ");
+    height = height + String(s.getHeight());
+    appendFile(SD_MMC, "/Settings/setting.txt", height);
+    endFile(SD_MMC, "/Settings/setting.txt");
+}
+
 //Samples sensors data
 void sampleSensorsData(void *pvParameters) {
   int delay_in_ms = *(int *)pvParameters;
@@ -325,6 +346,7 @@ void sampleSensorsData(void *pvParameters) {
     vTaskDelay(delay_in_ms);
   }
 }
+
 void vibrateMotorsAsTask(void *pvParameters) {
   vibrationMotor* motor = (vibrationMotor*)pvParameters;
   motor->vibrate(vib_pattern);
@@ -435,6 +457,8 @@ void loop() {
           setupFirebase();
           systemSettings system_settongs_from_fb = getFirebaseSettings();
           system_settings.updateSettings(system_settongs_from_fb);
+          system_settings.print();
+          updateSDSettings(system_settings);
         }
         is_system_on = true;
       }
@@ -460,9 +484,9 @@ void loop() {
   if (mpu.update() && system_calibrated && is_system_on) {
     sensor_data.printData();
     if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
-      Serial.println(system_settings.getMode());
       if(system_settings.getMode() == "Viberation") {
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
+        vTaskDelay(1000);
       }
       if(system_settings.getMode() == "Sound") {
         static void* audio_params[3];

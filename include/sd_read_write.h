@@ -19,4 +19,6 @@ bool isExist(fs::FS &fs, const char *dirname, const char *filename);
 systemSettings readSettings(fs::FS &fs, const char *path);
 void endFile(fs::FS &fs,const char *path);
 std::vector<String> parseString(String str);
+void writeFile(fs::FS &fs, const char * path, String message);
+void appendFile(fs::FS &fs, const char * path, String message);
 #endif

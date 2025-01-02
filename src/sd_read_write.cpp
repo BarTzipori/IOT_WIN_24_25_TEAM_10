@@ -75,7 +75,12 @@ void writeFile(fs::FS &fs, const char * path, const char * message){
         Serial.println("Failed to open file for writing");
         return;
     }
-    if(file.print(message)){
+
+    String t1(message);
+    String t2("\n");
+    String msg = String(t1+t2);
+    if (file.print(msg))
+    {
         Serial.println("File written");
         file.close();
     }
@@ -93,7 +98,10 @@ void appendFile(fs::FS &fs, const char * path, const char * message){
         Serial.println("Failed to open file for appending");
         return;
     }
-    if(file.printf(message)){
+    String t1(message);
+    String t2("\n");
+    String msg = String(t1+t2);
+    if (file.print(msg)){
         Serial.println("Message appended");
         file.close();
     }
@@ -207,7 +215,7 @@ systemSettings readSettings(fs::FS &fs, const char *path)
     }
 
     Serial.println("Read from file: ");
-    while(file.available()){
+    while(file.available()) {
         //int tmp = file.read();
         //Serial.printf("%c",tmp);
 
@@ -216,8 +224,12 @@ systemSettings readSettings(fs::FS &fs, const char *path)
         String line = file.readStringUntil('\n'); // Read until the newline character
         tokens = parseString(line);
 
-        Serial.println(line+"\n");
-
+        Serial.println("Line read: " + line);
+        Serial.print("Tokens found: ");
+        for (const String& token : tokens) {
+            Serial.print(token + " ");
+        }
+        Serial.println();
        //for (String str : tokens)
          //  Serial.println(str);
 
@@ -280,3 +292,47 @@ std::vector<String> parseString(String input)
     return tmp;
 }
 
+
+void writeFile(fs::FS &fs, const char * path, String message){
+    Serial.printf("Writing file: %s\n", path);
+
+    File file = fs.open(path, FILE_WRITE);
+    if(!file){
+        Serial.println("Failed to open file for writing");
+        return;
+    }
+
+    String t1(message);
+    String t2("\n");
+    String msg = String(t1+t2);
+    if (file.print(msg))
+    {
+        Serial.println("File written");
+        file.close();
+    }
+    else
+    {
+        Serial.println("Write failed");
+    }
+}
+
+void appendFile(fs::FS &fs, const char * path, String message){
+    Serial.printf("Appending to file: %s\n", path);
+
+    File file = fs.open(path, FILE_APPEND);
+    if(!file){
+        Serial.println("Failed to open file for appending");
+        return;
+    }
+    String t1(message);
+    String t2("\n");
+    String msg = String(t1+t2);
+    if (file.print(msg)){
+        Serial.println("Message appended");
+        file.close();
+    }
+    else
+    {
+        Serial.println("Append failed");
+    }
+}
