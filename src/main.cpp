@@ -33,8 +33,8 @@
 #define MPU9250_ADDRESS 0x68
 #define VL53L1X_ADDRESS 0x60
 #define VL53L1X_ADDRESS_2 0x61
-#define VL53L1X_ADDRESS_3 0x62
-#define VL53L1X_ADDRESS_4 0x63
+#define VL53L1X_ADDRESS_3 0x52
+#define VL53L1X_ADDRESS_4 0x53
 #define MOTOR_1_PIN 46
 #define MOTOR_2_PIN 46
 #define MP3_RX 12
@@ -376,8 +376,8 @@ void setup() {
   // Initialize Distance measuring sensors
   initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
   initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
-  initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
-  initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
+  //initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
+  //initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
 
   //Initializes MPU
   if (!mpu.setup(MPU9250_ADDRESS)) {  // change to your own address
@@ -421,7 +421,6 @@ void loop() {
         Serial.println("System shut down");
         motor1.vibrate(vibrationPattern::powerOFFBuzz);
       } else {
-        is_system_on = true;
         Serial.println("Powering on system");
         motor1.vibrate(vibrationPattern::powerONBuzz);
         velocity = 0;
@@ -437,6 +436,7 @@ void loop() {
           systemSettings system_settongs_from_fb = getFirebaseSettings();
           system_settings.updateSettings(system_settongs_from_fb);
         }
+        is_system_on = true;
       }
     }
   }
