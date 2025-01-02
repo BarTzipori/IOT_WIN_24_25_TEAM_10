@@ -173,13 +173,13 @@ bool isExist(fs::FS &fs ,const char * dirname,const char * filename)
 
         File file = root.openNextFile();
     while(file){
-        Serial.println(file.name());
-        Serial.println(filename);
-        Serial.println(strcmp(file.name(),filename));
+        //Serial.println(file.name());
+       // Serial.println(filename);
+      //  Serial.println(strcmp(file.name(),filename));
         if(file.isDirectory()){
             continue;
         } else {
-            Serial.print("  FILE: ");
+            Serial.print("FILE: ");
             Serial.print(file.name());
             Serial.print("  SIZE: ");
             Serial.println(file.size());
@@ -216,7 +216,7 @@ systemSettings readSettings(fs::FS &fs, const char *path)
         String line = file.readStringUntil('\n'); // Read until the newline character
         tokens = parseString(line);
 
-        Serial.println(line);
+        Serial.println(line+"\n");
 
        //for (String str : tokens)
          //  Serial.println(str);
