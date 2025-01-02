@@ -52,6 +52,11 @@ void SensorData::printData() const {
     Serial.print(" mm, Sensor2: ");
     Serial.print(this->sensor2distance);
     Serial.print(" mm");
+    Serial.print("Distance Sensors -> Sensor3: ");
+    Serial.print(this->sensor3distance);
+    Serial.print(" mm, Sensor4: ");
+    Serial.print(this->sensor4distance);
+    Serial.print(" mm");
     Serial.print(" Last update time: ");
     Serial.println(this->lastUpdateTime);
     Serial.println();
