@@ -460,16 +460,26 @@ void loop() {
   if (mpu.update() && system_calibrated && is_system_on) {
     sensor_data.printData();
     if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
-    
-      xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
-      //xTaskCreate(vibrateMotorsAsTask, "vibrateMotor2", STACK_SIZE, &motor2, 1, nullptr);
-      static void* audio_params[3];
-      audio_params[0] = (void*)&mp3;                  // pointer to MP3
-      audio_params[1] = (void*)(uintptr_t)0x01;       //dir name
-      audio_params[2] = (void*)(uintptr_t)0x01;       //file name
-      xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
-      vTaskDelay(1000);
-    }
+      if(system_settings.getMode() == "Viberation") {
+        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
+      }
+      if(system_settings.getMode() == "Sound") {
+        static void* audio_params[3];
+        audio_params[0] = (void*)&mp3;                  // pointer to MP3
+        audio_params[1] = (void*)(uintptr_t)0x01;       //dir name
+        audio_params[2] = (void*)(uintptr_t)0x01;       //file name
+        xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
+        vTaskDelay(1000);
+      }
+      if(system_settings.getMode() == "BOTH") {
+        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
+        static void* audio_params[3];
+        audio_params[0] = (void*)&mp3;                  // pointer to MP3
+        audio_params[1] = (void*)(uintptr_t)0x01;       //dir name
+        audio_params[2] = (void*)(uintptr_t)0x01;       //file name
+        xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
+        vTaskDelay(1000);
+      }
   }
   vTaskDelay(50);
 }
