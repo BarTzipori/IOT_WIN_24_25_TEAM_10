@@ -25,6 +25,12 @@ void SensorData::setSensor2Distance(int distance) {
     this->sensor2distance = distance;
 }
 
+void SensorData::setSensor3Distance(int distance) {
+    this->sensor3distance = distance;
+}
+void SensorData::setSensor4Distance(int distance) {
+    this->sensor4distance = distance;
+}
 void SensorData::setlastUpdateTime(uint32_t distance) {
     this->lastUpdateTime = distance;
 }
@@ -51,8 +57,7 @@ void SensorData::printData() const {
     Serial.print(this->sensor1distance);
     Serial.print(" mm, Sensor2: ");
     Serial.print(this->sensor2distance);
-    Serial.print(" mm");
-    Serial.print("Distance Sensors -> Sensor3: ");
+    Serial.print(" mm, Sensor3: ");
     Serial.print(this->sensor3distance);
     Serial.print(" mm, Sensor4: ");
     Serial.print(this->sensor4distance);

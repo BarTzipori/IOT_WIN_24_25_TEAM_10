@@ -11,11 +11,21 @@ systemSettings::systemSettings(String m,String s, String v,String t,int h)
 
 void systemSettings::updateSettings(systemSettings s)
 {
-    Mode = s.Mode;
-    Sound = s.Sound;
-    Viberation = s.Viberation;
-    timing =s.timing;
-    height = s.height;
+    if(s.Mode != "default" && s.Mode != "") {
+        Mode = s.Mode;
+    }
+    if(s.Sound != "default" && s.Sound != "") {
+        Sound = s.Sound;
+    }
+    if(s.Viberation != "default" && s.Viberation != "") {
+        Viberation = s.Viberation;
+    }
+    if(s.timing != "default" && s.timing != "") {
+        timing = s.timing;
+    }
+    if(s.height != 0.0) {
+        height = s.height;
+    }
 }
 
 void systemSettings::print()

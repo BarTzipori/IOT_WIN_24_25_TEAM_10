@@ -69,7 +69,7 @@ vibrationMotor motor2(MOTOR_2_PIN);
 ezButton onOffButton(ON_OFF_BUTTON_PIN);
 
 std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2, XSHUT_PIN_3, XSHUT_PIN_4};
-std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}};
+std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}, {&vl53_3, VL53L1X_ADDRESS_3}, {&vl53_4, VL53L1X_ADDRESS_4}};
 std::vector<std::pair<MPU9250*, int>> mpu_sensors = {{&mpu, MPU9250_ADDRESS}};
 SensorData sensor_data;
 //default vibration pattern
@@ -103,7 +103,7 @@ float velocity = 0;
 //firebase functions
 bool setupSDCard()
 {
-        SD_MMC.setPins(SD_MMC_CLK, SD_MMC_CMD, SD_MMC_D0);
+    SD_MMC.setPins(SD_MMC_CLK, SD_MMC_CMD, SD_MMC_D0);
     if (!SD_MMC.begin("/sdcard", true, true, SDMMC_FREQ_DEFAULT, 5)) {
       Serial.println("Card Mount Failed");
       return false;
@@ -160,11 +160,11 @@ void init_sd_card()
     Serial.println("setting file exist!");
     else  {
         createDir(SD_MMC, "/Settings");
-        writeFile(SD_MMC, "/Settings/setting.txt", "Mode: Both\n");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Sound: Sound_1\n");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Viberation: Viberation_1\n");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Timing: 0.5s\n");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Height: 1.65\n");
+        writeFile(SD_MMC, "/Settings/setting.txt", "Mode: Both");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Sound: Sound_1");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Viberation: Viberation_1");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Timing: 0.5s");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Height: 1.65");
         endFile(SD_MMC, "/Settings/setting.txt");
         Serial.println("created setting file");
     }
@@ -301,8 +301,7 @@ void sampleSensorsData(void *pvParameters) {
             Serial.print(i+1);
             Serial.println(" not connected");
             continue;
-        } else {
-            
+        } else {     
             if(distance_sensors[i].first->dataReady()) {
                 int distance = distance_sensors[i].first->distance();
                 if (distance == -1) {
@@ -310,15 +309,30 @@ void sampleSensorsData(void *pvParameters) {
                   //Serial.println(distance_sensors[i].first->vl_status);
                   if(i == 0) {
                     sensor_data.setSensor1Distance(distance);
-                  } else {
+                  }
+                  if(i == 1) {
                     sensor_data.setSensor2Distance(distance);
                   }
+                  if(i == 2) {
+                    sensor_data.setSensor3Distance(distance);
+                  }
+                  if(i == 3) {
+                    sensor_data.setSensor4Distance(distance);
+                  }
                   continue;
-                }
-                if(i == 0) {
-                  sensor_data.setSensor1Distance(distance);
                 } else {
-                  sensor_data.setSensor2Distance(distance);
+                  if(i == 0) {
+                    sensor_data.setSensor1Distance(distance);
+                  }
+                  if(i == 1) {
+                    sensor_data.setSensor2Distance(distance);
+                  }
+                  if(i == 2) {
+                    sensor_data.setSensor3Distance(distance);
+                  }
+                  if(i == 3) {
+                    sensor_data.setSensor4Distance(distance);
+                  }
                 }
                 distance_sensors[i].first->clearInterrupt();
             } else {
@@ -398,8 +412,8 @@ void setup() {
   // Initialize Distance measuring sensors
   initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
   initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
-  //initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
-  //initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
+  initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
+  initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
 
   //Initializes MPU
   if (!mpu.setup(MPU9250_ADDRESS)) {  // change to your own address
@@ -455,8 +469,8 @@ void loop() {
         //if we managed to connect to WIFI - use firebase settings, as they are the most updated.
         if (wifi_flag){
           setupFirebase();
-          systemSettings system_settongs_from_fb = getFirebaseSettings();
-          system_settings.updateSettings(system_settongs_from_fb);
+          systemSettings system_settings_from_fb = getFirebaseSettings();
+          system_settings.updateSettings(system_settings_from_fb);
           system_settings.print();
           updateSDSettings(system_settings);
         }

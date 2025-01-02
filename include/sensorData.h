@@ -31,6 +31,8 @@ public:
     void setAccelZ(float accelZValue);
     void setSensor1Distance(int distance);
     void setSensor2Distance(int distance);
+    void setSensor3Distance(int distance);
+    void setSensor4Distance(int distance);
     void setlastUpdateTime(uint32_t time);
 
 
