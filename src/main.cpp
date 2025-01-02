@@ -69,7 +69,7 @@ vibrationMotor motor2(MOTOR_2_PIN);
 ezButton onOffButton(ON_OFF_BUTTON_PIN);
 
 std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2, XSHUT_PIN_3, XSHUT_PIN_4};
-std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}, {&vl53_3, VL53L1X_ADDRESS_3}, {&vl53_4, VL53L1X_ADDRESS_4}};
+std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}};
 std::vector<std::pair<MPU9250*, int>> mpu_sensors = {{&mpu, MPU9250_ADDRESS}};
 SensorData sensor_data;
 //default vibration pattern
@@ -460,6 +460,7 @@ void loop() {
   if (mpu.update() && system_calibrated && is_system_on) {
     sensor_data.printData();
     if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
+      Serial.println(system_settings.getMode());
       if(system_settings.getMode() == "Viberation") {
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
       }
@@ -471,7 +472,7 @@ void loop() {
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1000);
       }
-      if(system_settings.getMode() == "BOTH") {
+      if(system_settings.getMode() == "Both") {
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
         static void* audio_params[3];
         audio_params[0] = (void*)&mp3;                  // pointer to MP3
@@ -480,6 +481,7 @@ void loop() {
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1000);
       }
+    }
   }
   vTaskDelay(50);
 }
