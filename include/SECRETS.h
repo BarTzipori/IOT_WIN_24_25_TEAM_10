@@ -44,8 +44,8 @@ const char* root_ca =
 
 #define WIFI_TIMEOUT 1500
 // Replace with your network credentials
-#define WIFI_SSID "Matans iPhone"
-#define WIFI_PASSWORD "12345678B"
+#define WIFI_SSID "Bars iPhone"
+#define WIFI_PASSWORD "12348765"
 // Firebase credentials
 #define FIREBASE_HOST "https://safestep-2bc31-default-rtdb.europe-west1.firebasedatabase.app" // Replace with your database URL
 #define API_KEY "AIzaSyBplNk42Hp3O6M17iJObv_FM2MuanadKjM"
