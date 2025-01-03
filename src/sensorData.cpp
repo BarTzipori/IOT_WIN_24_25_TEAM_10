@@ -38,6 +38,10 @@ void SensorData::updateLinearAccelX() {
     linearAccelX = accelX - (accelZ)*sin(pitch);
 }
 
+void SensorData::setGyroX(float gyroXValue) {
+    this->gyroX = gyroXValue;
+}
+
 void SensorData::printData() const {
     Serial.print("MPU Data -> Pitch: ");
     Serial.print(this->pitch,2);
@@ -52,7 +56,9 @@ void SensorData::printData() const {
     Serial.print(", AccelY: ");
     Serial.print(this->accelY,2);
     Serial.print(", AccelZ: ");
-    Serial.println(this->accelZ,2);
+    Serial.print(this->accelZ,2);
+    Serial.print(", GyroX: ");
+    Serial.println(this->gyroX,2);
     Serial.print("Distance Sensors -> Sensor1: ");
     Serial.print(this->sensor1distance);
     Serial.print(" mm, Sensor2: ");
@@ -61,7 +67,7 @@ void SensorData::printData() const {
     Serial.print(this->sensor3distance);
     Serial.print(" mm, Sensor4: ");
     Serial.print(this->sensor4distance);
-    Serial.print(" mm");
+    Serial.println(" mm");
     Serial.print(" Last update time: ");
     Serial.println(this->lastUpdateTime);
     Serial.println();

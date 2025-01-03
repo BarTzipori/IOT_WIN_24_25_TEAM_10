@@ -57,7 +57,8 @@ int8_t volume = 0x1a;//0~0x1e (30 adjustable level)
 int8_t folderName = 0x01;//folder name must be 01 02 03 04 ...
 int8_t fileName = 0x01; // prefix of file name must be 001xxx 002xxx 003xxx 004xxx ...
 
-static int DistanceSensorDelay = 50;
+static int DistanceSensorDelay = 100;
+static int SpeedCalcDelay = 200;
 bool calibration_needed = false;
 bool system_calibrated = false;
 bool mpu_updated = false;
@@ -66,7 +67,7 @@ unsigned long pressed_time = 0;
 unsigned long released_time = 0;
 bool is_pressing = false;
 bool is_long_press = false;
-float velocity = 0;
+double velocity = 0.0;
 bool initial_powerup = true;
 
 
@@ -326,6 +327,7 @@ void sampleSensorsData(void *pvParameters) {
         sensor_data.setAccelX(mpu_sensors[0].first->getLinearAccX());
         sensor_data.setAccelY(mpu_sensors[0].first->getLinearAccY());
         sensor_data.setAccelZ(mpu_sensors[0].first->getLinearAccZ());
+        sensor_data.setGyroX(mpu_sensors[0].first->getGyroX());
         sensor_data.updateLinearAccelX();
         sensor_data.setlastUpdateTime(millis());
       }
@@ -356,9 +358,10 @@ void playMP3AsTask(void *pvParameters) {
 void calculateVelocityAsTask(void *pvParameters) {
   int delay_in_ms = *(int *)pvParameters;
   while(true) {
-    calculateVelocity(sensor_data, velocity, 5);
-    Serial.print("Velocity: ");
-    Serial.println(velocity);
+    if(is_system_on) {
+      //calculateVelocity(sensor_data, &velocity, delay_in_ms);
+      calculateVelocityWithZUPT(sensor_data, &velocity, delay_in_ms);
+    }
     vTaskDelay(delay_in_ms);
   }
 }
@@ -384,9 +387,9 @@ void setup() {
   mp3.setVolume(0x15);
   // Initialize Distance measuring sensors
   initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
-  //initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
-  //initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
-  //initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
+  initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
+  initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
+  initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
 
   //Initializes MPU
   if (!mpu.setup(MPU9250_ADDRESS)) {  // change to your own address
@@ -402,8 +405,8 @@ void setup() {
   system_calibrated = true;
   Serial.println("Waiting for system to be powered on");
   //Creates threaded tasks
-  xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 3, nullptr);
-  xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &DistanceSensorDelay, 1, nullptr);
+  xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
+  xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &SpeedCalcDelay, 2, nullptr);
 }
 
 void loop() {
@@ -474,7 +477,7 @@ void loop() {
   //sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
     sensor_data.printData();
-    if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
+    /*if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
       if(system_settings.getMode() == "Vibration") {
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
         vTaskDelay(1000);
@@ -496,7 +499,7 @@ void loop() {
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1000);
       }
-    }
+    }*/
   }
-  vTaskDelay(50);
+  vTaskDelay(100);
 }
