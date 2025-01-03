@@ -239,7 +239,7 @@ void storeFirebaseSetting(systemSettings& s)
       Serial.println(firebaseData.errorReason());
     }
 
-  if (Firebase.setString(firebaseData, "/System_Settings/Vibration", s.getViberation())) {
+  if (Firebase.setString(firebaseData, "/System_Settings/Vibration", s.getVibration())) {
     Serial.println("vibration stored successfully");
   } else {
     Serial.print("Error storing vibration: ");
@@ -278,7 +278,7 @@ void updateSDSettings(systemSettings &s)
     sound = sound + String(s.getSound());
     appendFile(SD_MMC, "/Settings/setting.txt", sound);
     String vibration("Vibration: ");
-    vibration = vibration + String(s.getViberation());
+    vibration = vibration + String(s.getVibration());
     appendFile(SD_MMC, "/Settings/setting.txt", vibration);
     String timing("Timing: ");
     timing = timing + String(s.getTiming());

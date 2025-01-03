@@ -4,7 +4,7 @@ systemSettings::systemSettings(String m,String s, String v,String t,int h)
 {
     Mode = m;
     Sound = s;
-    Viberation = v;
+    Vibration = v;
     timing = t;
     height = h;
 }
@@ -17,8 +17,8 @@ void systemSettings::updateSettings(systemSettings s)
     if(s.Sound != "default" && s.Sound != "") {
         Sound = s.Sound;
     }
-    if(s.Viberation != "default" && s.Viberation != "") {
-        Viberation = s.Viberation;
+    if(s.Vibration != "default" && s.Vibration != "") {
+        Vibration = s.Vibration;
     }
     if(s.timing != "default" && s.timing != "") {
         timing = s.timing;
@@ -36,7 +36,7 @@ void systemSettings::print()
     Serial.print("Sound: ");
     Serial.println(Sound);
     Serial.print("Vibration: ");
-    Serial.println(Viberation);
+    Serial.println(Vibration);
     Serial.print("Timing: ");
     Serial.println(timing);
     Serial.print("Height: ");
