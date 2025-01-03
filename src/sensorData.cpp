@@ -25,11 +25,21 @@ void SensorData::setSensor2Distance(int distance) {
     this->sensor2distance = distance;
 }
 
+void SensorData::setSensor3Distance(int distance) {
+    this->sensor3distance = distance;
+}
+void SensorData::setSensor4Distance(int distance) {
+    this->sensor4distance = distance;
+}
 void SensorData::setlastUpdateTime(uint32_t distance) {
     this->lastUpdateTime = distance;
 }
 void SensorData::updateLinearAccelX() {
     linearAccelX = accelX - (accelZ)*sin(pitch);
+}
+
+void SensorData::setGyroX(float gyroXValue) {
+    this->gyroX = gyroXValue;
 }
 
 void SensorData::printData() const {
@@ -46,17 +56,18 @@ void SensorData::printData() const {
     Serial.print(", AccelY: ");
     Serial.print(this->accelY,2);
     Serial.print(", AccelZ: ");
-    Serial.println(this->accelZ,2);
+    Serial.print(this->accelZ,2);
+    Serial.print(", GyroX: ");
+    Serial.println(this->gyroX,2);
     Serial.print("Distance Sensors -> Sensor1: ");
     Serial.print(this->sensor1distance);
     Serial.print(" mm, Sensor2: ");
     Serial.print(this->sensor2distance);
-    Serial.print(" mm");
-    Serial.print("Distance Sensors -> Sensor3: ");
+    Serial.print(" mm, Sensor3: ");
     Serial.print(this->sensor3distance);
     Serial.print(" mm, Sensor4: ");
     Serial.print(this->sensor4distance);
-    Serial.print(" mm");
+    Serial.println(" mm");
     Serial.print(" Last update time: ");
     Serial.println(this->lastUpdateTime);
     Serial.println();

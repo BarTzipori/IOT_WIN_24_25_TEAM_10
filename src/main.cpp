@@ -23,40 +23,9 @@
 #include "sd_read_write.h"
 #include "SD_MMC.h"
 #include "systemSettings.h"
+#include "SECRETS.h"
+#include "parameters.h"
 
-#define IRQ_PIN 2
-#define XSHUT_PIN_1 4
-#define XSHUT_PIN_2 5
-#define XSHUT_PIN_3 6
-#define XSHUT_PIN_4 7
-#define STACK_SIZE 2048
-#define MPU9250_ADDRESS 0x68
-#define VL53L1X_ADDRESS 0x60
-#define VL53L1X_ADDRESS_2 0x61
-#define VL53L1X_ADDRESS_3 0x52
-#define VL53L1X_ADDRESS_4 0x53
-#define MOTOR_1_PIN 46
-#define MOTOR_2_PIN 46
-#define MP3_RX 12
-#define MP3_TX 11
-#define ON_OFF_BUTTON_PIN 20
-#define LONG_PRESS_TIME 10000
-#define SHORT_PRESS_TIME 10000
-#define OBSTACLE_DISTANCE 300
-
-#define SD_MMC_CMD 38 //Please do not modify it.
-#define SD_MMC_CLK 39 //Please do not modify it. 
-#define SD_MMC_D0  40 //Please do not modify it.
-
-#define WIFI_TIMEOUT 1500
-// Replace with your network credentials
-#define WIFI_SSID "Matans iPhone"
-#define WIFI_PASSWORD "12345678B"
-// Firebase credentials
-#define FIREBASE_HOST "https://safestep-2bc31-default-rtdb.europe-west1.firebasedatabase.app" // Replace with your database URL
-#define API_KEY "AIzaSyBplNk42Hp3O6M17iJObv_FM2MuanadKjM"
-#define USER_EMAIL "neta.matano@gmail.com"
-#define USER_PASSWORD "123456"
 
 Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
 Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
@@ -69,7 +38,7 @@ vibrationMotor motor2(MOTOR_2_PIN);
 ezButton onOffButton(ON_OFF_BUTTON_PIN);
 
 std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2, XSHUT_PIN_3, XSHUT_PIN_4};
-std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}};
+std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}, {&vl53_3, VL53L1X_ADDRESS_3}, {&vl53_4, VL53L1X_ADDRESS_4}};
 std::vector<std::pair<MPU9250*, int>> mpu_sensors = {{&mpu, MPU9250_ADDRESS}};
 SensorData sensor_data;
 //default vibration pattern
@@ -88,7 +57,8 @@ int8_t volume = 0x1a;//0~0x1e (30 adjustable level)
 int8_t folderName = 0x01;//folder name must be 01 02 03 04 ...
 int8_t fileName = 0x01; // prefix of file name must be 001xxx 002xxx 003xxx 004xxx ...
 
-static int DistanceSensorDelay = 50;
+static int DistanceSensorDelay = 100;
+static int SpeedCalcDelay = 200;
 bool calibration_needed = false;
 bool system_calibrated = false;
 bool mpu_updated = false;
@@ -97,13 +67,14 @@ unsigned long pressed_time = 0;
 unsigned long released_time = 0;
 bool is_pressing = false;
 bool is_long_press = false;
-float velocity = 0;
+double velocity = 0.0;
+bool initial_powerup = true;
 
 
 //firebase functions
-bool setupSDCard()
-{
-        SD_MMC.setPins(SD_MMC_CLK, SD_MMC_CMD, SD_MMC_D0);
+bool setupSDCard() {
+    SD_MMC.setPins(SD_MMC_CLK, SD_MMC_CMD, SD_MMC_D0);
+    delay(100);
     if (!SD_MMC.begin("/sdcard", true, true, SDMMC_FREQ_DEFAULT, 5)) {
       Serial.println("Card Mount Failed");
       return false;
@@ -160,36 +131,36 @@ void init_sd_card()
     Serial.println("setting file exist!");
     else  {
         createDir(SD_MMC, "/Settings");
-        writeFile(SD_MMC, "/Settings/setting.txt", "Mode: Both\n");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Sound: Sound_1\n");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Viberation: Viberation_1\n");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Timing: 0.5s\n");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Height: 1.65\n");
+        writeFile(SD_MMC, "/Settings/setting.txt", "Mode: Both");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Sound: Sound_1");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Viberation: Viberation_1");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Timing: 0.5s");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Height: 1.65");
         endFile(SD_MMC, "/Settings/setting.txt");
         Serial.println("created setting file");
     }
 }
 
-void setupFirebase(){
-  config.api_key = API_KEY;
-  config.database_url = FIREBASE_HOST;
-
-  auth.user.email = USER_EMAIL;
-  auth.user.password = USER_PASSWORD;
-
-  Firebase.begin(&config, &auth);
-  Firebase.reconnectWiFi(true);
-
-  config.token_status_callback = tokenStatusCallback;
+void setupFirebase() {
+    config.api_key = API_KEY;
+    config.database_url = FIREBASE_HOST;
+    auth.user.email = USER_EMAIL;
+    auth.user.password = USER_PASSWORD;
+    Firebase.begin(&config, &auth);
+    // Ensure the network is reconnected
+    Firebase.reconnectNetwork(true);
 }
 
 systemSettings getFirebaseSettings() {
   
-  String mode, viberation, timming, sound;
+  String mode, vibration, timming, sound;
   double height;
+  while(!Firebase.ready()) {
+    delay(1000);
+  }
   if (Firebase.getString(firebaseData, "/System_Settings/Vibration"))
   {
-    viberation = firebaseData.stringData();
+    vibration = firebaseData.stringData();
   } else {
     Serial.print("Failed to get viberation: ");
     Serial.println(firebaseData.errorReason());
@@ -227,11 +198,14 @@ if (Firebase.getString(firebaseData, "/System_Settings/Sound")) {
       Serial.print("Failed to get height: ");
       Serial.println(firebaseData.errorReason());
   }
-  return systemSettings(mode, sound, viberation, timming, height);
+  return systemSettings(mode, sound, vibration, timming, height);
 }
 
-void storeFirebaseSetting(systemSettings& s)
-{
+void storeFirebaseSetting(systemSettings& s) {
+   if (!Firebase.ready()) {
+      Serial.println("Firebase is not ready. Please check the connection and authentication.");
+      return;
+    }
    if (Firebase.setString(firebaseData, "/System_Settings/Sound", s.getSound())) {
       Serial.println("sound stored successfully");
     } else {
@@ -239,7 +213,7 @@ void storeFirebaseSetting(systemSettings& s)
       Serial.println(firebaseData.errorReason());
     }
 
-  if (Firebase.setString(firebaseData, "/System_Settings/Vibration", s.getViberation())) {
+  if (Firebase.setString(firebaseData, "/System_Settings/Vibration", s.getVibration())) {
     Serial.println("vibration stored successfully");
   } else {
     Serial.print("Error storing vibration: ");
@@ -278,7 +252,7 @@ void updateSDSettings(systemSettings &s)
     sound = sound + String(s.getSound());
     appendFile(SD_MMC, "/Settings/setting.txt", sound);
     String vibration("Vibration: ");
-    vibration = vibration + String(s.getViberation());
+    vibration = vibration + String(s.getVibration());
     appendFile(SD_MMC, "/Settings/setting.txt", vibration);
     String timing("Timing: ");
     timing = timing + String(s.getTiming());
@@ -301,8 +275,7 @@ void sampleSensorsData(void *pvParameters) {
             Serial.print(i+1);
             Serial.println(" not connected");
             continue;
-        } else {
-            
+        } else {     
             if(distance_sensors[i].first->dataReady()) {
                 int distance = distance_sensors[i].first->distance();
                 if (distance == -1) {
@@ -310,15 +283,30 @@ void sampleSensorsData(void *pvParameters) {
                   //Serial.println(distance_sensors[i].first->vl_status);
                   if(i == 0) {
                     sensor_data.setSensor1Distance(distance);
-                  } else {
+                  }
+                  if(i == 1) {
                     sensor_data.setSensor2Distance(distance);
                   }
+                  if(i == 2) {
+                    sensor_data.setSensor3Distance(distance);
+                  }
+                  if(i == 3) {
+                    sensor_data.setSensor4Distance(distance);
+                  }
                   continue;
-                }
-                if(i == 0) {
-                  sensor_data.setSensor1Distance(distance);
                 } else {
-                  sensor_data.setSensor2Distance(distance);
+                  if(i == 0) {
+                    sensor_data.setSensor1Distance(distance);
+                  }
+                  if(i == 1) {
+                    sensor_data.setSensor2Distance(distance);
+                  }
+                  if(i == 2) {
+                    sensor_data.setSensor3Distance(distance);
+                  }
+                  if(i == 3) {
+                    sensor_data.setSensor4Distance(distance);
+                  }
                 }
                 distance_sensors[i].first->clearInterrupt();
             } else {
@@ -339,6 +327,7 @@ void sampleSensorsData(void *pvParameters) {
         sensor_data.setAccelX(mpu_sensors[0].first->getLinearAccX());
         sensor_data.setAccelY(mpu_sensors[0].first->getLinearAccY());
         sensor_data.setAccelZ(mpu_sensors[0].first->getLinearAccZ());
+        sensor_data.setGyroX(mpu_sensors[0].first->getGyroX());
         sensor_data.updateLinearAccelX();
         sensor_data.setlastUpdateTime(millis());
       }
@@ -369,9 +358,10 @@ void playMP3AsTask(void *pvParameters) {
 void calculateVelocityAsTask(void *pvParameters) {
   int delay_in_ms = *(int *)pvParameters;
   while(true) {
-    calculateVelocity(sensor_data, velocity, 5);
-    Serial.print("Velocity: ");
-    Serial.println(velocity);
+    if(is_system_on) {
+      //calculateVelocity(sensor_data, &velocity, delay_in_ms);
+      calculateVelocityWithZUPT(sensor_data, &velocity, delay_in_ms);
+    }
     vTaskDelay(delay_in_ms);
   }
 }
@@ -398,8 +388,8 @@ void setup() {
   // Initialize Distance measuring sensors
   initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
   initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
-  //initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
-  //initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
+  initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
+  initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
 
   //Initializes MPU
   if (!mpu.setup(MPU9250_ADDRESS)) {  // change to your own address
@@ -415,8 +405,8 @@ void setup() {
   system_calibrated = true;
   Serial.println("Waiting for system to be powered on");
   //Creates threaded tasks
-  xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 3, nullptr);
-  //xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &DistanceSensorDelay, 1, nullptr);
+  xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
+  xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &SpeedCalcDelay, 2, nullptr);
 }
 
 void loop() {
@@ -440,6 +430,8 @@ void loop() {
       Serial.println("Short press detected");
       if(is_system_on) {
         is_system_on = false;
+        initial_powerup = false;
+        WiFi.disconnect();
         Serial.println("System shut down");
         motor1.vibrate(vibrationPattern::powerOFFBuzz);
       } else {
@@ -450,13 +442,15 @@ void loop() {
         wifi_flag = WifiSetup();
         // Initialize Firebase
         setupSDCard();
+        delay(100);
         init_sd_card();
+        delay(100);
         system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
         //if we managed to connect to WIFI - use firebase settings, as they are the most updated.
         if (wifi_flag){
           setupFirebase();
-          systemSettings system_settongs_from_fb = getFirebaseSettings();
-          system_settings.updateSettings(system_settongs_from_fb);
+          systemSettings system_settings_from_fb = getFirebaseSettings();
+          system_settings.updateSettings(system_settings_from_fb);
           system_settings.print();
           updateSDSettings(system_settings);
         }
@@ -481,10 +475,10 @@ void loop() {
     }
   }
   //sensor data update routine
-  if (mpu.update() && system_calibrated && is_system_on) {
+  if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
     sensor_data.printData();
-    if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
-      if(system_settings.getMode() == "Viberation") {
+    /*if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
+      if(system_settings.getMode() == "Vibration") {
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
         vTaskDelay(1000);
       }
@@ -505,7 +499,7 @@ void loop() {
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1000);
       }
-    }
+    }*/
   }
-  vTaskDelay(50);
+  vTaskDelay(100);
 }

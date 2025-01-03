@@ -223,12 +223,7 @@ systemSettings readSettings(fs::FS &fs, const char *path)
 
         String line = file.readStringUntil('\n'); // Read until the newline character
         tokens = parseString(line);
-
         Serial.println("Line read: " + line);
-        Serial.print("Tokens found: ");
-        for (const String& token : tokens) {
-            Serial.print(token + " ");
-        }
         Serial.println();
        //for (String str : tokens)
          //  Serial.println(str);
