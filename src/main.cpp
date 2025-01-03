@@ -23,40 +23,9 @@
 #include "sd_read_write.h"
 #include "SD_MMC.h"
 #include "systemSettings.h"
+#include "SECRETS.h"
+#include "parameters.h"
 
-#define IRQ_PIN 2
-#define XSHUT_PIN_1 4
-#define XSHUT_PIN_2 5
-#define XSHUT_PIN_3 6
-#define XSHUT_PIN_4 7
-#define STACK_SIZE 2048
-#define MPU9250_ADDRESS 0x68
-#define VL53L1X_ADDRESS 0x60
-#define VL53L1X_ADDRESS_2 0x61
-#define VL53L1X_ADDRESS_3 0x52
-#define VL53L1X_ADDRESS_4 0x53
-#define MOTOR_1_PIN 46
-#define MOTOR_2_PIN 46
-#define MP3_RX 12
-#define MP3_TX 11
-#define ON_OFF_BUTTON_PIN 20
-#define LONG_PRESS_TIME 10000
-#define SHORT_PRESS_TIME 10000
-#define OBSTACLE_DISTANCE 300
-
-#define SD_MMC_CMD 38 //Please do not modify it.
-#define SD_MMC_CLK 39 //Please do not modify it. 
-#define SD_MMC_D0  40 //Please do not modify it.
-
-#define WIFI_TIMEOUT 1500
-// Replace with your network credentials
-#define WIFI_SSID "Matans iPhone"
-#define WIFI_PASSWORD "12345678B"
-// Firebase credentials
-#define FIREBASE_HOST "https://safestep-2bc31-default-rtdb.europe-west1.firebasedatabase.app" // Replace with your database URL
-#define API_KEY "AIzaSyBplNk42Hp3O6M17iJObv_FM2MuanadKjM"
-#define USER_EMAIL "neta.matano@gmail.com"
-#define USER_PASSWORD "123456"
 
 Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
 Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
