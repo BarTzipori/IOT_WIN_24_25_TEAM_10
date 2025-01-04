@@ -104,7 +104,7 @@ void calculateVelocityWithZUPT(const SensorData& sensorData, double* velocity, f
         *velocity += deltaAccX * deltaTime / 1000.0;
 
         // Ensure velocity doesn't grow unreasonably (optional damping)
-        if (fabs(*velocity) < 1e-5 || *velocity < 0) {
+        if (fabs(*velocity) < VELOCITY_THRESHOLD || *velocity < 0) {
             *velocity = 0.0;
         }
     }

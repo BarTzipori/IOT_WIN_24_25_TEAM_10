@@ -6,6 +6,7 @@
 #include <ezButton.h>
 #include <SoftwareSerial.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <FirebaseESP32.h>
 #include <Arduino.h>
 #include <addons/TokenHelper.h>
@@ -56,6 +57,8 @@ systemSettings system_settings;
 int8_t volume = 0x1a;//0~0x1e (30 adjustable level)
 int8_t folderName = 0x01;//folder name must be 01 02 03 04 ...
 int8_t fileName = 0x01; // prefix of file name must be 001xxx 002xxx 003xxx 004xxx ...
+
+WiFiClientSecure client;
 
 static int DistanceSensorDelay = 100;
 static int SpeedCalcDelay = 200;
@@ -118,11 +121,10 @@ bool WifiSetup()
   if(WiFi.status()==WL_CONNECTED){
       Serial.println("\nConnected to Wi-Fi");
       return true;
-  }
-      else {
+  } else {
         Serial.println("\nNot Connected!");
         return false;
-      }
+  }
 }
 
 void init_sd_card()
@@ -430,8 +432,9 @@ void loop() {
       Serial.println("Short press detected");
       if(is_system_on) {
         is_system_on = false;
-        initial_powerup = false;
+        client.stop();
         WiFi.disconnect();
+        Firebase.reset(&config);
         Serial.println("System shut down");
         motor1.vibrate(vibrationPattern::powerOFFBuzz);
       } else {
@@ -448,11 +451,14 @@ void loop() {
         if (wifi_flag){
           if(initial_powerup) {
             setupFirebase();
+            initial_powerup = false;
           }
           systemSettings system_settings_from_fb = getFirebaseSettings();
           system_settings.updateSettings(system_settings_from_fb);
           system_settings.print();
           updateSDSettings(system_settings);
+        } else {
+          initial_powerup = true;
         }
         is_system_on = true;
       }
