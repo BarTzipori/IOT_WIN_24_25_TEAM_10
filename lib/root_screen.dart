@@ -1,10 +1,8 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 
 class RootScreen extends StatefulWidget {
   static const routeName = '/RootScreen';
-  const RootScreen({super.key});
+  const RootScreen({Key? key}) : super(key: key);
 
   @override
   State<RootScreen> createState() => _RootScreenState();
@@ -14,6 +12,9 @@ class _RootScreenState extends State<RootScreen> {
   late List<Widget> screens;
   int currentScreen = 0;
   late PageController controller;
+
+  // Simulating cart items count
+  int cartItemCount = 3; // Replace with actual logic to fetch cart count.
 
   @override
   void initState() {
@@ -48,22 +49,25 @@ class _RootScreenState extends State<RootScreen> {
         },
         destinations: [
           const NavigationDestination(
-            selectedIcon: Icon(Icons.home_filled),
+            selectedIcon: Icon(Icons.home_rounded),
             icon: Icon(Icons.home_outlined),
             label: "Home",
           ),
           const NavigationDestination(
-            selectedIcon: Icon(Icons.search),
+            selectedIcon: Icon(Icons.search_rounded),
             icon: Icon(Icons.search_outlined),
             label: "Search",
           ),
-          const NavigationDestination(
-            selectedIcon: Icon(Icons.shopping_cart),
-            icon: Icon(Icons.shopping_cart_outlined),
+          NavigationDestination(
+            selectedIcon: const Icon(Icons.shopping_bag_rounded),
+            icon: Badge(
+              label: cartItemCount.toString(),
+              child: const Icon(Icons.shopping_bag_outlined),
+            ),
             label: "Cart",
           ),
           const NavigationDestination(
-            selectedIcon: Icon(Icons.person),
+            selectedIcon: Icon(Icons.person_rounded),
             icon: Icon(Icons.person_outline),
             label: "Profile",
           ),
@@ -75,7 +79,7 @@ class _RootScreenState extends State<RootScreen> {
 
 // Placeholder for HomeScreen
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +94,7 @@ class HomeScreen extends StatelessWidget {
 
 // Placeholder for SearchScreen
 class SearchScreen extends StatelessWidget {
-  const SearchScreen({super.key});
+  const SearchScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +109,7 @@ class SearchScreen extends StatelessWidget {
 
 // Placeholder for CartScreen
 class CartScreen extends StatelessWidget {
-  const CartScreen({super.key});
+  const CartScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +124,7 @@ class CartScreen extends StatelessWidget {
 
 // Placeholder for ProfileScreen
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -129,6 +133,58 @@ class ProfileScreen extends StatelessWidget {
         'Profile Screen',
         style: Theme.of(context).textTheme.headlineMedium,
       ),
+    );
+  }
+}
+
+// Badge Widget (custom implementation)
+class Badge extends StatelessWidget {
+  final Widget child;
+  final String label;
+  final Color backgroundColor;
+  final Color textColor;
+
+  const Badge({
+    Key? key,
+    required this.child,
+    required this.label,
+    this.backgroundColor = Colors.red,
+    this.textColor = Colors.white,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.topRight,
+      children: [
+        child,
+        if (label != "0")
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 16,
+                minHeight: 16,
+              ),
+              child: Center(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

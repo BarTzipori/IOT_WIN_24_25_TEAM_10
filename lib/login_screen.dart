@@ -1,6 +1,7 @@
-// login_screen.dart
 import 'package:flutter/material.dart';
-import 'root_screen.dart'; // Replace with 'settings_screen.dart' after adding it.
+import 'package:firebase_auth/firebase_auth.dart';
+import 'root_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/LoginScreen';
@@ -16,6 +17,8 @@ class _LoginScreenState extends State<LoginScreen> {
   late final TextEditingController _passwordController;
 
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -45,16 +48,44 @@ class _LoginScreenState extends State<LoginScreen> {
 
     FocusScope.of(context).unfocus();
 
-    // Simulate a delay for login
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Logging in...'),
-      ),
-    );
-    await Future.delayed(const Duration(seconds: 2));
+    setState(() {
+      _isLoading = true;
+    });
 
-    // Navigate to SettingsScreen
-    Navigator.pushReplacementNamed(context, '/SettingsScreen');
+    try {
+      await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Login Successful!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, RootScreen.routeName);
+    } on FirebaseAuthException catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message ?? 'An error occurred'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -159,8 +190,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onPressed: _loginFct,
-                        child: const Text(
+                        onPressed: _isLoading ? null : _loginFct,
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                          color: Colors.white,
+                        )
+                            : const Text(
                           "Login",
                           style: TextStyle(fontSize: 18),
                         ),
@@ -176,7 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Text("New here?"),
                   TextButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/RegisterScreen');
+                      Navigator.pushNamed(context, RegisterScreen.routeName);
                     },
                     child: const Text(
                       "Sign Up",
