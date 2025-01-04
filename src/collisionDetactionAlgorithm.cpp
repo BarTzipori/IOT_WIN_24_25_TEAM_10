@@ -3,7 +3,7 @@
 #include "collisionDetectionAlgorithm.h"
 
 // If the absolute velocity is below this threshold, we’ll consider it “stopped”
-static const double VELOCITY_THRESHOLD  = 0.02; // in m/s
+static const double VELOCITY_THRESHOLD  = 0.005; // in m/s
 static const float ACC_THRESHOLD  = 0.001f;  // in m/s
 static const float G = 9.81f; // Gravity in m/s^2
 #define FILTER_SIZE 5 // Size of the moving average filter
@@ -86,7 +86,7 @@ void calculateVelocityWithZUPT(const SensorData& sensorData, double* velocity, f
     const float ACC_HYSTERESIS = 0.02;
     const float GYRO_HYSTERESIS = 0.01;
 
-    // Detect stationary state with hysteresis
+    // Detect stationary state with hysteresis 
     if (accelMagnitude < (ACC_THRESHOLD - ACC_HYSTERESIS) && 
         gyroMagnitude < (GYRO_THRESHOLD - GYRO_HYSTERESIS)) {
         isStationary = true;
@@ -104,7 +104,7 @@ void calculateVelocityWithZUPT(const SensorData& sensorData, double* velocity, f
         *velocity += deltaAccX * deltaTime / 1000.0;
 
         // Ensure velocity doesn't grow unreasonably (optional damping)
-        if (fabs(*velocity) < 1e-5 || *velocity < 0) {
+        if (fabs(*velocity) < VELOCITY_THRESHOLD || *velocity < 0) {
             *velocity = 0.0;
         }
     }

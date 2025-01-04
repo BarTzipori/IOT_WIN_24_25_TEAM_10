@@ -1,15 +1,15 @@
 #ifndef _SECRETS_H
 #define _SECRETS_H
 
-const char* ssid = "";
-const char* password = "";
-const char*  server = "speech.googleapis.com";
+/*const char* ssid = "";
+ const char* password = "";
+ const char*  server = "speech.googleapis.com";
 
 // To get the certificate for your region run:
 // openssl s_client -showcerts -connect speech.googleapis.com:443
 // Copy the certificate (all lines between and including ---BEGIN CERTIFICATE---
 // and --END CERTIFICATE--) to root.cert and put here on the root_cert variable.
-const char* root_ca = 
+extern const char* root_ca = 
     "-----BEGIN CERTIFICATE-----\n"
     "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n"
     "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n"
@@ -26,7 +26,7 @@ const char* root_ca =
     "-----END CERTIFICATE-----;";
 
 
-
+*/
 // Getting Access Token : 
 // At first, you should get service account key (JSON file).
 // Type below command in Google Cloud Shell to get AccessToken: 
