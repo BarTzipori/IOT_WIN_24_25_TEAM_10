@@ -442,13 +442,13 @@ void loop() {
         wifi_flag = WifiSetup();
         // Initialize Firebase
         setupSDCard();
-        delay(100);
         init_sd_card();
-        delay(100);
         system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
         //if we managed to connect to WIFI - use firebase settings, as they are the most updated.
         if (wifi_flag){
-          setupFirebase();
+          if(initial_powerup) {
+            setupFirebase();
+          }
           systemSettings system_settings_from_fb = getFirebaseSettings();
           system_settings.updateSettings(system_settings_from_fb);
           system_settings.print();

@@ -86,7 +86,7 @@ void calculateVelocityWithZUPT(const SensorData& sensorData, double* velocity, f
     const float ACC_HYSTERESIS = 0.02;
     const float GYRO_HYSTERESIS = 0.01;
 
-    // Detect stationary state with hysteresis
+    // Detect stationary state with hysteresis 
     if (accelMagnitude < (ACC_THRESHOLD - ACC_HYSTERESIS) && 
         gyroMagnitude < (GYRO_THRESHOLD - GYRO_HYSTERESIS)) {
         isStationary = true;
