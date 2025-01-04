@@ -508,5 +508,5 @@ void loop() {
       }
     }
   }
-  vTaskDelay(100);
+  vTaskDelay(50);
 }
