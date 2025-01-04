@@ -427,8 +427,9 @@ void loop() {
     released_time = millis();
 
     long press_duration = released_time - pressed_time;
-
+    //short press - on off toggle
     if(press_duration < SHORT_PRESS_TIME) {
+      // on/off routine
       Serial.println("Short press detected");
       if(is_system_on) {
         is_system_on = false;
@@ -483,7 +484,7 @@ void loop() {
   //sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
     sensor_data.printData();
-    /*if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
+    if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
       if(system_settings.getMode() == "Vibration") {
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
         vTaskDelay(1000);
@@ -505,7 +506,7 @@ void loop() {
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1000);
       }
-    }*/
+    }
   }
   vTaskDelay(100);
 }
