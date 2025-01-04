@@ -61,7 +61,7 @@ int8_t fileName = 0x01; // prefix of file name must be 001xxx 002xxx 003xxx 004x
 WiFiClientSecure client;
 
 static int DistanceSensorDelay = 50;
-static int SpeedCalcDelay = 10;
+static int SpeedCalcDelay = 50;
 bool calibration_needed = false;
 bool system_calibrated = false;
 bool mpu_updated = false;

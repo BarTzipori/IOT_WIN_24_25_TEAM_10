@@ -3,7 +3,7 @@
 #include "collisionDetectionAlgorithm.h"
 
 // If the absolute velocity is below this threshold, we’ll consider it “stopped”
-static const double VELOCITY_THRESHOLD  = 0.01; // in m/s
+static const double VELOCITY_THRESHOLD  = 0.005; // in m/s
 static const float ACC_THRESHOLD  = 0.001f;  // in m/s
 static const float G = 9.81f; // Gravity in m/s^2
 #define FILTER_SIZE 5 // Size of the moving average filter
