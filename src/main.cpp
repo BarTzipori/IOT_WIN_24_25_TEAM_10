@@ -197,10 +197,10 @@ void setup() {
   //sets mp3 initial volume
   mp3.setVolume(0x15);
   // Initialize Distance measuring sensors
-  initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
-  initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
-  initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
-  initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
+  //initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
+  //initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
+  //initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
+  //initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
 
   MPU9250Setting mpu_setting;
   mpu_setting.accel_fs_sel = ACCEL_FS_SEL::A2G;
@@ -208,7 +208,7 @@ void setup() {
   mpu_setting.mag_output_bits = MAG_OUTPUT_BITS::M16BITS;
   mpu_setting.fifo_sample_rate = FIFO_SAMPLE_RATE::SMPL_200HZ;
   mpu_setting.gyro_fchoice = 0x03;
-  mpu_setting.gyro_dlpf_cfg = GYRO_DLPF_CFG::DLPF_41HZ;
+  mpu_setting.gyro_dlpf_cfg = GYRO_DLPF_CFG::DLPF_5HZ;
   mpu_setting.accel_fchoice = 0x01;
   mpu_setting.accel_dlpf_cfg = ACCEL_DLPF_CFG::DLPF_5HZ;
 
@@ -302,7 +302,7 @@ void loop() {
   }
   //sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
-    sensor_data.printData();
+    /*sensor_data.printData();
     if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
       if(system_settings.getMode() == "Vibration") {
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
@@ -325,7 +325,7 @@ void loop() {
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1500);
       }
-    }
+    }*/
   }
   vTaskDelay(50);
 }

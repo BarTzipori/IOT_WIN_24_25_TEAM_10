@@ -17,7 +17,7 @@ void calculateVelocity(const SensorData& sensorData, double *velocity, float del
     float accelX = sensorData.getLinearAccelX(); // Current acceleration in m/s^2
 
     // Calculate change in acceleration
-    float deltaAccX = accelX - prevAccelX;
+    float deltaAccX = accelX; //- prevAccelX;
     prevAccelX = accelX; // Update the previous acceleration
 
     // Ignore insignificant changes to filter noise
@@ -73,8 +73,9 @@ void calculateVelocityWithZUPT(const SensorData& sensorData, double* velocity, f
     float gyroX = applySmoothing(rawGyroX, gyroBuffer);
 
     // Calculate deltas
-    float deltaAccX = accelX - prevAccelX;
-    float deltaGyroX = gyroX - prevGyroX;
+    //float deltaAccX = accelX - prevAccelX;
+    float deltaAccX = rawAccelX;
+    float deltaGyroX = rawGyroX; // - prevGyroX;
 
     // Calculate the magnitude of acceleration and gyroscope deltas
     float accelMagnitude = fabs(deltaAccX);
