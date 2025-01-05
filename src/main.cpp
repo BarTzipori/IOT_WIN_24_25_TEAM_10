@@ -139,7 +139,9 @@ void sampleSensorsData(void *pvParameters) {
         sensor_data.setAccelY(mpu_sensors[0].first->getLinearAccY());
         sensor_data.setAccelZ(mpu_sensors[0].first->getLinearAccZ());
         sensor_data.setGyroX(mpu_sensors[0].first->getGyroX());
-        sensor_data.updateLinearAccelX();
+        sensor_data.setGyroY(mpu_sensors[0].first->getGyroY());
+        sensor_data.setGyroZ(mpu_sensors[0].first->getGyroZ());
+        //sensor_data.updateLinearAccelX();
         sensor_data.setlastUpdateTime(millis());
       }
     }
@@ -302,7 +304,7 @@ void loop() {
   }
   //sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
-    /*sensor_data.printData();
+    sensor_data.printData();
     if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
       if(system_settings.getMode() == "Vibration") {
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);

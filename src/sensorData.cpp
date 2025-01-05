@@ -41,6 +41,12 @@ void SensorData::updateLinearAccelX() {
 void SensorData::setGyroX(float gyroXValue) {
     this->gyroX = gyroXValue;
 }
+void SensorData::setGyroY(float gyroYValue) {
+    this->gyroY = gyroYValue;
+}
+void SensorData::setGyroZ(float gyroZValue) {
+    this->gyroZ = gyroZValue;
+}
 
 void SensorData::printData() const {
     Serial.print("MPU Data -> Pitch: ");

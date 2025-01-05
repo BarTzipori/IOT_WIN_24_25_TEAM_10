@@ -13,7 +13,11 @@ private:
     float accelY;
     float accelZ;
     float linearAccelX;
+    float linearAccelY;
+    float linearAccelZ;
     float gyroX;
+    float gyroY;
+    float gyroZ;
     int sensor1distance;
     int sensor2distance;
     int sensor3distance;
@@ -22,7 +26,7 @@ private:
 
 public:
     // Constructor
-    SensorData(): pitch(0.0), yaw(0.0), roll(0.0), accelX(0.0), accelY(0.0), accelZ(0.0), linearAccelX(0), gyroX(0.0), sensor1distance(0), sensor2distance(0), sensor3distance(0), sensor4distance(0), lastUpdateTime(0) {}
+    SensorData(): pitch(0.0), yaw(0.0), roll(0.0), accelX(0.0), accelY(0.0), accelZ(0.0), linearAccelX(0.0), linearAccelY(0.0), linearAccelZ(0.0), gyroX(0.0), gyroY(0.0), gyroZ(0.0), sensor1distance(0), sensor2distance(0), sensor3distance(0), sensor4distance(0), lastUpdateTime(0) {}
 
     void setPitch(float pitchValue);
     void setYaw(float yawValue);
@@ -35,6 +39,8 @@ public:
     void setSensor3Distance(int distance);
     void setSensor4Distance(int distance);
     void setGyroX(float gyroXValue);
+    void setGyroY(float gyroYValue);
+    void setGyroZ(float gyroZValue);
     void setlastUpdateTime(uint32_t time);
 
 
@@ -45,7 +51,11 @@ public:
     float getAccelY() const { return accelY; }
     float getAccelZ() const { return accelZ; }
     float getLinearAccelX() const { return linearAccelX; }
+    float getLinearAccelY() const { return linearAccelY; }
+    float getLinearAccelZ() const { return linearAccelZ; }
     float getGyroX() const { return gyroX; }
+    float getGyroY() const { return gyroY; }
+    float getGyroZ() const { return gyroZ; }
     void updateLinearAccelX();
 
     int getDistanceSensor1() const { return sensor1distance; }
