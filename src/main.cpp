@@ -202,8 +202,18 @@ void setup() {
   initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
   initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
 
+  MPU9250Setting mpu_setting;
+  mpu_setting.accel_fs_sel = ACCEL_FS_SEL::A2G;
+  mpu_setting.gyro_fs_sel = GYRO_FS_SEL::G2000DPS;
+  mpu_setting.mag_output_bits = MAG_OUTPUT_BITS::M16BITS;
+  mpu_setting.fifo_sample_rate = FIFO_SAMPLE_RATE::SMPL_200HZ;
+  mpu_setting.gyro_fchoice = 0x03;
+  mpu_setting.gyro_dlpf_cfg = GYRO_DLPF_CFG::DLPF_41HZ;
+  mpu_setting.accel_fchoice = 0x01;
+  mpu_setting.accel_dlpf_cfg = ACCEL_DLPF_CFG::DLPF_5HZ;
+
   //Initializes MPU
-  if (!mpu.setup(MPU9250_ADDRESS)) {  // change to your own address
+  if (!mpu.setup(MPU9250_ADDRESS, mpu_setting)) {  // change to your own address
       while (1) {
           Serial.println("MPU connection failed. Please check your connection with `connection_check` example.");
           delay(5000);

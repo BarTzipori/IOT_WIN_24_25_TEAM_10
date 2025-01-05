@@ -6,7 +6,7 @@
 static const double VELOCITY_THRESHOLD  = 0.005; // in m/s
 static const float ACC_THRESHOLD  = 0.001f;  // in m/s
 static const float G = 9.81f; // Gravity in m/s^2
-#define FILTER_SIZE 5 // Size of the moving average filter
+#define FILTER_SIZE 50 // Size of the moving average filter
 static float accelBuffer[FILTER_SIZE] = {0.0};
 static float gyroBuffer[FILTER_SIZE] = {0.0};
 static int filterIndex = 0;
