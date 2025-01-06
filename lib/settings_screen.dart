@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class SettingsItem {
   SettingsItem({
@@ -63,7 +64,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       SettingsItem(
         headerValue: '3. Vibration Type',
         expandedValue: 'Select the type of vibration alert',
-        options: ['Short', 'Long', 'Double', 'Pulse','None'],
+        options: ['Short', 'Long', 'Double', 'Pulse', 'None'],
       ),
       SettingsItem(
         headerValue: '4. Notification Timing',
@@ -82,6 +83,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
 
   Future<void> _saveSettingsToDatabase() async {
     try {
+      // Save settings to Firebase
       final Map<String, dynamic> settingsData = {
         'soundOrVibration': _data[0].selectedOption,
         'soundType': _data[1].selectedOption,
@@ -95,10 +97,31 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Settings saved successfully!')),
       );
+
+      // Send settings to the ESP32 server
+      final response = await http.post(
+        Uri.parse("$_esp32Url/save_settings"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(settingsData),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Settings sent to ESP32 successfully!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to send settings to ESP32. Status: ${response.statusCode}',
+            ),
+          ),
+        );
+      }
     } catch (e) {
-      print("Database Error: $e");
+      print("Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save settings: $e')),
+        SnackBar(content: Text('Error: $e')),
       );
     }
   }
