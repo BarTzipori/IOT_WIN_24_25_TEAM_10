@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:http/http.dart' as http;
 
 class SettingsItem {
   SettingsItem({
@@ -32,6 +33,8 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
   late List<SettingsItem> _data;
   final TextEditingController _heightController = TextEditingController();
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
+  final String _esp32Url = "http://172.20.10.5";
+  String _connectionStatus = "Not Connected";
 
   @override
   void initState() {
@@ -93,8 +96,56 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         const SnackBar(content: Text('Settings saved successfully!')),
       );
     } catch (e) {
+      print("Database Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to save settings: $e')),
+      );
+    }
+  }
+
+  Future<void> _testConnection() async {
+    try {
+      final response = await http.get(Uri.parse(_esp32Url));
+      print('Connection Test Response: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        setState(() {
+          _connectionStatus = "Connected to ESP32";
+        });
+      } else {
+        setState(() {
+          _connectionStatus = "Connection failed: ${response.statusCode}";
+        });
+      }
+    } catch (e) {
+      print("Connection Error: $e");
+      setState(() {
+        _connectionStatus = "Connection error: $e";
+      });
+    }
+  }
+
+  Future<void> _makeSound(String sound) async {
+    try {
+      final url = Uri.parse("$_esp32Url/play_sound=${Uri.encodeComponent(sound)}");
+      print("Making request to: $url");
+      final response = await http.get(url);
+
+      print("Response status: ${response.statusCode}");
+      print("Response body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Playing $sound')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to play $sound. Status: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      print("Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
       );
     }
   }
@@ -143,25 +194,44 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                         keyboardType: TextInputType.numberWithOptions(decimal: true),
                       )
                           : Column(
-                        children: item.options.map((String option) {
-                          return RadioListTile<String>(
-                            title: Text(option),
-                            value: option,
-                            groupValue: item.selectedOption,
-                            onChanged: (String? value) {
-                              setState(() {
-                                item.selectedOption = value;
-                              });
-                            },
-                          );
-                        }).toList(),
+                        children: [
+                          ...item.options.map((String option) {
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: RadioListTile<String>(
+                                    title: Text(option),
+                                    value: option,
+                                    groupValue: item.selectedOption,
+                                    onChanged: (String? value) {
+                                      setState(() {
+                                        item.selectedOption = value;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                if (item.headerValue == '2. Sound Type')
+                                  ElevatedButton(
+                                    onPressed: () => _makeSound(option),
+                                    child: const Text('Play'),
+                                  ),
+                              ],
+                            );
+                          }).toList(),
+                        ],
                       ),
                     ),
                     isExpanded: item.isExpanded,
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _testConnection,
+                child: const Text('Test Connection'),
+              ),
+              Text('Connection Status: $_connectionStatus'),
               ElevatedButton(
                 onPressed: _saveSettingsToDatabase,
                 child: const Text('Save'),
