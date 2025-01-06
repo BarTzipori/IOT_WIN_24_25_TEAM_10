@@ -7,8 +7,8 @@
 #include "parameters.h"
 
 
-MP3 mp3_forServer(MP3_RX, MP3_TX);
-
+//MP3 mp3_forServer(MP3_RX, MP3_TX);
+MP3 mp3(MP3_RX, MP3_TX);
 WebServer server(80);
 
 vibrationMotor vibMotor(MOTOR_1_PIN);
@@ -23,22 +23,22 @@ void playSound1() {
   // Add code to play sound 1
   Serial.println("played sound 1");
   Serial.println("playing sound");
-  mp3_forServer.setVolume(0x1e);
-  mp3_forServer.playWithFileName(0x06,0x01);
+  mp3.setVolume(0x1e);
+  mp3.playWithFileName(0x06,0x01);
   server.send(200, "text/plain", "Sound 1 played");
 }
 
 void playSound2() {
   // Add code to play sound 2
-  mp3_forServer.setVolume(0x1e);
-  mp3_forServer.playWithFileName(0x06,0x02);
+  mp3.setVolume(0x1e);
+  mp3.playWithFileName(0x06,0x02);
   server.send(200, "text/plain", "Sound 2 played");
 }
 
 void playSound3() {
   // Add code to play sound 3
-  mp3_forServer.setVolume(0x1e);
-  mp3_forServer.playWithFileName(0x06,0x03);
+  mp3.setVolume(0x1e);
+  mp3.playWithFileName(0x06,0x03);
   
   server.send(200, "text/plain", "Sound 3 played");
 }
@@ -85,7 +85,7 @@ void handleNotFound() {
 }
 
 void onSave(){
-  save_flag = true;
+  //save_flag = true;
 
 }
 

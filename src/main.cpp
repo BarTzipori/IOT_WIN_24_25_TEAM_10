@@ -32,8 +32,8 @@ Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
 Adafruit_VL53L1X vl53_3 = Adafruit_VL53L1X(XSHUT_PIN_3, IRQ_PIN);
 Adafruit_VL53L1X vl53_4 = Adafruit_VL53L1X(XSHUT_PIN_4, IRQ_PIN);
 MPU9250 mpu;
-MP3 mp3(MP3_RX, MP3_TX);
-vibrationMotor motor1(MOTOR_1_PIN); 
+extern MP3 mp3;
+vibrationMotor motor1(MOTOR_1_PIN);
 vibrationMotor motor2(MOTOR_2_PIN);  
 ezButton onOffButton(ON_OFF_BUTTON_PIN);
 
@@ -53,7 +53,7 @@ FirebaseConfig config;
 unsigned long startTime,currTime;
 bool wifi_flag;
 systemSettings system_settings;
-bool save_flag = false;
+//bool save_flag = false;
 
 int8_t volume = 0x1a;//0~0x1e (30 adjustable level)
 int8_t folderName = 0x01;//folder name must be 01 02 03 04 ...
@@ -194,7 +194,7 @@ void setup() {
   delay(100);
   secondBus.begin(15,16);
   secondBus.setClock(400000); // Set I2C clock speed to 100 kHz
-
+  Serial.println("Starting setup");
   //onOffButton.setDebounceTime(50);
 
   while (!Serial) delay(10);

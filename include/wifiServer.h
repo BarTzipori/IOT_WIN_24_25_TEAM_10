@@ -6,7 +6,7 @@
 #include <SoftwareSerial.h>
 #include "RedMP3.h"
 
- extern bool save_flag;
+//extern bool save_flag;
 
 void setupWifiServer();
 void handleRoot();
