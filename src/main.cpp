@@ -25,15 +25,15 @@
 #include "systemSettings.h"
 #include "parameters.h"
 #include "commHelperFunctions.h"
-
+#include "wifiServer.h"
 
 Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
 Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
 Adafruit_VL53L1X vl53_3 = Adafruit_VL53L1X(XSHUT_PIN_3, IRQ_PIN);
 Adafruit_VL53L1X vl53_4 = Adafruit_VL53L1X(XSHUT_PIN_4, IRQ_PIN);
 MPU9250 mpu;
-MP3 mp3(MP3_RX, MP3_TX);
-vibrationMotor motor1(MOTOR_1_PIN); 
+extern MP3 mp3;
+vibrationMotor motor1(MOTOR_1_PIN);
 vibrationMotor motor2(MOTOR_2_PIN);  
 ezButton onOffButton(ON_OFF_BUTTON_PIN);
 
@@ -53,6 +53,7 @@ FirebaseConfig config;
 unsigned long startTime,currTime;
 bool wifi_flag;
 systemSettings system_settings;
+//bool save_flag = false;
 
 int8_t volume = 0x1a;//0~0x1e (30 adjustable level)
 int8_t folderName = 0x01;//folder name must be 01 02 03 04 ...
@@ -193,7 +194,7 @@ void setup() {
   delay(100);
   secondBus.begin(15,16);
   secondBus.setClock(400000); // Set I2C clock speed to 100 kHz
-
+  Serial.println("Starting setup");
   //onOffButton.setDebounceTime(50);
 
   while (!Serial) delay(10);
@@ -285,13 +286,17 @@ void loop() {
           system_settings.updateSettings(system_settings_from_fb);
           system_settings.print();
           updateSDSettings(system_settings);
-        } else {
+          setupWifiServer();
+        }
+        else
+        {
           initial_powerup = true;
         }
         is_system_on = true;
       }
     }
   }
+
   if(is_pressing == true && is_long_press == false) {
     long press_duration = millis() - pressed_time;
     if(press_duration > LONG_PRESS_TIME) {
@@ -308,7 +313,8 @@ void loop() {
       is_system_on = true;
     }
   }
-  //sensor data update routine
+  wifiServerLoop();
+  // sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
     //sensor_data.printData();
     /*if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {

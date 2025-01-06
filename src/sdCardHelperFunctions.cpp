@@ -29,19 +29,23 @@ bool setupSDCard() {
     return true;
 }
 
-void init_sd_card()
+bool init_sd_card()
 {
-  if (isExist(SD_MMC, "/Settings", "setting.txt"))
+  if (isExist(SD_MMC, "/Settings", "setting.txt")){
     Serial.println("setting file exist!");
+    return true;
+  }
     else  {
         createDir(SD_MMC, "/Settings");
-        writeFile(SD_MMC, "/Settings/setting.txt", "Mode: Both");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Sound: Sound_1");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Viberation: Viberation_1");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Timing: 0.5s");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Height: 1.65");
+        writeFile(SD_MMC, "/Settings/setting.txt", "Mode: Both\n");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Sound: Sound_1\n");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Viberation: Viberation_1\n");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Timing: 0.5s\n");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Height: 1.65\n");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Volume: 5\n");
         endFile(SD_MMC, "/Settings/setting.txt");
         Serial.println("created setting file");
+        return false;
     }
 }
 //updates system settings on the SD card
@@ -49,19 +53,22 @@ void updateSDSettings(systemSettings &s)
 {
     deleteFile(SD_MMC, "/Settings/setting.txt");
     String mode("Mode: ");
-    mode = mode + String(s.getMode());
+    mode = mode + s.getMode();
     writeFile(SD_MMC, "/Settings/setting.txt", mode);
     String sound("Sound: ");
-    sound = sound + String(s.getSound());
+    sound = sound + s.getSound();
     appendFile(SD_MMC, "/Settings/setting.txt", sound);
     String vibration("Vibration: ");
-    vibration = vibration + String(s.getVibration());
+    vibration = vibration + s.getViberation();
     appendFile(SD_MMC, "/Settings/setting.txt", vibration);
     String timing("Timing: ");
-    timing = timing + String(s.getTiming());
+    timing = timing + s.getTiming();
     appendFile(SD_MMC, "/Settings/setting.txt", timing);
     String height("Height: ");
     height = height + String(s.getHeight());
     appendFile(SD_MMC, "/Settings/setting.txt", height);
+    String volume("Volume: ");
+    volume = volume + String(s.getVolume());
+    appendFile(SD_MMC, "/Settings/setting.txt", volume);
     endFile(SD_MMC, "/Settings/setting.txt");
 }
