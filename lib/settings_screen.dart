@@ -63,7 +63,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       SettingsItem(
         headerValue: '3. Vibration Type',
         expandedValue: 'Select the type of vibration alert',
-        options: ['Vibration 1', 'Vibration 2', 'Vibration 3', 'None'],
+        options: ['Short', 'Long', 'Double', 'Pulse','None'],
       ),
       SettingsItem(
         headerValue: '4. Notification Timing',
@@ -150,6 +150,32 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
     }
   }
 
+  Future<void> _makeVibration(String vibration) async {
+    try {
+      final url = Uri.parse("$_esp32Url/play_vibration=${Uri.encodeComponent(vibration)}");
+      print("Making request to: $url");
+      final response = await http.get(url);
+
+      print("Response status: ${response.statusCode}");
+      print("Response body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Playing $vibration')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to play $vibration. Status: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      print("Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -180,47 +206,37 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                         subtitle: Text(item.expandedValue),
                       );
                     },
-                    body: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: item.isTextField
-                          ? TextField(
-                        controller: item.textController,
-                        decoration: const InputDecoration(
-                          labelText: 'Height (m)',
-                          hintText: 'Enter your height (e.g., 1.75)',
-                          border: OutlineInputBorder(),
-                          suffixText: 'm',
-                        ),
-                        keyboardType: TextInputType.numberWithOptions(decimal: true),
-                      )
-                          : Column(
-                        children: [
-                          ...item.options.map((String option) {
-                            return Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: RadioListTile<String>(
-                                    title: Text(option),
-                                    value: option,
-                                    groupValue: item.selectedOption,
-                                    onChanged: (String? value) {
-                                      setState(() {
-                                        item.selectedOption = value;
-                                      });
-                                    },
-                                  ),
-                                ),
-                                if (item.headerValue == '2. Sound Type')
-                                  ElevatedButton(
-                                    onPressed: () => _makeSound(option),
-                                    child: const Text('Play'),
-                                  ),
-                              ],
-                            );
-                          }).toList(),
-                        ],
-                      ),
+                    body: Column(
+                      children: item.options.map((String option) {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: RadioListTile<String>(
+                                title: Text(option),
+                                value: option,
+                                groupValue: item.selectedOption,
+                                onChanged: (String? value) {
+                                  setState(() {
+                                    item.selectedOption = value;
+                                  });
+                                },
+                              ),
+                            ),
+                            if ((item.headerValue == '2. Sound Type' && option != 'None') || (item.headerValue == '3. Vibration Type' && option != 'None'))
+                              ElevatedButton(
+                                onPressed: () {
+                                  if (item.headerValue == '2. Sound Type') {
+                                    _makeSound(option);
+                                  } else {
+                                    _makeVibration(option);
+                                  }
+                                },
+                                child: const Text('Play'),
+                              ),
+                          ],
+                        );
+                      }).toList(),
                     ),
                     isExpanded: item.isExpanded,
                   );
