@@ -130,6 +130,8 @@ bool WifiSetup(unsigned long &startTime, unsigned long &currTime)
   }
   if(WiFi.status()==WL_CONNECTED){
       Serial.println("\nConnected to Wi-Fi");
+      Serial.print("IP Address: ");
+      Serial.println(WiFi.localIP());
       return true;
   } else {
         Serial.println("\nNot Connected!");
