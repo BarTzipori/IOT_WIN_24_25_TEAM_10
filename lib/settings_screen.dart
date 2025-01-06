@@ -89,17 +89,17 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         'soundType': _data[1].selectedOption ?? '',
         'vibrationType': _data[2].selectedOption ?? '',
         'notificationTiming': _data[3].selectedOption ?? '',
-        'userHeight': _data[4].textController?.text ?? '',
+        'userHeight': _data[4].textController?.text.trim() ?? '',
       };
 
       // Log data for debugging
       print('Settings Data to Save: $settingsData');
 
-      // Check for empty values (optional but recommended)
+      // Remove empty values (optional)
       settingsData.removeWhere((key, value) => value.isEmpty);
 
       // Save to Firebase
-      await _databaseRef.child('System_Settings/settings').set(settingsData);
+      await _databaseRef.child('System_Settings/settings').update(settingsData);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Settings saved successfully!')),
@@ -107,7 +107,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
     } catch (e) {
       print('Error saving settings to Firebase: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error saving settings: $e')),
       );
     }
   }
