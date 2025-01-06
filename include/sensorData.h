@@ -2,6 +2,7 @@
 #define SENSOR_DATA_H
 
 #include <Arduino.h>
+#define FILTER_SIZE 100
 
 class SensorData {
 private:
@@ -22,18 +23,31 @@ private:
     int sensor2distance;
     int sensor3distance;
     int sensor4distance;
+    // Buffers for sliding window smoothing
+    float accelXBuffer[FILTER_SIZE] = {0};
+    float accelYBuffer[FILTER_SIZE] = {0};
+    float accelZBuffer[FILTER_SIZE] = {0};
+    float gyroXBuffer[FILTER_SIZE] = {0};
+    float gyroYBuffer[FILTER_SIZE] = {0};
+    float gyroZBuffer[FILTER_SIZE] = {0};
+    float pitchBuffer[FILTER_SIZE] = {0};
+    float rollBuffer[FILTER_SIZE] = {0};
+    float yawBuffer[FILTER_SIZE] = {0};
+    int filterIndex = 0;
+
     uint32_t lastUpdateTime; // Holds the timestamp in ms or µs
 
 public:
-    // Constructor
-    SensorData(): pitch(0.0), yaw(0.0), roll(0.0), accelX(0.0), accelY(0.0), accelZ(0.0), linearAccelX(0.0), linearAccelY(0.0), linearAccelZ(0.0), gyroX(0.0), gyroY(0.0), gyroZ(0.0), sensor1distance(0), sensor2distance(0), sensor3distance(0), sensor4distance(0), lastUpdateTime(0) {}
-
+    SensorData();
     void setPitch(float pitchValue);
     void setYaw(float yawValue);
     void setRoll(float rollValue);
     void setAccelX(float accelXValue);
     void setAccelY(float accelYValue);
     void setAccelZ(float accelZValue);
+    void setLinearAccelX(float linearAccelXValue);
+    void setLinearAccelY(float linearAccelYValue);
+    void setLinearAccelZ(float linearAccelZValue);
     void setSensor1Distance(int distance);
     void setSensor2Distance(int distance);
     void setSensor3Distance(int distance);
@@ -66,6 +80,7 @@ public:
 
     // Print all data (for debugging or logging)
     void printData() const;
+    float applySmoothing(float newValue, float* buffer);
 };
 
 #endif

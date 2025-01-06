@@ -61,7 +61,7 @@ int8_t fileName = 0x01; // prefix of file name must be 001xxx 002xxx 003xxx 004x
 WiFiClientSecure client;
 
 static int DistanceSensorDelay = 50;
-static int SpeedCalcDelay = 50;
+static int SpeedCalcDelay = 250;
 bool calibration_needed = false;
 bool system_calibrated = false;
 bool mpu_updated = false;
@@ -82,9 +82,9 @@ void sampleSensorsData(void *pvParameters) {
       //samples distance sensors data
       for (int i = 0; i < distance_sensors.size(); i++) {
         if(!isVL53L1XSensorConnected(distance_sensors[i].second, &secondBus)) {
-            Serial.print("Sensor: ");
-            Serial.print(i+1);
-            Serial.println(" not connected");
+            //Serial.print("Sensor: ");
+            //Serial.print(i+1);
+            //Serial.println(" not connected");
             continue;
         } else {     
             if(distance_sensors[i].first->dataReady()) {
@@ -135,13 +135,16 @@ void sampleSensorsData(void *pvParameters) {
         }
         sensor_data.setYaw(yaw);
         sensor_data.setRoll(mpu_sensors[0].first->getRoll());
-        sensor_data.setAccelX(mpu_sensors[0].first->getLinearAccX());
-        sensor_data.setAccelY(mpu_sensors[0].first->getLinearAccY());
-        sensor_data.setAccelZ(mpu_sensors[0].first->getLinearAccZ());
+        sensor_data.setAccelX(mpu_sensors[0].first->getAccX());
+        sensor_data.setAccelY(mpu_sensors[0].first->getAccY());
+        sensor_data.setAccelZ(mpu_sensors[0].first->getAccZ());
+        sensor_data.setLinearAccelX(mpu_sensors[0].first->getLinearAccX());
+        sensor_data.setLinearAccelY(mpu_sensors[0].first->getLinearAccY());
+        sensor_data.setLinearAccelZ(mpu_sensors[0].first->getLinearAccZ());
         sensor_data.setGyroX(mpu_sensors[0].first->getGyroX());
         sensor_data.setGyroY(mpu_sensors[0].first->getGyroY());
         sensor_data.setGyroZ(mpu_sensors[0].first->getGyroZ());
-        //sensor_data.updateLinearAccelX();
+        sensor_data.updateLinearAccelX();
         sensor_data.setlastUpdateTime(millis());
       }
     }
@@ -173,7 +176,10 @@ void calculateVelocityAsTask(void *pvParameters) {
   while(true) {
     if(is_system_on) {
       //calculateVelocity(sensor_data, &velocity, delay_in_ms);
-      calculateVelocityWithZUPT(sensor_data, &velocity, delay_in_ms);
+      //calculateVelocityWithZUPT(sensor_data, &velocity, delay_in_ms);
+      //calculateHorizonVelocityWithZUPT(sensor_data, &velocity, delay_in_ms);
+      calculateHorizonVelocityWithZUPT2(sensor_data, &velocity, delay_in_ms);
+
     }
     vTaskDelay(delay_in_ms);
   }
@@ -304,8 +310,8 @@ void loop() {
   }
   //sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
-    sensor_data.printData();
-    if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
+    //sensor_data.printData();
+    /*if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() != -1) || (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() != -1)) {
       if(system_settings.getMode() == "Vibration") {
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
         vTaskDelay(1500);

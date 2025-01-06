@@ -7,5 +7,6 @@
 // Function prototypes
 void calculateVelocity(const SensorData& sensorData, double *velocity, float deltaTime);
 void calculateVelocityWithZUPT(const SensorData& sensorData, double* velocity, float deltaTime);
-
+void calculateHorizonVelocityWithZUPT(const SensorData& sensorData, double* velocity, float deltaTime);
+void calculateHorizonVelocityWithZUPT2(const SensorData& sensorData, double* velocity, float deltaTime);
 #endif
