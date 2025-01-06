@@ -83,43 +83,29 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
 
   Future<void> _saveSettingsToDatabase() async {
     try {
-      // Save settings to Firebase
+      // Prepare settings data
       final Map<String, dynamic> settingsData = {
-        'soundOrVibration': _data[0].selectedOption,
-        'soundType': _data[1].selectedOption,
-        'vibrationType': _data[2].selectedOption,
-        'notificationTiming': _data[3].selectedOption,
-        'userHeight': _data[4].textController?.text,
+        'soundOrVibration': _data[0].selectedOption ?? '',
+        'soundType': _data[1].selectedOption ?? '',
+        'vibrationType': _data[2].selectedOption ?? '',
+        'notificationTiming': _data[3].selectedOption ?? '',
+        'userHeight': _data[4].textController?.text ?? '',
       };
 
+      // Log data for debugging
+      print('Settings Data to Save: $settingsData');
+
+      // Check for empty values (optional but recommended)
+      settingsData.removeWhere((key, value) => value.isEmpty);
+
+      // Save to Firebase
       await _databaseRef.child('System_Settings/settings').set(settingsData);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Settings saved successfully!')),
       );
-
-      // Send settings to the ESP32 server
-      final response = await http.post(
-        Uri.parse("$_esp32Url/save_settings"),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(settingsData),
-      );
-
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Settings sent to ESP32 successfully!')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to send settings to ESP32. Status: ${response.statusCode}',
-            ),
-          ),
-        );
-      }
     } catch (e) {
-      print("Error: $e");
+      print('Error saving settings to Firebase: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
@@ -129,7 +115,6 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
   Future<void> _testConnection() async {
     try {
       final response = await http.get(Uri.parse(_esp32Url));
-      print('Connection Test Response: ${response.statusCode}');
       if (response.statusCode == 200) {
         setState(() {
           _connectionStatus = "Connected to ESP32";
@@ -140,7 +125,6 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         });
       }
     } catch (e) {
-      print("Connection Error: $e");
       setState(() {
         _connectionStatus = "Connection error: $e";
       });
@@ -150,11 +134,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
   Future<void> _makeSound(String sound) async {
     try {
       final url = Uri.parse("$_esp32Url/play_sound=${Uri.encodeComponent(sound)}");
-      print("Making request to: $url");
       final response = await http.get(url);
-
-      print("Response status: ${response.statusCode}");
-      print("Response body: ${response.body}");
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -166,7 +146,6 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         );
       }
     } catch (e) {
-      print("Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
@@ -176,11 +155,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
   Future<void> _makeVibration(String vibration) async {
     try {
       final url = Uri.parse("$_esp32Url/play_vibration=${Uri.encodeComponent(vibration)}");
-      print("Making request to: $url");
       final response = await http.get(url);
-
-      print("Response status: ${response.statusCode}");
-      print("Response body: ${response.body}");
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -192,7 +167,6 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         );
       }
     } catch (e) {
-      print("Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
@@ -229,7 +203,18 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                         subtitle: Text(item.expandedValue),
                       );
                     },
-                    body: Column(
+                    body: item.isTextField
+                        ? TextField(
+                      controller: item.textController,
+                      decoration: const InputDecoration(
+                        labelText: 'Height (m)',
+                        hintText: 'Enter your height (e.g., 1.75)',
+                        border: OutlineInputBorder(),
+                        suffixText: 'm',
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    )
+                        : Column(
                       children: item.options.map((String option) {
                         return Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -246,7 +231,8 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                                 },
                               ),
                             ),
-                            if ((item.headerValue == '2. Sound Type' && option != 'None') || (item.headerValue == '3. Vibration Type' && option != 'None'))
+                            if ((item.headerValue == '2. Sound Type' && option != 'None') ||
+                                (item.headerValue == '3. Vibration Type' && option != 'None'))
                               ElevatedButton(
                                 onPressed: () {
                                   if (item.headerValue == '2. Sound Type') {
