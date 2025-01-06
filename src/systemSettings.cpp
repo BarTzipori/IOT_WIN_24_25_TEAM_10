@@ -1,31 +1,45 @@
 #include "systemSettings.h"
 #include <Arduino.h>
-systemSettings::systemSettings(String m,String s, String v,String t,int h)
+systemSettings::systemSettings(String m, String s, String v, String t, double h, int vol)
 {
     Mode = m;
     Sound = s;
     Vibration = v;
     timing = t;
     height = h;
+    volume = vol;
 }
 
-void systemSettings::updateSettings(systemSettings s)
+bool systemSettings::updateSettings(systemSettings s)
 {
-    if(s.Mode != "default" && s.Mode != "") {
-        Mode = s.Mode;
+    bool changed = false;
+    if (Mode != s.Mode) {
+      Mode = s.Mode;
+      changed = true;
     }
-    if(s.Sound != "default" && s.Sound != "") {
-        Sound = s.Sound;
+    if(Sound!=s.Sound){
+    Sound = s.Sound;
+    changed = true;
     }
-    if(s.Vibration != "default" && s.Vibration != "") {
-        Vibration = s.Vibration;
+    if (Vibration != s.Vibration){
+    Vibration = s.Vibration;
+    changed = true;
     }
-    if(s.timing != "default" && s.timing != "") {
-        timing = s.timing;
+    if (timing != s.timing){
+    timing =s.timing;
+    changed = true;
     }
-    if(s.height != 0.0) {
-        height = s.height;
+    if (height !=s.height)
+    {
+    height = s.height;
+    changed = true;
     }
+    if (volume != s.volume)
+    {
+    volume = s.volume;
+    changed = true;
+    }   
+    return changed;
 }
 
 void systemSettings::print()
@@ -41,4 +55,6 @@ void systemSettings::print()
     Serial.println(timing);
     Serial.print("Height: ");
     Serial.println(height);
+    Serial.print("Volume: ");
+    Serial.println(volume);
 }

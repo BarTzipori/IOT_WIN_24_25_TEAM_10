@@ -7,7 +7,7 @@
 #include "systemSettings.h"
 
 bool setupSDCard();
-void init_sd_card();
+bool init_sd_card();
 void updateSDSettings(systemSettings &s);
 
 #endif // SD_CARD_HELPER_FUNCTIONS_H
