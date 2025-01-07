@@ -212,7 +212,7 @@ systemSettings readSettings(fs::FS &fs, const char *path)
     File file = fs.open(path);
     if(!file){
         Serial.println("Failed to open file for reading");
-        return systemSettings("def","def","def","def",0.0,5);
+        return systemSettings("Both","def","def","def",0.0,5);
     }
 
     Serial.println("Read from file: ");

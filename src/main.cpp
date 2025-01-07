@@ -273,8 +273,8 @@ void loop() {
         // attempt to connect to wifi
         wifi_flag = WifiSetup(startTime, currTime);
         // Initialize Firebase
-        setupSDCard();
-        init_sd_card();
+        bool flag1 = setupSDCard();
+        bool flag2 = init_sd_card();
         system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
         //if we managed to connect to WIFI - use firebase settings, as they are the most updated.
         if (wifi_flag){
@@ -318,6 +318,8 @@ void loop() {
   if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
     sensor_data.printData();
     if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() > 0 )|| (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() > 0)) {
+      Serial.println("Obstacle detected");
+      Serial.println(system_settings.getMode());
       if(system_settings.getMode() == "Vibration") {
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
         vTaskDelay(1500);

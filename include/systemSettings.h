@@ -14,7 +14,7 @@ class systemSettings
     int volume;
 
 public:
-    systemSettings(): Mode("default"), Sound("default"), Vibration("default"), timing("default"), height(0.0),volume(5) {};
+    systemSettings(): Mode("Both"), Sound("default"), Vibration("default"), timing("default"), height(0.0),volume(5) {};
     systemSettings(String m, String s, String v, String t, double h,int vol);
     
     String getMode() const {return Mode;}
