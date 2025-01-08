@@ -62,7 +62,7 @@ int8_t fileName = 0x01; // prefix of file name must be 001xxx 002xxx 003xxx 004x
 WiFiClientSecure client;
 
 static int DistanceSensorDelay = 50;
-static int SpeedCalcDelay = 250;
+static int SpeedCalcDelay = 100;
 bool calibration_needed = false;
 bool system_calibrated = false;
 bool mpu_updated = false;
@@ -71,7 +71,7 @@ unsigned long pressed_time = 0;
 unsigned long released_time = 0;
 bool is_pressing = false;
 bool is_long_press = false;
-double velocity = 0.0;
+float velocity = 0.0;
 bool initial_powerup = true;
 int step_count = 0;
 
@@ -180,7 +180,7 @@ void calculateVelocityAsTask(void *pvParameters) {
       //calculateVelocityWithZUPT(sensor_data, &velocity, delay_in_ms);
       //calculateHorizonVelocityWithZUPT(sensor_data, &velocity, delay_in_ms);
       //calculateHorizonVelocityWithZUPT2(sensor_data, &velocity, delay_in_ms);
-      calculateStepCount(sensor_data, &step_count);
+      calculateStepCountAndSpeed(sensor_data, &step_count, &velocity, 1.75);
 
     }
     vTaskDelay(delay_in_ms);
