@@ -9,4 +9,5 @@ void calculateVelocity(const SensorData& sensorData, double *velocity, float del
 void calculateVelocityWithZUPT(const SensorData& sensorData, double* velocity, float deltaTime);
 void calculateHorizonVelocityWithZUPT(const SensorData& sensorData, double* velocity, float deltaTime);
 void calculateHorizonVelocityWithZUPT2(const SensorData& sensorData, double* velocity, float deltaTime);
+void calculateStepCount(const SensorData& sensorData, int* stepCount);
 #endif

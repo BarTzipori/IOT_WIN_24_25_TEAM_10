@@ -73,7 +73,7 @@ bool is_pressing = false;
 bool is_long_press = false;
 double velocity = 0.0;
 bool initial_powerup = true;
-
+int step_count = 0;
 
 //Samples sensors data
 void sampleSensorsData(void *pvParameters) {
@@ -179,7 +179,8 @@ void calculateVelocityAsTask(void *pvParameters) {
       //calculateVelocity(sensor_data, &velocity, delay_in_ms);
       //calculateVelocityWithZUPT(sensor_data, &velocity, delay_in_ms);
       //calculateHorizonVelocityWithZUPT(sensor_data, &velocity, delay_in_ms);
-      calculateHorizonVelocityWithZUPT2(sensor_data, &velocity, delay_in_ms);
+      //calculateHorizonVelocityWithZUPT2(sensor_data, &velocity, delay_in_ms);
+      calculateStepCount(sensor_data, &step_count);
 
     }
     vTaskDelay(delay_in_ms);
@@ -316,10 +317,9 @@ void loop() {
   wifiServerLoop();
   // sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
-    sensor_data.printData();
+    //sensor_data.printData();
     if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() > 0 )|| (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() > 0)) {
       Serial.println("Obstacle detected");
-      Serial.println(system_settings.getMode());
       if(system_settings.getMode() == "Vibration") {
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
         vTaskDelay(1500);

@@ -319,3 +319,46 @@ void calculateHorizonVelocityWithZUPT2(const SensorData& sensorData, double* vel
     Serial.print("Gyro X: ");
     Serial.println(smoothedGyroX);
 }
+
+void calculateStepCount(const SensorData& sensorData, int* stepCount) {
+    static bool isStepDetected = false;
+    static float prevMagnitude = 0.0f;
+    static unsigned long lastStepTime = 0; // Time of the last detected step
+    const unsigned long STEP_TIME_THRESHOLD = 300; // Minimum time between steps in milliseconds (for debouncing)
+
+    // Apply smoothing to the raw data
+    float smoothedAccX = sensorData.getLinearAccelX();
+    float smoothedAccY = sensorData.getLinearAccelY();
+    float smoothedAccZ = sensorData.getLinearAccelZ();
+
+    // Calculate acceleration magnitude
+    float magnitude = sqrt(smoothedAccX * smoothedAccX +
+                           smoothedAccY * smoothedAccY +
+                           smoothedAccZ * smoothedAccZ);
+
+    // Thresholds for step detection
+    const float STEP_HIGH_THRESHOLD = 1.2f;  // Threshold for detecting a step's peak
+    const float STEP_LOW_THRESHOLD = 0.8f;   // Threshold for detecting the step's reset phase
+
+    // Get current time
+    unsigned long currentTime = millis();
+
+    // Step detection logic
+    if (!isStepDetected && magnitude > STEP_HIGH_THRESHOLD && (currentTime - lastStepTime) > STEP_TIME_THRESHOLD) {
+        // Step peak detected
+        isStepDetected = true;
+        *stepCount += 1; // Increment step count
+        lastStepTime = currentTime;
+
+        Serial.println("Step detected");
+    } else if (isStepDetected && magnitude < STEP_LOW_THRESHOLD) {
+        // Reset state after step detected
+        isStepDetected = false;
+    }
+
+    // Debug output
+    Serial.print("Magnitude: ");
+    Serial.print(magnitude);
+    Serial.print(" | Step Count: ");
+    Serial.println(*stepCount);
+}
