@@ -320,45 +320,146 @@ void calculateHorizonVelocityWithZUPT2(const SensorData& sensorData, double* vel
     Serial.println(smoothedGyroX);
 }
 
-void calculateStepCount(const SensorData& sensorData, int* stepCount) {
+/*void calculateStepCount(const SensorData& sensorData, int* stepCount) {
     static bool isStepDetected = false;
-    static float prevMagnitude = 0.0f;
+    static float prevAccX = 0.0f;       // Previous X-axis acceleration
+    static float prevGyroMagnitude = 0.0f; // Previous gyroscope magnitude
     static unsigned long lastStepTime = 0; // Time of the last detected step
-    const unsigned long STEP_TIME_THRESHOLD = 300; // Minimum time between steps in milliseconds (for debouncing)
+    const unsigned long STEP_TIME_THRESHOLD = 500; // Minimum time between steps in milliseconds (for debouncing)
 
-    // Apply smoothing to the raw data
-    float smoothedAccX = sensorData.getLinearAccelX();
-    float smoothedAccY = sensorData.getLinearAccelY();
-    float smoothedAccZ = sensorData.getLinearAccelZ();
+    // Get the current smoothed acceleration along the X-axis
+    float currentAccX = sensorData.getLinearAccelX();
 
-    // Calculate acceleration magnitude
-    float magnitude = sqrt(smoothedAccX * smoothedAccX +
-                           smoothedAccY * smoothedAccY +
-                           smoothedAccZ * smoothedAccZ);
+    // Calculate the delta (change) in acceleration
+    float deltaAccX = fabs(currentAccX - prevAccX);
+
+    // Get the gyroscope readings
+    float gyroX = sensorData.getGyroX();
+    float gyroY = sensorData.getGyroY();
+    float gyroZ = sensorData.getGyroZ();
+
+    // Calculate the magnitude of the gyroscope vector
+    float currentGyroMagnitude = sqrt(gyroX * gyroX + gyroY * gyroY + gyroZ * gyroZ);
+
+    // Calculate the delta (change) in gyroscope magnitude
+    float deltaGyroMagnitude = fabs(currentGyroMagnitude - prevGyroMagnitude);
 
     // Thresholds for step detection
-    const float STEP_HIGH_THRESHOLD = 1.2f;  // Threshold for detecting a step's peak
-    const float STEP_LOW_THRESHOLD = 0.8f;   // Threshold for detecting the step's reset phase
+    const float STEP_HIGH_THRESHOLD = 0.07f;  // Threshold for detecting a step's peak in AccX
+    const float STEP_LOW_THRESHOLD = 0.02f;   // Threshold for resetting the step state
+    const float GYRO_THRESHOLD = 0.08f;        // Minimum gyroscope change to indicate a step
 
     // Get current time
     unsigned long currentTime = millis();
 
-    // Step detection logic
-    if (!isStepDetected && magnitude > STEP_HIGH_THRESHOLD && (currentTime - lastStepTime) > STEP_TIME_THRESHOLD) {
+    // Step detection logic using both acceleration and gyroscope variation
+    if (!isStepDetected && deltaAccX > STEP_HIGH_THRESHOLD && deltaGyroMagnitude > GYRO_THRESHOLD &&
+        (currentTime - lastStepTime) > STEP_TIME_THRESHOLD) {
         // Step peak detected
         isStepDetected = true;
         *stepCount += 1; // Increment step count
         lastStepTime = currentTime;
 
-        Serial.println("Step detected");
-    } else if (isStepDetected && magnitude < STEP_LOW_THRESHOLD) {
+        Serial.println("Step detected (with gyroscope)");
+    } else if (isStepDetected && deltaAccX < STEP_LOW_THRESHOLD && deltaGyroMagnitude < GYRO_THRESHOLD) {
         // Reset state after step detected
         isStepDetected = false;
     }
 
+    // Update previous values
+    prevAccX = currentAccX;
+    prevGyroMagnitude = currentGyroMagnitude;
+
     // Debug output
-    Serial.print("Magnitude: ");
-    Serial.print(magnitude);
+    Serial.print("Delta AccX: ");
+    Serial.print(deltaAccX);
+    Serial.print(" | Delta Gyro Magnitude: ");
+    Serial.print(deltaGyroMagnitude);
+    Serial.print(" | Step Count: ");
+    Serial.println(*stepCount);
+}*/
+
+void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, float* speed, float userHeight) {
+    static bool isStepDetected = false;
+    static float prevAccX = 0.0f;          // Previous X-axis acceleration
+    static float prevGyroMagnitude = 0.0f; // Previous gyroscope magnitude
+    static unsigned long lastStepTime = 0; // Time of the last detected step
+    static unsigned long startTime = 0;    // Start time of the step frequency measurement window
+    static int stepsInWindow = 0;          // Steps counted in the current window
+    const unsigned long STEP_TIME_THRESHOLD = 300; // Minimum time between steps in milliseconds
+    const unsigned long SPEED_WINDOW_MS = 1000;    // Speed calculation window in milliseconds
+
+    // Get the current smoothed acceleration along the X-axis
+    float currentAccX = sensorData.getLinearAccelX();
+
+    // Calculate the delta (change) in acceleration
+    float deltaAccX = fabs(currentAccX - prevAccX);
+
+    // Get the gyroscope readings
+    float gyroX = sensorData.getGyroX();
+    float gyroY = sensorData.getGyroY();
+    float gyroZ = sensorData.getGyroZ();
+
+    // Calculate the magnitude of the gyroscope vector
+    float currentGyroMagnitude = sqrt(gyroX * gyroX + gyroY * gyroY + gyroZ * gyroZ);
+
+    // Calculate the delta (change) in gyroscope magnitude
+    float deltaGyroMagnitude = fabs(currentGyroMagnitude - prevGyroMagnitude);
+
+    // Thresholds for step detection
+    const float STEP_HIGH_THRESHOLD = 0.07f;  // Threshold for detecting a step's peak in AccX
+    const float STEP_LOW_THRESHOLD = 0.02f;   // Threshold for resetting the step state
+    const float GYRO_THRESHOLD = 0.08f;       // Minimum gyroscope change to indicate a step
+
+    // Get current time
+    unsigned long currentTime = millis();
+
+    // Step detection logic using both acceleration and gyroscope variation
+    if (!isStepDetected && deltaAccX > STEP_HIGH_THRESHOLD && deltaGyroMagnitude > GYRO_THRESHOLD &&
+        (currentTime - lastStepTime) > STEP_TIME_THRESHOLD) {
+        // Step peak detected
+        isStepDetected = true;
+        *stepCount += 1;    // Increment total step count
+        stepsInWindow += 1; // Increment steps in the current window
+        lastStepTime = currentTime;
+
+        Serial.println("Step detected (with gyroscope)");
+    } else if (isStepDetected && deltaAccX < STEP_LOW_THRESHOLD && deltaGyroMagnitude < GYRO_THRESHOLD) {
+        // Reset state after step detected
+        isStepDetected = false;
+    }
+
+    // Calculate speed every SPEED_WINDOW_MS
+    if (currentTime - startTime >= SPEED_WINDOW_MS) {
+        // Estimate stride length (roughly 0.415 times the user's height in meters for walking)
+        float strideLength = userHeight * 0.415; // Adjust factor for running if needed
+
+        // Calculate step frequency (steps per second)
+        float stepFrequency = stepsInWindow / (SPEED_WINDOW_MS / 1000.0);
+
+        // Estimate speed (meters per second)
+        *speed = stepFrequency * strideLength;
+
+        Serial.print("Steps in window: ");
+        Serial.print(stepsInWindow);
+        Serial.print("| Speed estimated: ");
+        Serial.print(*speed);
+        Serial.println(" m/s");
+
+        // Reset for the next window
+        stepsInWindow = 0;
+        startTime = currentTime;
+    }
+
+    // Update previous values
+    prevAccX = currentAccX;
+    prevGyroMagnitude = currentGyroMagnitude;
+
+    // Debug output
+    Serial.print("Delta AccX: ");
+    Serial.print(deltaAccX);
+    Serial.print(" | Delta Gyro Magnitude: ");
+    Serial.print(deltaGyroMagnitude);
     Serial.print(" | Step Count: ");
     Serial.println(*stepCount);
 }
