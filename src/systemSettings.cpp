@@ -1,12 +1,13 @@
 #include "systemSettings.h"
 #include <Arduino.h>
-systemSettings::systemSettings(String m, String s, String v, String t, double h, int vol)
+systemSettings::systemSettings(String mode, String sound_type, String vibration_pattern, String timing, double userH, double systemH, int vol)
 {
-    Mode = m;
-    Sound = s;
-    Vibration = v;
-    timing = t;
-    height = h;
+    Mode = mode;
+    Sound = sound_type;
+    Vibration = vibration_pattern;
+    timing = timing;
+    user_height = userH;
+    system_height = systemH;
     volume = vol;
 }
 
