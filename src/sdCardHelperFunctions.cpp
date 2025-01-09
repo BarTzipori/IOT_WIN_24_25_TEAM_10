@@ -64,9 +64,12 @@ void updateSDSettings(systemSettings &s)
     String timing("Timing: ");
     timing = timing + s.getTiming();
     appendFile(SD_MMC, "/Settings/setting.txt", timing);
-    String height("Height: ");
-    height = height + String(s.getHeight());
-    appendFile(SD_MMC, "/Settings/setting.txt", height);
+    String user_height("User height: ");
+    user_height = user_height + String(s.getUserHeight());
+    appendFile(SD_MMC, "/Settings/setting.txt", user_height);
+    String system_height("system height: ");
+    system_height = system_height + String(s.getSystemHeight());
+    appendFile(SD_MMC, "/Settings/setting.txt", system_height);
     String volume("Volume: ");
     volume = volume + String(s.getVolume());
     appendFile(SD_MMC, "/Settings/setting.txt", volume);

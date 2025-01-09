@@ -15,7 +15,7 @@ void setupFirebase(FirebaseConfig &config , FirebaseAuth &auth) {
 systemSettings getFirebaseSettings(FirebaseData &firebaseData) {
   
   String mode, viberation, timming, sound;
-  double height;
+  double user_height, system_height;
   int volume;
   if (Firebase.getString(firebaseData, "/System_Settings/Vibration"))
   {
@@ -49,12 +49,12 @@ if (Firebase.getString(firebaseData, "/System_Settings/Sound")) {
       Serial.println(firebaseData.errorReason());
   }
   
-    if (Firebase.getDouble(firebaseData, "/System_Settings/Height")) {
-    height = firebaseData.doubleData();
+    if (Firebase.getDouble(firebaseData, "/System_Settings/User Height")) {
+    user_height = firebaseData.doubleData();
     //Serial.print("Height: ");
     // Serial.println(height);
     } else {
-      Serial.print("Failed to get height: ");
+      Serial.print("Failed to get user height: ");
       Serial.println(firebaseData.errorReason());
   }
   if (Firebase.getInt(firebaseData, "/System_Settings/Volume")) {
@@ -67,7 +67,7 @@ if (Firebase.getString(firebaseData, "/System_Settings/Sound")) {
       volume = 0;
     }
 
-  return systemSettings(mode, sound, viberation, timming, height,volume);
+  return systemSettings(mode, sound, viberation, timming, user_height, system_height, volume);
 }
 
 void storeFirebaseSetting(FirebaseData &firebaseData ,systemSettings& s)
@@ -100,10 +100,16 @@ void storeFirebaseSetting(FirebaseData &firebaseData ,systemSettings& s)
     Serial.println(firebaseData.errorReason());
   }
 
-   if (Firebase.setDouble(firebaseData, "/System_Settings/Height", s.getHeight())) {
-    Serial.println("height stored successfully");
+   if (Firebase.setDouble(firebaseData, "/System_Settings/User Height", s.getUserHeight())) {
+    Serial.println("User height stored successfully");
   } else {
-    Serial.print("Error storing height: ");
+    Serial.print("Error storing user height: ");
+    Serial.println(firebaseData.errorReason());
+  }
+  if (Firebase.setDouble(firebaseData, "/System_Settings/System Height", s.getSystemHeight())) {
+    Serial.println("System height stored successfully");
+  } else {
+    Serial.print("Error storing system height: ");
     Serial.println(firebaseData.errorReason());
   }
   if (Firebase.setInt(firebaseData, "/System_Settings/Volume", s.getVolume())) {

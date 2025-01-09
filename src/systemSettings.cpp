@@ -30,9 +30,14 @@ bool systemSettings::updateSettings(systemSettings s)
     timing =s.timing;
     changed = true;
     }
-    if (height !=s.height)
+    if (user_height !=s.user_height)
     {
-    height = s.height;
+    user_height = s.user_height;
+    changed = true;
+    }
+    if (system_height !=s.system_height)
+    {
+    system_height = s.system_height;
     changed = true;
     }
     if (volume != s.volume)
@@ -54,8 +59,10 @@ void systemSettings::print()
     Serial.println(Vibration);
     Serial.print("Timing: ");
     Serial.println(timing);
-    Serial.print("Height: ");
-    Serial.println(height);
+    Serial.print("User Height: ");
+    Serial.println(user_height);
+    Serial.print("System Height: ");
+    Serial.println(system_height);
     Serial.print("Volume: ");
     Serial.println(volume);
 }
