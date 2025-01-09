@@ -3,12 +3,15 @@
 
 #include <arduino.h>
 #include "sensorData.h"
+#include "systemSettings.h"
+#include "parameters.h"
+#include "vibrationMotor.h"
+#include "RedMP3.h"
 
 // Function prototypes
-void calculateVelocity(const SensorData& sensorData, double *velocity, float deltaTime);
-void calculateVelocityWithZUPT(const SensorData& sensorData, double* velocity, float deltaTime);
-void calculateHorizonVelocityWithZUPT(const SensorData& sensorData, double* velocity, float deltaTime);
-void calculateHorizonVelocityWithZUPT2(const SensorData& sensorData, double* velocity, float deltaTime);
-//void calculateStepCount(const SensorData& sensorData, int* stepCount);
+void vibrateMotorsAsTask(void *pvParameters);
+void playMP3AsTask(void *pvParameters);
 void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, float* velocity, float userHeight);
+bool collisionDetector(const SensorData& sensor_data, const systemSettings& system_settings, float* velocity);
+void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibrationMotor& vibration_motor, String vibration_pattern);
 #endif

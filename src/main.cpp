@@ -27,6 +27,7 @@
 #include "commHelperFunctions.h"
 #include "wifiServer.h"
 
+//system sensor objects
 Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
 Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
 Adafruit_VL53L1X vl53_3 = Adafruit_VL53L1X(XSHUT_PIN_3, IRQ_PIN);
@@ -50,8 +51,7 @@ FirebaseData firebaseData; // Firebase object
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
-unsigned long startTime,currTime;
-bool wifi_flag;
+
 systemSettings system_settings;
 //bool save_flag = false;
 
@@ -61,6 +61,8 @@ int8_t fileName = 0x01; // prefix of file name must be 001xxx 002xxx 003xxx 004x
 
 WiFiClientSecure client;
 
+unsigned long startTime,currTime;
+bool wifi_flag;
 static int DistanceSensorDelay = 50;
 static int SpeedCalcDelay = 100;
 bool calibration_needed = false;
@@ -153,35 +155,11 @@ void sampleSensorsData(void *pvParameters) {
   }
 }
 
-void vibrateMotorsAsTask(void *pvParameters) {
-  vibrationMotor* motor = (vibrationMotor*)pvParameters;
-  motor->vibrate(vib_pattern);
-  vTaskDelete(NULL);
-}
-
-void playMP3AsTask(void *pvParameters) {
-  // Cast the incoming parameter to an array of void pointers
-  void** params = (void**) pvParameters;
-
-  MP3* mp3 = (MP3*) params[0];
-  uint8_t directory_name = (uint8_t)(uintptr_t)params[1];
-  uint8_t file_name  = (uint8_t)(uintptr_t)params[2];
-
-  mp3->playWithFileName(directory_name, file_name);
-  vTaskDelay(1000);
-  // Task is done, so delete itself
-  vTaskDelete(NULL);
-}
 void calculateVelocityAsTask(void *pvParameters) {
   int delay_in_ms = *(int *)pvParameters;
   while(true) {
     if(is_system_on) {
-      //calculateVelocity(sensor_data, &velocity, delay_in_ms);
-      //calculateVelocityWithZUPT(sensor_data, &velocity, delay_in_ms);
-      //calculateHorizonVelocityWithZUPT(sensor_data, &velocity, delay_in_ms);
-      //calculateHorizonVelocityWithZUPT2(sensor_data, &velocity, delay_in_ms);
       calculateStepCountAndSpeed(sensor_data, &step_count, &velocity, 1.75);
-
     }
     vTaskDelay(delay_in_ms);
   }
@@ -297,7 +275,6 @@ void loop() {
       }
     }
   }
-
   if(is_pressing == true && is_long_press == false) {
     long press_duration = millis() - pressed_time;
     if(press_duration > LONG_PRESS_TIME) {
@@ -317,30 +294,8 @@ void loop() {
   wifiServerLoop();
   // sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
-    //sensor_data.printData();
-    if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() > 0 )|| (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() > 0)) {
-      Serial.println("Obstacle detected");
-      if(system_settings.getMode() == "Vibration") {
-        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
-        vTaskDelay(1500);
-      }
-      if(system_settings.getMode() == "Sound") {
-        static void* audio_params[3];
-        audio_params[0] = (void*)&mp3;                  // pointer to MP3
-        audio_params[1] = (void*)(uintptr_t)0x06;       //dir name
-        audio_params[2] = (void*)(uintptr_t)0x03;       //file name
-        xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
-        vTaskDelay(1500);
-      }
-      if(system_settings.getMode() == "Both") {
-        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
-        static void* audio_params[3];
-        audio_params[0] = (void*)&mp3;                  // pointer to MP3
-        audio_params[1] = (void*)(uintptr_t)0x06;       //dir name
-        audio_params[2] = (void*)(uintptr_t)0x03;       //file name
-        xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
-        vTaskDelay(1500);
-      }
+    if(collisionDetector(sensor_data, system_settings, &velocity)) {
+      collisionAlert(system_settings, mp3, motor1, system_settings.getViberation());
     }
   }
   vTaskDelay(50);

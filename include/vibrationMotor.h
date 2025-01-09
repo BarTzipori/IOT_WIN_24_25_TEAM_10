@@ -22,5 +22,7 @@ class vibrationMotor {
         ~vibrationMotor() = default;
         void activate(int duration);
         void vibrate(vibrationPattern pattern);
+        void vibrateFromPatternAsstring(String pattern);
+
 };
 #endif
