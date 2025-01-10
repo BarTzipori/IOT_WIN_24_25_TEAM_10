@@ -279,7 +279,7 @@ void loop() {
         // Initialize Firebase
         if (setupSDCard()){
           init_sd_card();
-          system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
+          //system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
           sd_flag = true;
         } else {
           sd_flag = false;
