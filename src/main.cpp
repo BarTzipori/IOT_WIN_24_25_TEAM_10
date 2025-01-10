@@ -52,6 +52,7 @@ FirebaseAuth auth;
 FirebaseConfig config;
 unsigned long startTime,currTime;
 bool wifi_flag;
+bool sd_flag;
 systemSettings system_settings;
 //bool save_flag = false;
 
@@ -268,15 +269,21 @@ void loop() {
         Serial.println("System shut down");
         motor1.vibrate(vibrationPattern::powerOFFBuzz);
       } else {
+        startTime = millis();
         Serial.println("Powering on system");
         motor1.vibrate(vibrationPattern::powerONBuzz);
         velocity = 0;
+        currTime = millis();
         // attempt to connect to wifi
         wifi_flag = WifiSetup(startTime, currTime);
         // Initialize Firebase
-        bool flag1 = setupSDCard();
-        bool flag2 = init_sd_card();
-        system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
+        if (setupSDCard()){
+          init_sd_card();
+          //system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
+          sd_flag = true;
+        } else {
+          sd_flag = false;
+        }
         //if we managed to connect to WIFI - use firebase settings, as they are the most updated.
         if (wifi_flag){
           if(initial_powerup) {
@@ -286,7 +293,9 @@ void loop() {
           systemSettings system_settings_from_fb = getFirebaseSettings(firebaseData);
           system_settings.updateSettings(system_settings_from_fb);
           system_settings.print();
-          updateSDSettings(system_settings);
+          if (sd_flag) {
+            updateSDSettings(system_settings);
+          }
           setupWifiServer();
         }
         else

@@ -37,12 +37,12 @@ bool init_sd_card()
   }
     else  {
         createDir(SD_MMC, "/Settings");
-        writeFile(SD_MMC, "/Settings/setting.txt", "Mode: Both\n");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Sound: Sound_1\n");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Viberation: Viberation_1\n");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Timing: 0.5s\n");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Height: 1.65\n");
-        appendFile(SD_MMC, "/Settings/setting.txt", "Volume: 5\n");
+        writeFile(SD_MMC, "/Settings/setting.txt", "Mode: Both");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Sound: Sound_1");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Viberation: Viberation_1");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Timing: 0.5s");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Height: 1.65");
+        appendFile(SD_MMC, "/Settings/setting.txt", "Volume: 5");
         endFile(SD_MMC, "/Settings/setting.txt");
         Serial.println("created setting file");
         return false;
