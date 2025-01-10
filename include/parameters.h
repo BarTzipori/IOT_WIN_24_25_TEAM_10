@@ -45,7 +45,6 @@
 #define ON_OFF_BUTTON_PIN 20
 #define LONG_PRESS_TIME 10000
 #define SHORT_PRESS_TIME 10000
-#define OBSTACLE_DISTANCE 300
 
 #define SD_MMC_CMD 38 //Please do not modify it.
 #define SD_MMC_CLK 39 //Please do not modify it. 
