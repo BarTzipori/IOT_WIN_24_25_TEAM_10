@@ -10,18 +10,18 @@ class systemSettings
     String Sound;
     String Vibration;
     String timing;
-    double height;
+    int height;
     int volume;
 
 public:
-    systemSettings(): Mode("Both"), Sound("default"), Vibration("default"), timing("default"), height(0.0),volume(5) {};
-    systemSettings(String m, String s, String v, String t, double h,int vol);
+    systemSettings(): Mode("Both"), Sound("default"), Vibration("default"), timing("default"), height(0),volume(5) {};
+    systemSettings(String m, String s, String v, String t, int h,int vol);
     
     String getMode() const {return Mode;}
     String getSound() const {return Sound;}
     String getViberation() const {return Vibration;}
     String getTiming() const {return timing;}
-    double getHeight() const {return height;}
+    int getHeight() const {return height;}
     int getVolume() const {return volume;}
 
     bool updateSettings(systemSettings s);

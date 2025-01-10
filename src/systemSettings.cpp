@@ -1,6 +1,6 @@
 #include "systemSettings.h"
 #include <Arduino.h>
-systemSettings::systemSettings(String m, String s, String v, String t, double h, int vol)
+systemSettings::systemSettings(String m, String s, String v, String t, int h, int vol)
 {
     Mode = m;
     Sound = s;

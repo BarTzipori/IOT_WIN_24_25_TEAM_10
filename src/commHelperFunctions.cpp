@@ -13,11 +13,11 @@ void setupFirebase(FirebaseConfig &config , FirebaseAuth &auth) {
 }
 
 systemSettings getFirebaseSettings(FirebaseData &firebaseData) {
-  
+  Serial.println("Getting settings from firebase...");
   String mode, viberation, timming, sound;
   double height;
   int volume;
-  if (Firebase.getString(firebaseData, "/System_Settings/Vibration"))
+  if (Firebase.getString(firebaseData, "/System_Settings/settings/vibrationType"))
   {
     viberation = firebaseData.stringData();
   } else {
@@ -25,7 +25,7 @@ systemSettings getFirebaseSettings(FirebaseData &firebaseData) {
     Serial.println(firebaseData.errorReason());
 }
 
-if (Firebase.getString(firebaseData, "/System_Settings/Sound")) {
+if (Firebase.getString(firebaseData, "/System_Settings/settings/soundType")) {
     sound = firebaseData.stringData();
     //Serial.println("Sound: " + sound);
   } else {
@@ -33,7 +33,7 @@ if (Firebase.getString(firebaseData, "/System_Settings/Sound")) {
       Serial.println(firebaseData.errorReason());
   }
 
-  if (Firebase.getString(firebaseData, "/System_Settings/Mode")) {
+  if (Firebase.getString(firebaseData, "/System_Settings/settings/soundOrVibration")) {
     mode = firebaseData.stringData();
     //Serial.println("Mode: " + mode);
   } else {
@@ -41,7 +41,7 @@ if (Firebase.getString(firebaseData, "/System_Settings/Sound")) {
       Serial.println(firebaseData.errorReason());
   }
 
-  if (Firebase.getString(firebaseData, "/System_Settings/Timing")) {
+  if (Firebase.getString(firebaseData, "/System_Settings/settings/notificationTiming")) {
     timming = firebaseData.stringData();
     //Serial.println("Timing: " + timming);
   } else {
@@ -49,15 +49,16 @@ if (Firebase.getString(firebaseData, "/System_Settings/Sound")) {
       Serial.println(firebaseData.errorReason());
   }
   
-    if (Firebase.getDouble(firebaseData, "/System_Settings/Height")) {
-    height = firebaseData.doubleData();
+    if (Firebase.getString(firebaseData, "/System_Settings/settings/userHeight")) {
+      String heightStr = firebaseData.stringData();
+      height = strtod(heightStr.c_str(),NULL);
     //Serial.print("Height: ");
     // Serial.println(height);
     } else {
       Serial.print("Failed to get height: ");
       Serial.println(firebaseData.errorReason());
   }
-  if (Firebase.getInt(firebaseData, "/System_Settings/Volume")) {
+if (Firebase.getInt(firebaseData, "/System_Settings/settings/Volume")) {
     volume = firebaseData.intData();
     //Serial.print("Volume: ");
     // Serial.println(volume);
@@ -72,41 +73,41 @@ if (Firebase.getString(firebaseData, "/System_Settings/Sound")) {
 
 void storeFirebaseSetting(FirebaseData &firebaseData ,systemSettings& s)
 {
-   if (Firebase.setString(firebaseData, "/System_Settings/Sound", s.getSound())) {
+   if (Firebase.setString(firebaseData, "/System_Settings/settings/soundType", s.getSound())) {
       Serial.println("sound stored successfully");
     } else {
       Serial.print("Error storing sound: ");
       Serial.println(firebaseData.errorReason());
     }
 
-  if (Firebase.setString(firebaseData, "/System_Settings/Vibration", s.getViberation())) {
+  if (Firebase.setString(firebaseData, "/System_Settings/settings/vibrationType", s.getViberation())) {
     Serial.println("vibration stored successfully");
   } else {
     Serial.print("Error storing vibration: ");
     Serial.println(firebaseData.errorReason());
   }
 
-  if (Firebase.setString(firebaseData, "/System_Settings/Mode", s.getMode())) {
+  if (Firebase.setString(firebaseData, "/System_Settings/settings/soundOrVibration", s.getMode())) {
     Serial.println("mode stored successfully");
   } else {
     Serial.print("Error storing mode: ");
     Serial.println(firebaseData.errorReason());
   }
 
-   if (Firebase.setString(firebaseData, "/System_Settings/Timing",s.getTiming())) {
+  if (Firebase.setString(firebaseData, "/System_Settings/settings/notificationTiming",s.getTiming())) {
     Serial.println("timing stored successfully");
   } else {
     Serial.print("Error storing timing: ");
     Serial.println(firebaseData.errorReason());
   }
 
-   if (Firebase.setDouble(firebaseData, "/System_Settings/Height", s.getHeight())) {
+  if (Firebase.setDouble(firebaseData, "/System_Settings/settings/userHeight", s.getHeight())) {
     Serial.println("height stored successfully");
   } else {
     Serial.print("Error storing height: ");
     Serial.println(firebaseData.errorReason());
   }
-  if (Firebase.setInt(firebaseData, "/System_Settings/Volume", s.getVolume())) {
+  if (Firebase.setInt(firebaseData, "/System_Settings/settings/Volume", s.getVolume())) {
     Serial.println("volume stored successfully");
   } else {
     Serial.print("Error storing volume: ");
@@ -134,7 +135,7 @@ bool WifiSetup(unsigned long &startTime, unsigned long &currTime)
       Serial.println(WiFi.localIP());
       return true;
   } else {
-        Serial.println("\nNot Connected!");
+        Serial.println("\nNot Connected to Wi-Fi!");
         return false;
   }
 }

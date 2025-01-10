@@ -212,7 +212,7 @@ systemSettings readSettings(fs::FS &fs, const char *path)
     File file = fs.open(path);
     if(!file){
         Serial.println("Failed to open file for reading");
-        return systemSettings("Both","def","def","def",0.0,5);
+        return systemSettings("both","Soud1","vibration1","0.5s",0,5);
     }
 
     Serial.println("Read from file: ");
@@ -225,7 +225,7 @@ systemSettings readSettings(fs::FS &fs, const char *path)
         String line = file.readStringUntil('\n'); // Read until the newline character
         tokens = parseString(line);
 
-        Serial.println(line+"\n");
+        Serial.println(line);
 
        //for (String str : tokens)
          //  Serial.println(str);
