@@ -28,23 +28,22 @@
 #include "wifiServer.h"
 
 //system sensor objects
-Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
-Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
-Adafruit_VL53L1X vl53_3 = Adafruit_VL53L1X(XSHUT_PIN_3, IRQ_PIN);
-Adafruit_VL53L1X vl53_4 = Adafruit_VL53L1X(XSHUT_PIN_4, IRQ_PIN);
+static Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
+static Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
+static Adafruit_VL53L1X vl53_3 = Adafruit_VL53L1X(XSHUT_PIN_3, IRQ_PIN);
+static Adafruit_VL53L1X vl53_4 = Adafruit_VL53L1X(XSHUT_PIN_4, IRQ_PIN);
 MPU9250 mpu;
 extern MP3 mp3;
-vibrationMotor motor1(MOTOR_1_PIN);
-vibrationMotor motor2(MOTOR_2_PIN);  
-ezButton onOffButton(ON_OFF_BUTTON_PIN);
+static vibrationMotor motor1(MOTOR_1_PIN);
+static vibrationMotor motor2(MOTOR_2_PIN);  
+static ezButton onOffButton(ON_OFF_BUTTON_PIN);
 
-std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2, XSHUT_PIN_3, XSHUT_PIN_4};
-std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}, {&vl53_3, VL53L1X_ADDRESS_3}, {&vl53_4, VL53L1X_ADDRESS_4}};
-std::vector<std::pair<MPU9250*, int>> mpu_sensors = {{&mpu, MPU9250_ADDRESS}};
+static std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2, XSHUT_PIN_3, XSHUT_PIN_4};
+static std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}, {&vl53_3, VL53L1X_ADDRESS_3}, {&vl53_4, VL53L1X_ADDRESS_4}};
+static std::vector<std::pair<MPU9250*, int>> mpu_sensors = {{&mpu, MPU9250_ADDRESS}};
 
-SensorData sensor_data;
+static SensorData sensor_data;
 //default vibration pattern
-vibrationPattern vib_pattern = vibrationPattern::shortBuzz;
 TwoWire secondBus = TwoWire(1);
 
 FirebaseData firebaseData; // Firebase object
@@ -52,7 +51,7 @@ FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
 
-systemSettings system_settings;
+static systemSettings system_settings;
 //bool save_flag = false;
 
 int8_t volume = 0x1a;//0~0x1e (30 adjustable level)
@@ -61,22 +60,20 @@ int8_t fileName = 0x01; // prefix of file name must be 001xxx 002xxx 003xxx 004x
 
 WiFiClientSecure client;
 
-unsigned long startTime,currTime;
-bool wifi_flag;
-static int DistanceSensorDelay = 50;
-static int SpeedCalcDelay = 100;
-bool calibration_needed = false;
-bool system_calibrated = false;
-bool mpu_updated = false;
-bool is_system_on = false;
-unsigned long pressed_time = 0;
-unsigned long released_time = 0;
-bool is_pressing = false;
-bool is_long_press = false;
-float velocity = 0.0;
-bool initial_powerup = true;
-int step_count = 0;
-bool sd_flag;
+static bool is_system_on = false;
+static unsigned long pressed_time = 0;
+static unsigned long released_time = 0;
+static bool is_pressing = false;
+static bool is_long_press = false;
+static float velocity = 0.0;
+static bool initial_powerup = true;
+static int step_count = 0;
+static bool sd_flag;
+static bool wifi_flag;
+static unsigned long startTime,currTime;
+static bool calibrate_flag = false;
+static bool system_calibrated = false;
+static bool calibration_needed = false;
 
 //Samples sensors data
 void sampleSensorsData(void *pvParameters) {
@@ -167,6 +164,10 @@ void calculateVelocityAsTask(void *pvParameters) {
 }
 
 void setup() {
+
+  static int DistanceSensorDelay = 50;
+  static int SpeedCalcDelay = 100;
+  
   Serial.begin(115200);
   delay(100);
   Wire.begin(41,42);
@@ -208,7 +209,7 @@ void setup() {
           delay(5000);
       }
   }
-  calibrateMPU(mpu, calibration_needed);
+  calibrateMPU(&mpu, calibration_needed);
   if(calibration_needed) {
     delay(10000);
   }
@@ -292,7 +293,7 @@ void loop() {
       system_calibrated = false;
       calibration_needed = true;
       motor1.vibrate(vibrationPattern::recalibrationBuzz);
-      calibrateMPU(mpu, calibration_needed);
+      calibrateMPU(&mpu, calibration_needed);
       delay(10000);
       system_calibrated = true;
       calibration_needed = false;
