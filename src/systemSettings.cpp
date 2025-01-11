@@ -1,5 +1,6 @@
 #include "systemSettings.h"
 #include <Arduino.h>
+
 systemSettings::systemSettings(String mode, String sound_type, String vibration_pattern, double timing, int userH, int systemH, int vol)
 {
     Mode = mode;

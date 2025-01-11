@@ -15,6 +15,7 @@ systemSettings getFirebaseSettings(FirebaseData &firebaseData) {
   String mode, viberation, sound;
   double timming;
   int user_height, system_height, volume;
+  
   if (Firebase.getString(firebaseData, "/System_Settings/settings/vibrationType"))
   {
     viberation = firebaseData.stringData();
@@ -59,7 +60,7 @@ if (Firebase.getString(firebaseData, "/System_Settings/settings/soundType")) {
       Serial.print("Failed to get user height: ");
       Serial.println(firebaseData.errorReason());
   }
-  if (Firebase.getInt(firebaseData, "/System_Settings/Volume")) {
+if (Firebase.getInt(firebaseData, "/System_Settings/settings/Volume")) {
     volume = firebaseData.intData();
     } else {
       Serial.print("Failed to get notification volume: ");

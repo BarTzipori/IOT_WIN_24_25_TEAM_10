@@ -252,6 +252,7 @@ void loop() {
         Serial.println("Powering on system");
         motor1.vibrate(vibrationPattern::powerONBuzz);
         velocity = 0;
+        currTime = millis();
         // attempt to connect to wifi
           // attempt to connect to wifi
         currTime = millis();
@@ -273,7 +274,9 @@ void loop() {
           systemSettings system_settings_from_fb = getFirebaseSettings(firebaseData);
           system_settings.updateSettings(system_settings_from_fb);
           system_settings.print();
-          updateSDSettings(system_settings);
+          if (sd_flag) {
+            updateSDSettings(system_settings);
+          }
           setupWifiServer();
         }
         else
