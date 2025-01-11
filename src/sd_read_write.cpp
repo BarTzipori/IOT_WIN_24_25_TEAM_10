@@ -212,7 +212,7 @@ systemSettings readSettings(fs::FS &fs, const char *path)
     File file = fs.open(path);
     if(!file){
         Serial.println("Failed to open file for reading");
-        return systemSettings("Both","def","def","def",175, 85 ,5);
+        return systemSettings();
     }
 
     Serial.println("Read from file: ");
@@ -227,39 +227,28 @@ systemSettings readSettings(fs::FS &fs, const char *path)
 
         Serial.println(line+"\n");
 
-       //for (String str : tokens)
-         //  Serial.println(str);
+        //for (String str : tokens)
+        //  Serial.println(str);
 
-        if (tokens[0]=="Mode:")
-           {
+        if (tokens[0]=="Mode:") {
                m_mode = tokens[1];
-           }
-
-        if (tokens[0]=="Sound:")
-           {
+        }
+        if (tokens[0]=="Sound:") {
                m_sound = tokens[1];
-           }
-
-        if (tokens[0]=="Vibration:")
-           {
-               m_viberation = tokens[1];
-           }
-
-           if (tokens[0]=="Timing:")
-           {
-               m_timing = tokens[1];
-           }
-
-        if (tokens[0]=="User Height:")
-        {
-            m_user_height = tokens[1].toDouble();
         }
-        if (tokens[0]=="system Height:")
-        {
-            m_system_height = tokens[1].toDouble();
+        if (tokens[0]=="Vibration:") {
+            m_viberation = tokens[1];
         }
-        if (tokens[0]=="Volume:")
-        {
+        if (tokens[0]=="Timing:") {
+            m_timing = tokens[1];
+        }
+        if (tokens[0]=="User Height:") {
+            m_user_height = tokens[1].toInt();
+        }
+        if (tokens[0]=="system Height:") {
+            m_system_height = tokens[1].toInt();
+        }
+        if (tokens[0]=="Volume:") {
             m_volume = tokens[1].toInt();
         }
     }
