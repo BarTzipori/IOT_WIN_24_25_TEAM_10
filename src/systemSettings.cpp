@@ -1,12 +1,14 @@
 #include "systemSettings.h"
 #include <Arduino.h>
-systemSettings::systemSettings(String m, String s, String v, String t, int h, int vol)
+
+systemSettings::systemSettings(String mode, String sound_type, String vibration_pattern, double timing, int userH, int systemH, int vol)
 {
-    Mode = m;
-    Sound = s;
-    Vibration = v;
-    timing = t;
-    height = h;
+    Mode = mode;
+    Sound = sound_type;
+    Vibration = vibration_pattern;
+    timing = timing;
+    user_height = userH;
+    system_height = systemH;
     volume = vol;
 }
 
@@ -29,9 +31,14 @@ bool systemSettings::updateSettings(systemSettings s)
     timing =s.timing;
     changed = true;
     }
-    if (height !=s.height)
+    if (user_height !=s.user_height)
     {
-    height = s.height;
+    user_height = s.user_height;
+    changed = true;
+    }
+    if (system_height !=s.system_height)
+    {
+    system_height = s.system_height;
     changed = true;
     }
     if (volume != s.volume)
@@ -53,8 +60,10 @@ void systemSettings::print()
     Serial.println(Vibration);
     Serial.print("Timing: ");
     Serial.println(timing);
-    Serial.print("Height: ");
-    Serial.println(height);
+    Serial.print("User Height: ");
+    Serial.println(user_height);
+    Serial.print("System Height: ");
+    Serial.println(system_height);
     Serial.print("Volume: ");
     Serial.println(volume);
 }

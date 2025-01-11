@@ -60,3 +60,26 @@ void vibrationMotor::vibrate(vibrationPattern pattern) {
             break;
     }
 }
+void vibrationMotor::vibrateFromPatternAsstring(String pattern) {
+    if (pattern == "shortBuzz") {
+        vibrate(vibrationPattern::shortBuzz);
+    }
+    if (pattern == "longBuzz") {
+        vibrate(vibrationPattern::longBuzz);
+    }
+    if (pattern == "doubleBuzz") {
+        vibrate(vibrationPattern::doubleBuzz);
+    }
+    if (pattern == "pulseBuzz") {
+        vibrate(vibrationPattern::pulseBuzz);
+    }   
+    if (pattern == "powerONBuzz") {
+        vibrate(vibrationPattern::powerONBuzz);
+    }
+    if (pattern == "powerOFFBuzz") {
+        vibrate(vibrationPattern::powerOFFBuzz);
+    }
+    if (pattern == "recalibrationBuzz") {
+        vibrate(vibrationPattern::recalibrationBuzz);
+    }
+}

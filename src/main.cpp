@@ -27,33 +27,31 @@
 #include "commHelperFunctions.h"
 #include "wifiServer.h"
 
-Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
-Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
-Adafruit_VL53L1X vl53_3 = Adafruit_VL53L1X(XSHUT_PIN_3, IRQ_PIN);
-Adafruit_VL53L1X vl53_4 = Adafruit_VL53L1X(XSHUT_PIN_4, IRQ_PIN);
+//system sensor objects
+static Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
+static Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
+static Adafruit_VL53L1X vl53_3 = Adafruit_VL53L1X(XSHUT_PIN_3, IRQ_PIN);
+static Adafruit_VL53L1X vl53_4 = Adafruit_VL53L1X(XSHUT_PIN_4, IRQ_PIN);
 MPU9250 mpu;
 extern MP3 mp3;
-vibrationMotor motor1(MOTOR_1_PIN);
-vibrationMotor motor2(MOTOR_2_PIN);  
-ezButton onOffButton(ON_OFF_BUTTON_PIN);
+static vibrationMotor motor1(MOTOR_1_PIN);
+static vibrationMotor motor2(MOTOR_2_PIN);  
+static ezButton onOffButton(ON_OFF_BUTTON_PIN);
 
-std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2, XSHUT_PIN_3, XSHUT_PIN_4};
-std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}, {&vl53_3, VL53L1X_ADDRESS_3}, {&vl53_4, VL53L1X_ADDRESS_4}};
-std::vector<std::pair<MPU9250*, int>> mpu_sensors = {{&mpu, MPU9250_ADDRESS}};
+static std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2, XSHUT_PIN_3, XSHUT_PIN_4};
+static std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}, {&vl53_3, VL53L1X_ADDRESS_3}, {&vl53_4, VL53L1X_ADDRESS_4}};
+static std::vector<std::pair<MPU9250*, int>> mpu_sensors = {{&mpu, MPU9250_ADDRESS}};
 
-SensorData sensor_data;
+static SensorData sensor_data;
 //default vibration pattern
-vibrationPattern vib_pattern = vibrationPattern::shortBuzz;
 TwoWire secondBus = TwoWire(1);
 
 FirebaseData firebaseData; // Firebase object
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
-unsigned long startTime,currTime;
-bool wifi_flag;
-bool sd_flag;
-systemSettings system_settings;
+
+static systemSettings system_settings;
 //bool save_flag = false;
 
 int8_t volume = 0x1a;//0~0x1e (30 adjustable level)
@@ -62,19 +60,20 @@ int8_t fileName = 0x01; // prefix of file name must be 001xxx 002xxx 003xxx 004x
 
 WiFiClientSecure client;
 
-static int DistanceSensorDelay = 50;
-static int SpeedCalcDelay = 100;
-bool calibration_needed = false;
-bool system_calibrated = false;
-bool mpu_updated = false;
-bool is_system_on = false;
-unsigned long pressed_time = 0;
-unsigned long released_time = 0;
-bool is_pressing = false;
-bool is_long_press = false;
-float velocity = 0.0;
-bool initial_powerup = true;
-int step_count = 0;
+static bool is_system_on = false;
+static unsigned long pressed_time = 0;
+static unsigned long released_time = 0;
+static bool is_pressing = false;
+static bool is_long_press = false;
+static float velocity = 0.0;
+static bool initial_powerup = true;
+static int step_count = 0;
+static bool sd_flag;
+static bool wifi_flag;
+static unsigned long startTime,currTime;
+static bool calibrate_flag = false;
+static bool system_calibrated = false;
+static bool calibration_needed = false;
 
 //Samples sensors data
 void sampleSensorsData(void *pvParameters) {
@@ -154,41 +153,21 @@ void sampleSensorsData(void *pvParameters) {
   }
 }
 
-void vibrateMotorsAsTask(void *pvParameters) {
-  vibrationMotor* motor = (vibrationMotor*)pvParameters;
-  motor->vibrate(vib_pattern);
-  vTaskDelete(NULL);
-}
-
-void playMP3AsTask(void *pvParameters) {
-  // Cast the incoming parameter to an array of void pointers
-  void** params = (void**) pvParameters;
-
-  MP3* mp3 = (MP3*) params[0];
-  uint8_t directory_name = (uint8_t)(uintptr_t)params[1];
-  uint8_t file_name  = (uint8_t)(uintptr_t)params[2];
-
-  mp3->playWithFileName(directory_name, file_name);
-  vTaskDelay(1000);
-  // Task is done, so delete itself
-  vTaskDelete(NULL);
-}
 void calculateVelocityAsTask(void *pvParameters) {
   int delay_in_ms = *(int *)pvParameters;
   while(true) {
     if(is_system_on) {
-      //calculateVelocity(sensor_data, &velocity, delay_in_ms);
-      //calculateVelocityWithZUPT(sensor_data, &velocity, delay_in_ms);
-      //calculateHorizonVelocityWithZUPT(sensor_data, &velocity, delay_in_ms);
-      //calculateHorizonVelocityWithZUPT2(sensor_data, &velocity, delay_in_ms);
       calculateStepCountAndSpeed(sensor_data, &step_count, &velocity, 1.75);
-
     }
     vTaskDelay(delay_in_ms);
   }
 }
 
 void setup() {
+
+  static int DistanceSensorDelay = 50;
+  static int SpeedCalcDelay = 100;
+  
   Serial.begin(115200);
   delay(100);
   Wire.begin(41,42);
@@ -230,7 +209,7 @@ void setup() {
           delay(5000);
       }
   }
-  calibrateMPU(mpu, calibration_needed);
+  calibrateMPU(&mpu, calibration_needed);
   if(calibration_needed) {
     delay(10000);
   }
@@ -275,13 +254,15 @@ void loop() {
         velocity = 0;
         currTime = millis();
         // attempt to connect to wifi
+          // attempt to connect to wifi
+        currTime = millis();
         wifi_flag = WifiSetup(startTime, currTime);
         // Initialize Firebase
         if (setupSDCard()){
           init_sd_card();
-          //system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
+          system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
           sd_flag = true;
-        } else {
+        } else{
           sd_flag = false;
         }
         //if we managed to connect to WIFI - use firebase settings, as they are the most updated.
@@ -306,7 +287,6 @@ void loop() {
       }
     }
   }
-
   if(is_pressing == true && is_long_press == false) {
     long press_duration = millis() - pressed_time;
     if(press_duration > LONG_PRESS_TIME) {
@@ -316,7 +296,7 @@ void loop() {
       system_calibrated = false;
       calibration_needed = true;
       motor1.vibrate(vibrationPattern::recalibrationBuzz);
-      calibrateMPU(mpu, calibration_needed);
+      calibrateMPU(&mpu, calibration_needed);
       delay(10000);
       system_calibrated = true;
       calibration_needed = false;
@@ -326,30 +306,8 @@ void loop() {
   wifiServerLoop();
   // sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
-    //sensor_data.printData();
-    if((sensor_data.getDistanceSensor1() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor1() > 0 )|| (sensor_data.getDistanceSensor2() < OBSTACLE_DISTANCE && sensor_data.getDistanceSensor2() > 0)) {
-      Serial.println("Obstacle detected");
-      if(system_settings.getMode() == "Vibration") {
-        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
-        vTaskDelay(1500);
-      }
-      if(system_settings.getMode() == "Sound") {
-        static void* audio_params[3];
-        audio_params[0] = (void*)&mp3;                  // pointer to MP3
-        audio_params[1] = (void*)(uintptr_t)0x06;       //dir name
-        audio_params[2] = (void*)(uintptr_t)0x03;       //file name
-        xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
-        vTaskDelay(1500);
-      }
-      if(system_settings.getMode() == "Both") {
-        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &motor2, 1, nullptr);
-        static void* audio_params[3];
-        audio_params[0] = (void*)&mp3;                  // pointer to MP3
-        audio_params[1] = (void*)(uintptr_t)0x06;       //dir name
-        audio_params[2] = (void*)(uintptr_t)0x03;       //file name
-        xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
-        vTaskDelay(1500);
-      }
+    if(collisionDetector(sensor_data, system_settings, &velocity)) {
+      collisionAlert(system_settings, mp3, motor1, system_settings.getViberation());
     }
   }
   vTaskDelay(50);

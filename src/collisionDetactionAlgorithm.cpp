@@ -1,384 +1,48 @@
 #include <Arduino.h>
 #include <math.h>
+#include <vector>
+#include <algorithm>
 #include "collisionDetectionAlgorithm.h"
 
-// If the absolute velocity is below this threshold, we’ll consider it “stopped”
-static const double VELOCITY_THRESHOLD  = 0.1; // in m/s
-static const float ACC_THRESHOLD  = 0.4f;  // in m/s
-static const float G = 9.81f; // Gravity in m/s^2
-static float horizonAccXBuffer[FILTER_SIZE] = {0.0};
-
-// Calculate velocity using the accelerometer data
-void calculateVelocity(const SensorData& sensorData, double *velocity, float deltaTime) {
-    static float prevAccelX = 0.0f; // Store the previous acceleration sample
-    float accelX = sensorData.getLinearAccelX(); // Current acceleration in m/s^2
-
-    // Calculate change in acceleration
-    float deltaAccX = accelX; //- prevAccelX;
-    prevAccelX = accelX; // Update the previous acceleration
-
-    // Ignore insignificant changes to filter noise
-    if (fabs(deltaAccX) < ACC_THRESHOLD) {
-        Serial.println("Ignoring insignificant change in acceleration");
-        deltaAccX = 0.0f;
-    }
-
-    // Integrate the change in acceleration over time to calculate velocity
-    *velocity += (double(deltaAccX) * deltaTime / 1000.0);
-
-    // Apply threshold to set velocity to zero if below a certain value
-    if (*velocity < VELOCITY_THRESHOLD) {
-        *velocity = 0.0;
-    }
-
-    // Debug output
-    Serial.println();
-    Serial.print("Current AccX: ");
-    Serial.print(accelX);
-    Serial.print(" | Delta AccX: ");
-    Serial.print(deltaAccX);
-    Serial.print(" | Velocity: ");
-    Serial.println(*velocity * G);
-}
-
-// Calculate velocity using the accelerometer data with Zero Velocity Update (ZUPT)
-/*void calculateVelocityWithZUPT(const SensorData& sensorData, double* velocity, float deltaTime) {
-    static float prevAccelX = 0.0f;
-    static float prevGyroX = 0.0f;
-    static float accelBuffer[FILTER_SIZE] = {0.0};
-    static float gyroBuffer[FILTER_SIZE] = {0.0};
-    static int filterIndex = 0;
-    static bool isStationary = false;
-
-    // Current sensor readings
-    float rawAccelX = sensorData.getLinearAccelX();  // Raw X-axis acceleration
-    float rawGyroX = sensorData.getGyroX();          // Raw X-axis angular velocity
-
-    // Apply smoothing
-    float accelX = applySmoothing(rawAccelX, accelBuffer);
-    float gyroX = applySmoothing(rawGyroX, gyroBuffer);
-
-    // Calculate deltas
-    //float deltaAccX = accelX - prevAccelX;
-    float deltaAccX = accelX;
-    float deltaGyroX = gyroX; // - prevGyroX;
-
-    // Calculate the magnitude of acceleration and gyroscope deltas
-    float accelMagnitude = fabs(deltaAccX);
-    float gyroMagnitude = fabs(deltaGyroX);
-
-    // Thresholds to detect stationary periods
-    const float ACC_THRESHOLD = 0.1;   // Increased threshold
-    const float GYRO_THRESHOLD = 0.1;
-    const float ACC_HYSTERESIS = 0.05;
-    const float GYRO_HYSTERESIS = 0.02;
-
-    // Detect stationary state with hysteresis 
-    if (accelMagnitude < (ACC_THRESHOLD - ACC_HYSTERESIS) && 
-        gyroMagnitude < (GYRO_THRESHOLD - GYRO_HYSTERESIS)) {
-        isStationary = true;
-    } else if (accelMagnitude > (ACC_THRESHOLD + ACC_HYSTERESIS) || 
-               gyroMagnitude > (GYRO_THRESHOLD + GYRO_HYSTERESIS)) {
-        isStationary = false;
-    }
-
-    // Apply ZUPT
-    if (isStationary) {
-        *velocity = 0.0;  // Reset velocity
-        Serial.println("Stationary: Velocity reset to 0.");
-    } else {
-        // Integrate delta acceleration to update velocity
-        *velocity += deltaAccX * deltaTime / 1000.0;
-
-        // Ensure velocity doesn't grow unreasonably (optional damping)
-        if (fabs(*velocity) < VELOCITY_THRESHOLD || *velocity < 0) {
-            *velocity = 0.0;
-        }
-    }
-
-    // Debug output
-    Serial.println();
-    Serial.print("Smoothed AccX: ");
-    Serial.print(accelX);
-    Serial.print(" | Delta AccX: ");
-    Serial.print(deltaAccX);
-    Serial.print(" | Velocity: ");
-    Serial.println(*velocity * 9.81); // Convert velocity to m/s² equivalent
-
-    // Update previous values
-    prevAccelX = accelX;
-    prevGyroX = gyroX;
-}
-*/
-void calculateVelocityWithZUPT(const SensorData& sensorData, double* velocity, float deltaTime) {
+// Vibration pattern for collision alert
+void vibrateMotorsAsTask(void *pvParameters) {
+    void** params = (void**) pvParameters;
+    vibrationMotor* motor = (vibrationMotor*)params[0];
+    String* vib_pattern = (String*)params[1];
     
-    static bool isStationary = false;
+    motor->vibrateFromPatternAsstring(*vib_pattern);
+    vTaskDelete(NULL);
+}
+// Play MP3 file as a task for collision alert
+void playMP3AsTask(void *pvParameters) {
+  // Cast the incoming parameter to an array of void pointers
+  void** params = (void**) pvParameters;
 
-    // Apply smoothing to the raw data
-    float smoothedAccX = sensorData.getLinearAccelX(); //applySmoothing(rawAccX, accelBufferX);
-    float smoothedAccY = sensorData.getLinearAccelY(); //applySmoothing(rawAccY, accelBufferY);
-    float smoothedAccZ = sensorData.getLinearAccelZ(); //applySmoothing(rawAccZ, accelBufferZ);
-    float smoothedGyroX = sensorData.getGyroX(); //applySmoothing(rawGyroX, gyroBufferX);
-    float smoothedGyroY = sensorData.getGyroY(); //applySmoothing(rawGyroY, gyroBufferY);
-    float smoothedGyroZ = sensorData.getGyroZ(); //applySmoothing(rawGyroZ, gyroBufferZ);
+  MP3* mp3 = (MP3*) params[0];
+  uint8_t directory_name = (uint8_t)(uintptr_t)params[1];
+  uint8_t file_name  = (uint8_t)(uintptr_t)params[2];
 
-    // Calculate total acceleration and gyroscope magnitudes
-    float totalAcc = sqrt(smoothedAccX * smoothedAccX +
-                          smoothedAccY * smoothedAccY +
-                          smoothedAccZ * smoothedAccZ);
-
-    float totalGyro = sqrt(smoothedGyroX * smoothedGyroX +
-                           smoothedGyroY * smoothedGyroY +
-                           smoothedGyroZ * smoothedGyroZ);
-
-    // Calculate the projected X acceleration
-    float effectiveAccX = (totalAcc > 0) ? (smoothedAccX / totalAcc) * totalAcc : 0.0f;
-
-    // Thresholds for detecting stationary state
-    const float ACC_THRESHOLD = 0.1;      // Threshold for acceleration magnitude
-    const float GYRO_THRESHOLD = 0.1;    // Threshold for gyroscope magnitude
-    const float ACC_HYSTERESIS = 0.02;    // Hysteresis for acceleration
-    const float GYRO_HYSTERESIS = 0.02;   // Hysteresis for gyroscope
-
-    // Detect stationary state using both accelerometer and gyroscope
-    if (fabs(effectiveAccX) < (ACC_THRESHOLD - ACC_HYSTERESIS) &&
-        totalGyro < (GYRO_THRESHOLD - GYRO_HYSTERESIS)) {
-        isStationary = true;
-    } else if (fabs(effectiveAccX) > (ACC_THRESHOLD + ACC_HYSTERESIS) ||
-               totalGyro > (GYRO_THRESHOLD + GYRO_HYSTERESIS)) {
-        isStationary = false;
-    }
-
-    // Apply ZUPT
-    if (isStationary) {
-        *velocity = 0.0;  // Reset velocity
-        Serial.println("Stationary: Velocity reset to 0.");
-    } else {
-        // Integrate acceleration to update velocity
-        *velocity += effectiveAccX * deltaTime / 1000.0;
-
-        // Ensure velocity doesn't grow unreasonably (optional damping)
-        if (fabs(*velocity) < 1e-5 || *velocity < 0) {
-            *velocity = 0.0;
-        }
-    }
-
-    // Debug output
-    //Serial.println();
-    //Serial.print("Smoothed AccX: ");
-    //Serial.print(smoothedAccX);
-    //Serial.print(" | Smoothed AccY: ");
-    //Serial.print(smoothedAccY);
-    //Serial.print(" | Smoothed AccZ: ");
-    //Serial.print(smoothedAccZ);
-    //Serial.print(" | Effective AccX: ");
-    //Serial.print(effectiveAccX);
-    Serial.print(" | Velocity: ");
-    Serial.println(*velocity * 9.81);  // Convert velocity to m/s² equivalent
+  mp3->playWithFileName(directory_name, file_name);
+  vTaskDelay(1000);
+  // Task is done, so delete itself
+  vTaskDelete(NULL);
 }
 
-void calculateHorizonVelocityWithZUPT(const SensorData& sensorData, double* velocity, float deltaTime) {
-    static bool isStationary = false;
 
-    // Current raw accelerations
-    float rawAccX = sensorData.getLinearAccelX();  // X-axis acceleration
-    float rawAccY = sensorData.getLinearAccelY();  // Y-axis acceleration
-    float rawAccZ = sensorData.getLinearAccelZ();  // Z-axis acceleration
-    float rawGyroX = sensorData.getGyroX();        // X-axis angular velocity
-    float rawGyroY = sensorData.getGyroY();        // Y-axis angular velocity
-    float rawGyroZ = sensorData.getGyroZ();        // Z-axis angular velocity
-
-    // Apply smoothing to the raw data
-    float smoothedAccX = sensorData.getLinearAccelX(); //applySmoothing(rawAccX, accelBufferX);
-    float smoothedAccY = sensorData.getLinearAccelY(); //applySmoothing(rawAccY, accelBufferY);
-    float smoothedAccZ = sensorData.getLinearAccelZ(); //applySmoothing(rawAccZ, accelBufferZ);
-    float smoothedGyroX = sensorData.getGyroX(); //applySmoothing(rawGyroX, gyroBufferX);
-    float smoothedGyroY = sensorData.getGyroY(); //applySmoothing(rawGyroY, gyroBufferY);
-    float smoothedGyroZ = sensorData.getGyroZ(); //applySmoothing(rawGyroZ, gyroBufferZ);
-
-    // Get orientation angles (in degrees) and convert to radians
-    float roll = sensorData.getRoll() * M_PI / 180.0;   // Roll angle in radians
-    float pitch = sensorData.getPitch() * M_PI / 180.0; // Pitch angle in radians
-
-    // Transform accelerations to the global (horizon-level) frame using angles in radians
-    float horizonAccX = smoothedAccX * cos(pitch); //+ smoothedAccZ * sin(pitch);
-
-    // Thresholds for detecting stationary state
-    const float ACC_THRESHOLD = 0.03;      // Threshold for acceleration magnitude
-    const float GYRO_THRESHOLD = 0.5;     // Threshold for gyroscope magnitude
-    const float ACC_HYSTERESIS = 0.01;    // Hysteresis for acceleration
-    const float GYRO_HYSTERESIS = 0.01;   // Hysteresis for gyroscope
-
-    // Detect stationary state using both accelerometer and gyroscope
-    if (fabs(horizonAccX) < (ACC_THRESHOLD - ACC_HYSTERESIS) &&
-        (smoothedGyroX < (GYRO_THRESHOLD - GYRO_HYSTERESIS))) {
-        isStationary = true;
-    } else if (fabs(horizonAccX) > (ACC_THRESHOLD + ACC_HYSTERESIS) ||
-               smoothedGyroX > (GYRO_THRESHOLD + GYRO_HYSTERESIS)) {
-        isStationary = false;
-    }
-
-    // Apply ZUPT
-    if (isStationary) {
-        *velocity = 0.0;  // Reset velocity
-        Serial.println("Stationary: Velocity reset to 0.");
-    } else {
-        // Integrate horizon-level acceleration to update velocity
-        *velocity += horizonAccX * deltaTime / 1000.0;
-
-        // Ensure velocity doesn't grow unreasonably (optional damping)
-        if (fabs(*velocity) < 1e-5 || *velocity < 0) {
-            *velocity = 0.0;
-        }
-    }
-
-    // Debug output
-    Serial.println();
-    Serial.print("Horizon AccX: ");
-    Serial.print(horizonAccX);
-    Serial.print(" | Velocity: ");
-    Serial.println(*velocity * 9.81);  // Convert velocity to m/s² equivalent
-    Serial.print("smoothedGyroX: ");
-    Serial.print(smoothedGyroX);
-    Serial.print(" | smoothedGyroY: ");
-    Serial.print(smoothedGyroY);
-    Serial.print(" | smoothedGyroZ: ");
-    Serial.println(smoothedGyroZ);
-}
-
-void calculateHorizonVelocityWithZUPT2(const SensorData& sensorData, double* velocity, float deltaTime) {
-    static bool isStationary = false;
-    static unsigned long stationaryStartTime = 0; // Tracks when stationary state began
-    const unsigned long STATIONARY_TIME_THRESHOLD = 1000; // 1 second in milliseconds
-
-    // Apply smoothing to the raw data
-    float smoothedAccX = sensorData.getLinearAccelX(); //applySmoothing(rawAccX, accelBufferX);
-    float smoothedAccY = sensorData.getLinearAccelY(); //applySmoothing(rawAccY, accelBufferY);
-    float smoothedAccZ = sensorData.getLinearAccelZ(); //applySmoothing(rawAccZ, accelBufferZ);
-    float smoothedGyroX = sensorData.getGyroX(); //applySmoothing(rawGyroX, gyroBufferX);
-    float smoothedGyroY = sensorData.getGyroY(); //applySmoothing(rawGyroY, gyroBufferY);
-    float smoothedGyroZ = sensorData.getGyroZ(); //applySmoothing(rawGyroZ, gyroBufferZ);
-
-    // Get orientation angles (in degrees) and convert to radians
-    float pitch = sensorData.getPitch() * M_PI / 180.0; // Pitch angle in radians
-    float roll = sensorData.getRoll() * M_PI / 180.0;   // Roll angle in radians
-
-    // Remove gravity's effect from the accelerations
-    float correctedAccX = smoothedAccX - (-9.81 * sin(pitch));
-    float correctedAccY = smoothedAccY - (9.81 * cos(pitch) * sin(roll));
-    float correctedAccZ = smoothedAccZ - (9.81 * cos(pitch) * cos(roll));
-
-    // Transform accelerations to the global (horizon-level) frame using pitch angle
-    float horizonAccX = smoothedAccX; //* cos(pitch) + smoothedAccZ * sin(pitch);
-
-    // Thresholds for detecting stationary state
-    const float ACC_THRESHOLD = 0.5;      // Adjusted threshold for walking detection
-    const float GYRO_THRESHOLD = 0.3;    // Threshold for gyroscope magnitude
-    const float ACC_HYSTERESIS = 0.2;    // Hysteresis for acceleration
-    const float GYRO_HYSTERESIS = 0.2;   // Hysteresis for gyroscope
-
-    // Check if current data indicates a stationary state
-    bool currentStationaryState = (fabs(horizonAccX) < (ACC_THRESHOLD - ACC_HYSTERESIS)) ||
-                                  (fabs(smoothedGyroX) < (GYRO_THRESHOLD - GYRO_HYSTERESIS));
-
-    // Implement time-based stationary detection
-    unsigned long currentTime = millis();
-    if (currentStationaryState) {
-        if (!isStationary) {
-            if (stationaryStartTime == 0) {
-                stationaryStartTime = currentTime; // Start the stationary timer
-            } else if (currentTime - stationaryStartTime >= STATIONARY_TIME_THRESHOLD) {
-                isStationary = true; // Confirm stationary state after threshold time
-            }
-        }
-    } else {
-        stationaryStartTime = 0; // Reset timer if no longer stationary
-        isStationary = false;    // Reset stationary flag
-    }
-
-    // Apply ZUPT
-    if (isStationary) {
-        *velocity = 0.0;  // Reset velocity
-        Serial.println("Stationary: Velocity reset to 0.");
-    } else {
-        // Integrate horizon-level acceleration to update velocity
-        *velocity += horizonAccX * deltaTime / 1000.0;
-
-        // Ensure velocity doesn't grow unreasonably (optional damping)
-        if (fabs(*velocity) < 1e-5 || *velocity < 0) {
-            *velocity = 0.0;
-        }
-    }
-
-    // Debug output
-    Serial.println();
-    Serial.print("Horizon AccX: ");
-    Serial.print(horizonAccX);
-    Serial.print(" | Velocity: ");
-    Serial.println(*velocity * 9.81);  // Convert velocity to m/s² equivalent
-    Serial.print("Gyro X: ");
-    Serial.println(smoothedGyroX);
-}
-
-/*void calculateStepCount(const SensorData& sensorData, int* stepCount) {
-    static bool isStepDetected = false;
-    static float prevAccX = 0.0f;       // Previous X-axis acceleration
-    static float prevGyroMagnitude = 0.0f; // Previous gyroscope magnitude
-    static unsigned long lastStepTime = 0; // Time of the last detected step
-    const unsigned long STEP_TIME_THRESHOLD = 500; // Minimum time between steps in milliseconds (for debouncing)
-
-    // Get the current smoothed acceleration along the X-axis
-    float currentAccX = sensorData.getLinearAccelX();
-
-    // Calculate the delta (change) in acceleration
-    float deltaAccX = fabs(currentAccX - prevAccX);
-
-    // Get the gyroscope readings
-    float gyroX = sensorData.getGyroX();
-    float gyroY = sensorData.getGyroY();
-    float gyroZ = sensorData.getGyroZ();
-
-    // Calculate the magnitude of the gyroscope vector
-    float currentGyroMagnitude = sqrt(gyroX * gyroX + gyroY * gyroY + gyroZ * gyroZ);
-
-    // Calculate the delta (change) in gyroscope magnitude
-    float deltaGyroMagnitude = fabs(currentGyroMagnitude - prevGyroMagnitude);
-
-    // Thresholds for step detection
-    const float STEP_HIGH_THRESHOLD = 0.07f;  // Threshold for detecting a step's peak in AccX
-    const float STEP_LOW_THRESHOLD = 0.02f;   // Threshold for resetting the step state
-    const float GYRO_THRESHOLD = 0.08f;        // Minimum gyroscope change to indicate a step
-
-    // Get current time
-    unsigned long currentTime = millis();
-
-    // Step detection logic using both acceleration and gyroscope variation
-    if (!isStepDetected && deltaAccX > STEP_HIGH_THRESHOLD && deltaGyroMagnitude > GYRO_THRESHOLD &&
-        (currentTime - lastStepTime) > STEP_TIME_THRESHOLD) {
-        // Step peak detected
-        isStepDetected = true;
-        *stepCount += 1; // Increment step count
-        lastStepTime = currentTime;
-
-        Serial.println("Step detected (with gyroscope)");
-    } else if (isStepDetected && deltaAccX < STEP_LOW_THRESHOLD && deltaGyroMagnitude < GYRO_THRESHOLD) {
-        // Reset state after step detected
-        isStepDetected = false;
-    }
-
-    // Update previous values
-    prevAccX = currentAccX;
-    prevGyroMagnitude = currentGyroMagnitude;
-
-    // Debug output
-    Serial.print("Delta AccX: ");
-    Serial.print(deltaAccX);
-    Serial.print(" | Delta Gyro Magnitude: ");
-    Serial.print(deltaGyroMagnitude);
-    Serial.print(" | Step Count: ");
-    Serial.println(*stepCount);
-}*/
-
+/* Calculate the velocity based on the acceleration data
+    How does it work?
+    We count the user's steps and calculate the speed based on the step frequency and stride length.
+    The step detection logic uses both acceleration and gyroscope variation to detect steps.
+    The speed is calculated every SPEED_WINDOW_MS milliseconds.
+    The stride length is estimated as 0.415 times the user's height in meters for walking.
+    The step frequency is calculated as the number of steps in the window divided by the window duration.
+    The speed is estimated as the step frequency times the stride length.
+    The step detection thresholds can be adjusted based on the sensor data and user behavior.
+    The gyroscope threshold can be used to filter out small movements that are not steps.
+    The step time threshold can be used to prevent double-counting steps that are too close together.
+    The speed window duration can be adjusted to balance responsiveness and accuracy.
+    The user height can be used to estimate the stride length for different users.
+*/
 void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, float* speed, float userHeight) {
     static bool isStepDetected = false;
     static float prevAccX = 0.0f;          // Previous X-axis acceleration
@@ -462,4 +126,100 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, fl
     Serial.print(deltaGyroMagnitude);
     Serial.print(" | Step Count: ");
     Serial.println(*stepCount);
+}
+
+bool collisionDetector(const SensorData& sensor_data, const systemSettings& system_settings, float* velocity) {
+    
+    //user height
+    double user_height_in_mm = system_settings.getUserHeight()*1000;
+    double system_height_in_mm = system_settings.getSystemHeight()*1000; //height of the system in mm
+
+    //distance in X and Z from sensor 1
+    int x_distance_from_sensor1 = sensor_data.getDistanceSensor1() * cos(SENSOR_1_ANGLE * (M_PI / 180.0));
+    int z_distance_from_sensor1 = sensor_data.getDistanceSensor1() * sin(SENSOR_1_ANGLE * (M_PI / 180.0));      
+    //distance in X and Z fron semsor 2
+    int x_distance_from_sensor2 = sensor_data.getDistanceSensor2() * cos(SENSOR_2_ANGLE * (M_PI / 180.0));
+    int z_distance_from_sensor2 = sensor_data.getDistanceSensor2() * sin(SENSOR_2_ANGLE * (M_PI / 180.0));
+    //distance in X and Z from sensor 3
+    int x_distance_from_sensor3 = sensor_data.getDistanceSensor3() * cos(SENSOR_3_ANGLE * (M_PI / 180.0));
+    int z_distance_from_sensor3 = sensor_data.getDistanceSensor3() * sin(SENSOR_3_ANGLE * (M_PI / 180.0));
+    //distance in X and Z from sensor 4
+    int x_distance_from_sensor4 = sensor_data.getDistanceSensor4() * cos(SENSOR_4_ANGLE * (M_PI / 180.0));
+    int z_distance_from_sensor4 = sensor_data.getDistanceSensor4() * sin(SENSOR_4_ANGLE * (M_PI / 180.0));
+
+// Calculate the height of the user's head
+    double user_head_height = user_height_in_mm - system_height_in_mm;
+
+    // Store distances (X, Z) in a vector for sorting
+    std::vector<std::pair<int, int>> distances;
+
+    // Calculate and store distances for each sensor
+    distances.push_back({ 
+        sensor_data.getDistanceSensor1() * cos(SENSOR_1_ANGLE * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor1() * sin(SENSOR_1_ANGLE * (M_PI / 180.0)) 
+    });
+
+    distances.push_back({ 
+        sensor_data.getDistanceSensor2() * cos(SENSOR_2_ANGLE * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor2() * sin(SENSOR_2_ANGLE * (M_PI / 180.0)) 
+    });
+
+    distances.push_back({ 
+        sensor_data.getDistanceSensor3() * cos(SENSOR_3_ANGLE * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor3() * sin(SENSOR_3_ANGLE * (M_PI / 180.0)) 
+    });
+
+    distances.push_back({ 
+        sensor_data.getDistanceSensor4() * cos(SENSOR_4_ANGLE * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor4() * sin(SENSOR_4_ANGLE * (M_PI / 180.0)) 
+    });
+
+    // Sort distances by X (ascending)
+    std::sort(distances.begin(), distances.end());
+
+    // Process each distance
+    for (const auto& distance : distances) {
+        int x_distance = distance.first;
+        int z_distance = distance.second;
+
+        // Ignore distances where Z is higher than the user's head
+        if (z_distance > user_head_height) {
+            continue;
+        } else {
+            double impact_time = x_distance / *velocity;
+            if(impact_time <= system_settings.getTiming()) {
+                Serial.println("Collision detected");
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibrationMotor& vibration_motor, String vibration_pattern) {
+    Serial.println("Obstacle detected");
+
+    static void* audio_params[3];
+    audio_params[0] = (void*)&mp3;                  // pointer to MP3
+    audio_params[1] = (void*)(uintptr_t)0x06;       //dir name
+    audio_params[2] = (void*)(uintptr_t)0x03;
+
+    static void* vibration_params[2];
+    vibration_params[0] = (void*)&vibration_motor;          
+    vibration_params[1] = (void*)vibration_pattern.c_str();       
+      
+    if(system_settings.getMode() == "Vibration") {
+        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, vibration_params, 1, nullptr);
+        vTaskDelay(1500);
+    }
+    if(system_settings.getMode() == "Sound") {
+        //file name
+        xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
+        vTaskDelay(1500);
+    }
+    if(system_settings.getMode() == "Both") {
+        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, vibration_params, 1, nullptr);  
+        xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
+        vTaskDelay(1500);
+    }
 }

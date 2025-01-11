@@ -206,13 +206,13 @@ systemSettings readSettings(fs::FS &fs, const char *path)
 {
     Serial.printf("Reading file: %s\n", path);
     std::vector<String> tokens;
-    String m_mode, m_sound, m_viberation, m_timing;
-    int m_height;
-    int m_volume;
+    String m_mode, m_sound, m_viberation;
+    double m_timing;
+    int m_user_height, m_system_height, m_volume;
     File file = fs.open(path);
     if(!file){
         Serial.println("Failed to open file for reading");
-        return systemSettings("both","Sound_1","vibration_1","0.5s",165,5);
+        return systemSettings();
     }
 
     Serial.println("Read from file: ");
@@ -227,40 +227,33 @@ systemSettings readSettings(fs::FS &fs, const char *path)
 
         Serial.println(line);
 
-       //for (String str : tokens)
-         //  Serial.println(str);
+        //for (String str : tokens)
+        //  Serial.println(str);
 
-        if (tokens[0]=="Mode:")
-           {
+        if (tokens[0]=="Mode:") {
                m_mode = tokens[1];
-           }
-
-        if (tokens[0]=="Sound:")
-           {
-               m_sound = tokens[1];
-           }
-
-        if (tokens[0]=="Vibration:")
-           {
-               m_viberation = tokens[1];
-           }
-
-           if (tokens[0]=="Timing:")
-           {
-               m_timing = tokens[1];
-           }
-
-        if (tokens[0]=="Height:")
-        {
-            m_height = tokens[1].toInt();
         }
-        if (tokens[0]=="Volume:")
-        {
+        if (tokens[0]=="Sound:") {
+               m_sound = tokens[1];
+        }
+        if (tokens[0]=="Vibration:") {
+            m_viberation = tokens[1];
+        }
+        if (tokens[0]=="Timing:") {
+            m_timing = tokens[1].toDouble();
+        }
+        if (tokens[0]=="User Height:") {
+            m_user_height = tokens[1].toInt();
+        }
+        if (tokens[0]=="system Height:") {
+            m_system_height = tokens[1].toInt();
+        }
+        if (tokens[0]=="Volume:") {
             m_volume = tokens[1].toInt();
         }
     }
     file.close();
-    return systemSettings(m_mode,m_sound,m_viberation,m_timing,m_height,m_volume);
+    return systemSettings(m_mode,m_sound,m_viberation,m_timing,m_user_height,m_system_height,m_volume);
 }
 
 
