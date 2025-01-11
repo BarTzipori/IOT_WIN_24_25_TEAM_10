@@ -262,7 +262,7 @@ void loop() {
           system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
           sd_flag = true;
         } else{
-            sd_flag = false;
+          sd_flag = false;
         }
         //if we managed to connect to WIFI - use firebase settings, as they are the most updated.
         if (wifi_flag){
