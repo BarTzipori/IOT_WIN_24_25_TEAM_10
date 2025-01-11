@@ -206,9 +206,9 @@ systemSettings readSettings(fs::FS &fs, const char *path)
 {
     Serial.printf("Reading file: %s\n", path);
     std::vector<String> tokens;
-    String m_mode, m_sound, m_viberation, m_timing;
-    double m_user_height, m_system_height;
-    int m_volume;
+    String m_mode, m_sound, m_viberation;
+    double m_timing;
+    int m_user_height, m_system_height, m_volume;
     File file = fs.open(path);
     if(!file){
         Serial.println("Failed to open file for reading");
@@ -240,7 +240,7 @@ systemSettings readSettings(fs::FS &fs, const char *path)
             m_viberation = tokens[1];
         }
         if (tokens[0]=="Timing:") {
-            m_timing = tokens[1];
+            m_timing = tokens[1].toDouble();
         }
         if (tokens[0]=="User Height:") {
             m_user_height = tokens[1].toInt();

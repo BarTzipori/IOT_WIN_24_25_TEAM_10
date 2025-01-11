@@ -76,6 +76,7 @@ bool is_long_press = false;
 float velocity = 0.0;
 bool initial_powerup = true;
 int step_count = 0;
+bool sd_flag;
 
 //Samples sensors data
 void sampleSensorsData(void *pvParameters) {
@@ -246,15 +247,22 @@ void loop() {
         Serial.println("System shut down");
         motor1.vibrate(vibrationPattern::powerOFFBuzz);
       } else {
+        startTime = millis();
         Serial.println("Powering on system");
         motor1.vibrate(vibrationPattern::powerONBuzz);
         velocity = 0;
         // attempt to connect to wifi
+          // attempt to connect to wifi
+        currTime = millis();
         wifi_flag = WifiSetup(startTime, currTime);
         // Initialize Firebase
-        bool flag1 = setupSDCard();
-        bool flag2 = init_sd_card();
-        system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
+        if (setupSDCard()){
+          init_sd_card();
+          system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
+          sd_flag = true;
+        } else{
+            sd_flag = false;
+        }
         //if we managed to connect to WIFI - use firebase settings, as they are the most updated.
         if (wifi_flag){
           if(initial_powerup) {

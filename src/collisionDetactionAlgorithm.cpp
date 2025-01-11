@@ -186,7 +186,7 @@ bool collisionDetector(const SensorData& sensor_data, const systemSettings& syst
         if (z_distance > user_head_height) {
             continue;
         } else {
-            float impact_time = x_distance / *velocity;
+            double impact_time = x_distance / *velocity;
             if(impact_time <= system_settings.getTiming()) {
                 Serial.println("Collision detected");
                 return true;

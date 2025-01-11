@@ -12,7 +12,8 @@ void setupFirebase(FirebaseConfig &config , FirebaseAuth &auth) {
 
 systemSettings getFirebaseSettings(FirebaseData &firebaseData) {
   Serial.println("Getting settings from firebase...");
-  String mode, viberation, timming, sound;
+  String mode, viberation, sound;
+  double timming;
   int user_height, system_height, volume;
   if (Firebase.getString(firebaseData, "/System_Settings/settings/vibrationType"))
   {
@@ -39,7 +40,7 @@ if (Firebase.getString(firebaseData, "/System_Settings/settings/soundType")) {
   }
 
   if (Firebase.getString(firebaseData, "/System_Settings/settings/notificationTiming")) {
-    timming = firebaseData.stringData();
+    timming = firebaseData.doubleData();
     //Serial.println("Timing: " + timming);
   } else {
       Serial.print("Failed to get notification timing: ");
