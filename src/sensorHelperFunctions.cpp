@@ -64,10 +64,15 @@ bool initializeVL53L1XSensor(Adafruit_VL53L1X* sensor, int xshut_pin, int i2c_ad
     pinMode(xshut_pin, OUTPUT);
     digitalWrite(xshut_pin, LOW);
     delay(100);
-    sensor->begin(i2c_address, sensor_wire);
-    sensor->setTimingBudget(50000);
-    sensor->startRanging();
-    return true;
+    bool init_flag = sensor->begin(i2c_address, sensor_wire);
+    if(init_flag ) {
+        sensor->setTimingBudget(50000);
+        sensor->startRanging();
+        return true;
+    } else {
+        Serial.println("Failed to initialize VL53L1X sensor");
+        return false;
+    }
 }
 
 void disableAllVL53L1XSensors(std::vector<int>* distance_sensors_xshut_pins) {
