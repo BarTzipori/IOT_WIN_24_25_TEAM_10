@@ -28,22 +28,22 @@
 #include "wifiServer.h"
 
 //system sensor objects
-static Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
-static Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
-static Adafruit_VL53L1X vl53_3 = Adafruit_VL53L1X(XSHUT_PIN_3, IRQ_PIN);
-static Adafruit_VL53L1X vl53_4 = Adafruit_VL53L1X(XSHUT_PIN_4, IRQ_PIN);
+ Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
+ Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
+ Adafruit_VL53L1X vl53_3 = Adafruit_VL53L1X(XSHUT_PIN_3, IRQ_PIN);
+ Adafruit_VL53L1X vl53_4 = Adafruit_VL53L1X(XSHUT_PIN_4, IRQ_PIN);
 MPU9250 mpu;
 extern MP3 mp3;
 static vibrationMotor motor1(MOTOR_1_PIN);
 static vibrationMotor motor2(MOTOR_2_PIN);  
 static ezButton onOffButton(ON_OFF_BUTTON_PIN);
 
-static std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2, XSHUT_PIN_3, XSHUT_PIN_4};
-static std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}, {&vl53_3, VL53L1X_ADDRESS_3}, {&vl53_4, VL53L1X_ADDRESS_4}};
+ std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2, XSHUT_PIN_3, XSHUT_PIN_4};
+ std::vector<std::pair<Adafruit_VL53L1X*, int>> distance_sensors = {{&vl53_1, VL53L1X_ADDRESS},  {&vl53_2, VL53L1X_ADDRESS_2}, {&vl53_3, VL53L1X_ADDRESS_3}, {&vl53_4, VL53L1X_ADDRESS_4}};
 static std::vector<std::pair<MPU9250*, int>> mpu_sensors = {{&mpu, MPU9250_ADDRESS}};
 
 static SensorData sensor_data;
-//default vibration pattern
+
 TwoWire secondBus = TwoWire(1);
 
 FirebaseData firebaseData; // Firebase object
@@ -53,10 +53,6 @@ FirebaseConfig config;
 
 static systemSettings system_settings;
 //bool save_flag = false;
-
-int8_t volume = 0x1a;//0~0x1e (30 adjustable level)
-int8_t folderName = 0x01;//folder name must be 01 02 03 04 ...
-int8_t fileName = 0x01; // prefix of file name must be 001xxx 002xxx 003xxx 004xxx ...
 
 WiFiClientSecure client;
 
@@ -170,10 +166,10 @@ void setup() {
   
   Serial.begin(115200);
   delay(100);
-  Wire.begin(41,42);
+  Wire.begin(3,14);
   Wire.setClock(100000); // Set I2C clock speed to 100 kHz
   delay(100);
-  secondBus.begin(15,16);
+  secondBus.begin(21,47);
   secondBus.setClock(400000); // Set I2C clock speed to 100 kHz
   Serial.println("Starting setup");
   //onOffButton.setDebounceTime(50);
@@ -187,8 +183,8 @@ void setup() {
   //sets mp3 initial volume
   mp3.setVolume(0x15);
   // Initialize Distance measuring sensors
-  initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
-  //initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
+  //initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
+  initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
   initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
   initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
 
@@ -254,7 +250,6 @@ void loop() {
         velocity = 0;
         currTime = millis();
         // attempt to connect to wifi
-          // attempt to connect to wifi
         currTime = millis();
         wifi_flag = WifiSetup(startTime, currTime);
         // Initialize Firebase
@@ -296,6 +291,7 @@ void loop() {
       system_calibrated = false;
       calibration_needed = true;
       motor1.vibrate(vibrationPattern::recalibrationBuzz);
+      motor2.vibrate(vibrationPattern::recalibrationBuzz);
       calibrateMPU(&mpu, calibration_needed);
       delay(10000);
       system_calibrated = true;
@@ -304,8 +300,10 @@ void loop() {
     }
   }
   wifiServerLoop();
+  
   // sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
+    sensor_data.printData();
     if(collisionDetector(sensor_data, system_settings, &velocity)) {
       collisionAlert(system_settings, mp3, motor1, system_settings.getViberation());
     }
