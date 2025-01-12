@@ -79,9 +79,9 @@ void sampleSensorsData(void *pvParameters) {
       //samples distance sensors data
       for (int i = 0; i < distance_sensors.size(); i++) {
         if(!isVL53L1XSensorConnected(distance_sensors[i].second, &secondBus)) {
-            //Serial.print("Sensor: ");
-            //Serial.print(i+1);
-            //Serial.println(" not connected");
+            Serial.print("Sensor: ");
+            Serial.print(i+1);
+            Serial.println(" not connected");
             continue;
         } else {     
             if(distance_sensors[i].first->dataReady()) {
