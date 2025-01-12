@@ -183,7 +183,7 @@ bool collisionDetector(const SensorData& sensor_data, const systemSettings& syst
         int z_distance = distance.second;
 
         // Ignore distances where Z is higher than the user's head
-        if (z_distance > user_head_height) {
+        if (x_distance == 0 || z_distance > user_head_height) {
             continue;
         } else {
             double impact_time = x_distance / *velocity;
