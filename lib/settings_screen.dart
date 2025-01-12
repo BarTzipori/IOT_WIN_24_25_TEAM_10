@@ -33,8 +33,9 @@ class SettingsQuestionnaire extends StatefulWidget {
 class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
   late List<SettingsItem> _data;
   final TextEditingController _heightController = TextEditingController();
+  final TextEditingController _systemHeightController = TextEditingController();
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
-  final String _esp32Url = "http://172.20.10.5";
+  final String _esp32Url = "http://172.20.10.10";
   String _connectionStatus = "Not Connected";
 
   @override
@@ -46,6 +47,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
   @override
   void dispose() {
     _heightController.dispose();
+    _systemHeightController.dispose();
     super.dispose();
   }
 
@@ -78,6 +80,13 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         isTextField: true,
         textController: _heightController,
       ),
+      SettingsItem(
+        headerValue: '6. System Height',
+        expandedValue: 'Enter the system height in meters',
+        options: [],
+        isTextField: true,
+        textController: _systemHeightController,
+      ),
     ];
   }
 
@@ -90,6 +99,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         'vibrationType': _data[2].selectedOption ?? '',
         'notificationTiming': _data[3].selectedOption ?? '',
         'userHeight': _data[4].textController?.text.trim() ?? '',
+        'systemHeight': _data[5].textController?.text.trim() ?? '',
       };
 
       // Log data for debugging
@@ -206,11 +216,17 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                     body: item.isTextField
                         ? TextField(
                       controller: item.textController,
-                      decoration: const InputDecoration(
-                        labelText: 'Height (m)',
-                        hintText: 'Enter your height (e.g., 1.75)',
-                        border: OutlineInputBorder(),
-                        suffixText: 'm',
+                      decoration: InputDecoration(
+                        labelText: item.headerValue.contains('Height')
+                            ? 'Height (m)'
+                            : 'Enter Value',
+                        hintText: item.headerValue.contains('Height')
+                            ? 'Enter height (e.g., 1.75)'
+                            : '',
+                        border: const OutlineInputBorder(),
+                        suffixText: item.headerValue.contains('Height')
+                            ? 'm'
+                            : null,
                       ),
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     )
