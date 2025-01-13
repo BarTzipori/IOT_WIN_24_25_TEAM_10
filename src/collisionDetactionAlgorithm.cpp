@@ -120,12 +120,12 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     prevGyroMagnitude = currentGyroMagnitude;
 
     // Debug output
-    Serial.print("Delta AccX: ");
-    Serial.print(deltaAccX);
-    Serial.print(" | Delta Gyro Magnitude: ");
-    Serial.print(deltaGyroMagnitude);
-    Serial.print(" | Step Count: ");
-    Serial.println(*stepCount);
+    //Serial.print("Delta AccX: ");
+    //Serial.print(deltaAccX);
+    //Serial.print(" | Delta Gyro Magnitude: ");
+    //Serial.print(deltaGyroMagnitude);
+    //Serial.print(" | Step Count: ");
+    //Serial.println(*stepCount);
 }
 
 double collisionDetector(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
