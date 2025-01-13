@@ -128,7 +128,7 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, fl
     Serial.println(*stepCount);
 }
 
-bool collisionDetector(const SensorData& sensor_data, const systemSettings& system_settings, float* velocity) {
+double collisionDetector(const SensorData& sensor_data, const systemSettings& system_settings, float* velocity) {
     
     //user height
     double user_height_in_mm = system_settings.getUserHeight()*1000;
@@ -184,16 +184,16 @@ bool collisionDetector(const SensorData& sensor_data, const systemSettings& syst
 
         // Ignore distances where Z is higher than the user's head
         if (x_distance == 0 || z_distance > user_head_height) {
+            Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
             continue;
         } else {
             double impact_time = x_distance / *velocity;
-            if(impact_time <= system_settings.getTiming()) {
-                Serial.println("Collision detected");
-                return true;
-            }
+            Serial.print("Obstacle detected. Expected Impact time: ");
+            Serial.println(impact_time);
+            return impact_time;
         }
     }
-    return false;
+    return 0;
 }
 
 void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibrationMotor& vibration_motor, String vibration_pattern) {
@@ -202,7 +202,7 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
     static void* audio_params[3];
     audio_params[0] = (void*)&mp3;                  // pointer to MP3
     audio_params[1] = (void*)(uintptr_t)0x06;       //dir name
-    audio_params[2] = (void*)(uintptr_t)0x03;
+    audio_params[2] = (void*)(uintptr_t)0x03;       //file name
 
     static void* vibration_params[2];
     vibration_params[0] = (void*)&vibration_motor;          
@@ -213,7 +213,6 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
         vTaskDelay(1500);
     }
     if(system_settings.getMode() == "Sound") {
-        //file name
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1500);
     }

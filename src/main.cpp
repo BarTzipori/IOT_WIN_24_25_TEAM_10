@@ -7,7 +7,7 @@
 #include <SoftwareSerial.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
-#include <FirebaseESP32.h>
+#include <Firebase_ESP_Client.h>
 #include <Arduino.h>
 #include <addons/TokenHelper.h>
 #include <addons/RTDBHelper.h>
@@ -266,7 +266,7 @@ void loop() {
             setupFirebase(config, auth);
             initial_powerup = false;
           }
-          systemSettings system_settings_from_fb = getFirebaseSettings(firebaseData);
+          systemSettings system_settings_from_fb = getFirebaseSettings(&firebaseData);
           system_settings.updateSettings(system_settings_from_fb);
           system_settings.print();
           if (sd_flag) {
@@ -303,9 +303,33 @@ void loop() {
   
   // sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
-    sensor_data.printData();
-    if(collisionDetector(sensor_data, system_settings, &velocity)) {
-      collisionAlert(system_settings, mp3, motor1, system_settings.getViberation());
+    //sensor_data.printData();
+    double collision_time = collisionDetector(sensor_data, system_settings, &velocity);
+    if(collision_time > 0) {
+      if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
+          if(collision_time <= system_settings.getAlertTiming1()) {
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1());
+          }
+      }
+      if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
+          if(collision_time <= system_settings.getAlertTiming1()) {
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1());
+          }
+          if(collision_time <= system_settings.getAlertTiming2()) {
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2());
+          }
+      }
+      if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
+          if(collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1());
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1());
+          }
+          if(collision_time <= system_settings.getAlertTiming2() && collision_time > system_settings.getAlertTiming3()) {
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2());
+          }
+          if(collision_time <= system_settings.getAlertTiming3()) {
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3());
+          }
+      }
     }
   }
   vTaskDelay(50);
