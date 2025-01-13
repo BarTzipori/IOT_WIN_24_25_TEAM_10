@@ -2,6 +2,7 @@
 #define _SYSTEM_SETTINGS_H
 
 #include <Arduino.h>
+#include "vibrationMotor.h"
 
 class systemSettings
 {
@@ -17,17 +18,17 @@ class systemSettings
 
 public:
     systemSettings(): Mode("Both"),
-        alert_sound_1("Sound1"),
-        alert_sound_2("Sound1"),
-        alert_sound_3("Sound1"),
-        alert_Vibration_1("Vibration1"),
-        alert_Vibration_2("Vibration1"),
-        alert_Vibration_3("Vibration1"),
+        alert_sound_1("Alarm_clock_4_beeps"),
+        alert_sound_2("Beep (X2)"),
+        alert_sound_3("Collision_warning_hebrew"),
+        alert_Vibration_1("Short buzz"),
+        alert_Vibration_2("Double buzz"),
+        alert_Vibration_3("Pulse buzz"),
         alert_timing_1(1.5),
         alert_timing_2(0.8),
         alert_timing_3(0.3),
         user_height(170),
-        system_height(170/2),
+        system_height(75),
         enable_alert_1(true),
         enable_alert_2(true),
         enable_alert_3(true),
@@ -35,8 +36,6 @@ public:
         voice_alerts_language("English"),
         volume(5) {};
 
-
-    
     systemSettings(String mode,String s1,String s2,String s3,String v1,String v2,String v3,double t1,double t2,double t3,int u,int s,bool e1,bool e2,bool e3,bool e,String l,int vol);
     
     
@@ -82,6 +81,13 @@ public:
 
     bool updateSettings(systemSettings s);
     void print();
+    uint getAlertSound1AsInt();
+    uint getAlertSound2AsInt();
+    uint getAlertSound3AsInt();
+    vibrationPattern getVibration1AsPattern();
+    vibrationPattern getVibration2AsPattern();
+    vibrationPattern getVibration3AsPattern();
+
 };
 
 #endif

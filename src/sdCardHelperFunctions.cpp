@@ -38,12 +38,12 @@ bool init_sd_card()
     else  {
         createDir(SD_MMC, "/Settings");
         writeFile(SD_MMC, "/Settings/setting.txt", "Mode: Both");
-        appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_1: Sound1");
-        appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_2: Sound1");
-        appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_3: Sound1");
-        appendFile(SD_MMC, "/Settings/setting.txt", "alert_Vibration_1: Vibration1");
-        appendFile(SD_MMC, "/Settings/setting.txt", "alert_Vibration_2: Vibration1");
-        appendFile(SD_MMC, "/Settings/setting.txt", "alert_Vibration_3: Vibration1");
+        appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_1: Alarm_clock_4_beeps");
+        appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_2: Beep (X2)");
+        appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_3: Collision_warning_hebrew");
+        appendFile(SD_MMC, "/Settings/setting.txt", "alert_Vibration_1: Short buzz");
+        appendFile(SD_MMC, "/Settings/setting.txt", "alert_Vibration_2: Double buzz");
+        appendFile(SD_MMC, "/Settings/setting.txt", "alert_Vibration_3: Pulse buzz");
         appendFile(SD_MMC, "/Settings/setting.txt", "alert_timing_1: 1.5");
         appendFile(SD_MMC, "/Settings/setting.txt", "alert_timing_2: 0.8");
         appendFile(SD_MMC, "/Settings/setting.txt", "alert_timing_3: 0.3");

@@ -1,5 +1,31 @@
 #include "systemSettings.h"
+#include "vibrationMotor.h"
 #include <Arduino.h>
+
+static const struct {
+    const char* name; // Track name
+    uint value;       // Corresponding track number
+} trackMap[] = {
+    {"Collision_warning_hebrew", 0x01},
+    {"Alarm_clock_4_beeps", 0x02},
+    {"Alert1", 0x03},
+    {"Alert2", 0x04},
+    {"Beep_2", 0x05},
+    {"Warning_beeps", 0x06},
+    {"Notification_sound", 0x07},
+    {"Beep_3", 0x08}
+    // Add more tracks here if needed
+};
+
+static const struct {
+    const char* name; // Track name
+    vibrationPattern pattern;       // Corresponding track number
+} vibrationMap[] = {
+    {"Short_buzz", vibrationPattern::shortBuzz},
+    {"Long_buzz", vibrationPattern::longBuzz},
+    {"Double_buzz", vibrationPattern::doubleBuzz},
+    {"Pulse_buzz", vibrationPattern::pulseBuzz}
+};
 
 systemSettings::systemSettings(String mode, String s1, String s2, String s3, String v1, String v2, String v3, double t1, double t2, double t3, int u, int s, bool e1, bool e2, bool e3, bool e, String l, int vol)
 {
@@ -151,3 +177,84 @@ void systemSettings::print()
     Serial.println("Voice Alerts Language: " + voice_alerts_language);
     Serial.println("Volume: " + String(volume));
 }
+
+uint systemSettings::getAlertSound1AsInt()
+{
+    // Iterate through the shared trackMap array
+    for (const auto& track : trackMap)
+    {
+        if (alert_sound_1 == track.name)
+        {
+            return track.value; // Return the corresponding number if the name matches
+        }
+    }
+    // Return a default value if no match is found
+    return 1;
+}
+
+uint systemSettings::getAlertSound2AsInt()
+{
+    // Iterate through the shared trackMap array
+    for (const auto& track : trackMap)
+    {
+        if (alert_sound_2 == track.name)
+        {
+            return track.value; // Return the corresponding number if the name matches
+        }
+    }
+    // Return a default value if no match is found
+    return 1;
+}
+
+uint systemSettings::getAlertSound3AsInt()
+{
+    // Iterate through the shared trackMap array
+    for (const auto& track : trackMap)
+    {
+        if (alert_sound_3 == track.name)
+        {
+            return track.value; // Return the corresponding number if the name matches
+        }
+    }
+    // Return a default value if no match is found
+    return 1;
+} 
+
+vibrationPattern systemSettings::getVibration1AsPattern() {
+    
+    for (const auto& vibration_pattern : vibrationMap)
+    {
+        if (alert_Vibration_1 == vibration_pattern.name)
+        {
+            return vibration_pattern.pattern; // Return the corresponding number if the name matches
+        }
+    }
+    // Return a default value if no match is found
+    return vibrationPattern::shortBuzz;
+ }
+ vibrationPattern systemSettings::getVibration2AsPattern() {
+    
+    for (const auto& vibration_pattern : vibrationMap)
+    {
+        if (alert_Vibration_2 == vibration_pattern.name)
+        {
+            return vibration_pattern.pattern; // Return the corresponding number if the name matches
+        }
+    }
+    // Return a default value if no match is found
+    return vibrationPattern::shortBuzz;
+ }
+
+ vibrationPattern systemSettings::getVibration3AsPattern() {
+    
+    for (const auto& vibration_pattern : vibrationMap)
+    {
+        if (alert_Vibration_3 == vibration_pattern.name)
+        {
+            return vibration_pattern.pattern; // Return the corresponding number if the name matches
+        }
+    }
+    // Return a default value if no match is found
+    return vibrationPattern::shortBuzz;
+ }
+
