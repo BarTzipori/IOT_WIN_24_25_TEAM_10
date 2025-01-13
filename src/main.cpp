@@ -326,7 +326,7 @@ void loop() {
           if(collision_time <= system_settings.getAlertTiming2() && collision_time > system_settings.getAlertTiming3()) {
             collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2());
           }
-          if(collision_time <= system_settings.getAlertTiming3()) {
+          if(collision_time > 0 && collision_time <= system_settings.getAlertTiming3()) {
             collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3());
           }
       }
