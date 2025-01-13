@@ -7,7 +7,7 @@
 #include <SoftwareSerial.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
-#include <FirebaseESP32.h>
+#include <Firebase_ESP_Client.h>
 #include <Arduino.h>
 #include <addons/TokenHelper.h>
 #include <addons/RTDBHelper.h>
@@ -28,10 +28,10 @@
 #include "wifiServer.h"
 
 //system sensor objects
- Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1, IRQ_PIN);
- Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2, IRQ_PIN);
- Adafruit_VL53L1X vl53_3 = Adafruit_VL53L1X(XSHUT_PIN_3, IRQ_PIN);
- Adafruit_VL53L1X vl53_4 = Adafruit_VL53L1X(XSHUT_PIN_4, IRQ_PIN);
+ Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1);
+ Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2);
+ Adafruit_VL53L1X vl53_3 = Adafruit_VL53L1X(XSHUT_PIN_3);
+ Adafruit_VL53L1X vl53_4 = Adafruit_VL53L1X(XSHUT_PIN_4);
 MPU9250 mpu;
 extern MP3 mp3;
 static vibrationMotor motor1(MOTOR_1_PIN);
@@ -61,7 +61,7 @@ static unsigned long pressed_time = 0;
 static unsigned long released_time = 0;
 static bool is_pressing = false;
 static bool is_long_press = false;
-static float velocity = 0.0;
+static double velocity = 0.0;
 static bool initial_powerup = true;
 static int step_count = 0;
 static bool sd_flag;
@@ -183,7 +183,7 @@ void setup() {
   //sets mp3 initial volume
   mp3.setVolume(0x15);
   // Initialize Distance measuring sensors
-  //initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
+  initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
   initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
   initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
   initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
@@ -266,7 +266,7 @@ void loop() {
             setupFirebase(config, auth);
             initial_powerup = false;
           }
-          systemSettings system_settings_from_fb = getFirebaseSettings(firebaseData);
+          systemSettings system_settings_from_fb = getFirebaseSettings(&firebaseData);
           system_settings.updateSettings(system_settings_from_fb);
           system_settings.print();
           if (sd_flag) {
@@ -303,9 +303,33 @@ void loop() {
   
   // sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
-    sensor_data.printData();
-    if(collisionDetector(sensor_data, system_settings, &velocity)) {
-      collisionAlert(system_settings, mp3, motor1, system_settings.getViberation());
+    //sensor_data.printData();
+    double collision_time = collisionDetector(sensor_data, system_settings, &velocity);
+    if(collision_time > 0) {
+      if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
+          if(collision_time <= system_settings.getAlertTiming1()) {
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1());
+          }
+      }
+      if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
+          if(collision_time <= system_settings.getAlertTiming1()) {
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1());
+          }
+          if(collision_time <= system_settings.getAlertTiming2()) {
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2());
+          }
+      }
+      if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
+          if(collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1());
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1());
+          }
+          if(collision_time <= system_settings.getAlertTiming2() && collision_time > system_settings.getAlertTiming3()) {
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2());
+          }
+          if(collision_time <= system_settings.getAlertTiming3()) {
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3());
+          }
+      }
     }
   }
   vTaskDelay(50);

@@ -206,9 +206,10 @@ systemSettings readSettings(fs::FS &fs, const char *path)
 {
     Serial.printf("Reading file: %s\n", path);
     std::vector<String> tokens;
-    String m_mode, m_sound, m_viberation;
-    double m_timing;
-    int m_user_height, m_system_height, m_volume;
+    String m_mode,m_sound1,m_sound2,m_sound3,m_viberation1,m_viberation2,m_viberation3,m_language;
+    double m_timing1,m_timing2,m_timing3;
+    int m_usrheight,m_sysheight,m_volume;
+    bool m_enable_alert1,m_enable_alert2,m_enable_alert3,m_enable_voice_alerts;
     File file = fs.open(path);
     if(!file){
         Serial.println("Failed to open file for reading");
@@ -227,33 +228,125 @@ systemSettings readSettings(fs::FS &fs, const char *path)
 
         Serial.println(line);
 
-        //for (String str : tokens)
-        //  Serial.println(str);
+       //for (String str : tokens)
+         //  Serial.println(str);
 
-        if (tokens[0]=="Mode:") {
+        if (tokens[0]=="Mode:")
+           {
                m_mode = tokens[1];
-        }
-        if (tokens[0]=="Sound:") {
-               m_sound = tokens[1];
-        }
-        if (tokens[0]=="Vibration:") {
-            m_viberation = tokens[1];
-        }
-        if (tokens[0]=="Timing:") {
-            m_timing = tokens[1].toDouble();
-        }
-        if (tokens[0]=="User Height:") {
-            m_user_height = tokens[1].toInt();
-        }
-        if (tokens[0]=="system Height:") {
-            m_system_height = tokens[1].toInt();
-        }
-        if (tokens[0]=="Volume:") {
-            m_volume = tokens[1].toInt();
-        }
+               continue;
+           }
+
+        if (tokens[0]=="alert_sound_1:")
+           {
+               m_sound1 = tokens[1];
+               continue;
+           }
+
+        if (tokens[0]=="alert_sound_2:")
+           {
+               m_sound2 = tokens[1];
+               continue;
+           }
+
+        if (tokens[0]=="alert_sound_3:")
+           {
+               m_sound3 = tokens[1];
+               continue;
+           }
+
+        if (tokens[0]=="alert_Vibration_1:")
+           {
+               m_viberation1 = tokens[1];
+               continue;
+           }
+
+        if (tokens[0]=="alert_Vibration_2:")
+           {
+               m_viberation2 = tokens[1];
+               continue;
+           }
+
+        if (tokens[0]=="alert_Vibration_3:")
+           {
+               m_viberation3 = tokens[1];
+               continue;
+           }
+
+        if (tokens[0]=="alert_timing_1:")
+           {
+               m_timing1 = tokens[1].toDouble();
+               continue;
+           }
+
+        if (tokens[0]=="alert_timing_2:")
+           {
+               m_timing2 = tokens[1].toDouble();
+               continue;
+           }
+
+        if (tokens[0]=="alert_timing_3:")
+           {
+               m_timing3 = tokens[1].toDouble();
+               continue;
+           }
+
+        if (tokens[0]=="user_height:")
+           {
+               m_usrheight = tokens[1].toInt();
+               continue;
+           }
+
+        if (tokens[0]=="system_height:")
+           {
+               m_sysheight = tokens[1].toInt();
+               continue;
+           }
+
+        if (tokens[0]=="enable_alert_1:")
+           {
+               m_enable_alert1 = tokens[1].toInt();
+               continue;
+           }
+
+        if (tokens[0]=="enable_alert_2:")
+           {
+               m_enable_alert2 = tokens[1].toInt();
+               continue;
+           }
+
+        if (tokens[0]=="enable_alert_3:")
+           {
+               m_enable_alert3 = tokens[1].toInt();
+               continue;
+           }
+
+        if (tokens[0]=="enable_voice_alerts:")
+           {
+               m_enable_voice_alerts = tokens[1].toInt();
+               continue;
+           }
+
+        if (tokens[0]=="voice_alerts_language:")
+           {
+               m_language = tokens[1];
+               continue;
+           }
+
+
+
+        if (tokens[0]=="volume:")
+           {
+               m_volume = tokens[1].toInt();
+               continue;
+           }
+
+
+
+
     }
     file.close();
-    return systemSettings(m_mode,m_sound,m_viberation,m_timing,m_user_height,m_system_height,m_volume);
+    return systemSettings(m_mode,m_sound1,m_sound2,m_sound3,m_viberation1,m_viberation2,m_viberation3,m_timing1,m_timing2,m_timing3,m_usrheight,m_sysheight,m_enable_alert1,m_enable_alert2,m_enable_alert3,m_enable_voice_alerts,m_language,m_volume);
 }
 
 

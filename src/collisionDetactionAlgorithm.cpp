@@ -43,7 +43,7 @@ void playMP3AsTask(void *pvParameters) {
     The speed window duration can be adjusted to balance responsiveness and accuracy.
     The user height can be used to estimate the stride length for different users.
 */
-void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, float* speed, float userHeight) {
+void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, double* speed, float userHeight) {
     static bool isStepDetected = false;
     static float prevAccX = 0.0f;          // Previous X-axis acceleration
     static float prevGyroMagnitude = 0.0f; // Previous gyroscope magnitude
@@ -128,12 +128,12 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, fl
     Serial.println(*stepCount);
 }
 
-bool collisionDetector(const SensorData& sensor_data, const systemSettings& system_settings, float* velocity) {
+double collisionDetector(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
     
     //user height
     double user_height_in_mm = system_settings.getUserHeight()*1000;
     double system_height_in_mm = system_settings.getSystemHeight()*1000; //height of the system in mm
-
+    double impact_time = 0.0;
     //distance in X and Z from sensor 1
     int x_distance_from_sensor1 = sensor_data.getDistanceSensor1() * cos(SENSOR_1_ANGLE * (M_PI / 180.0));
     int z_distance_from_sensor1 = sensor_data.getDistanceSensor1() * sin(SENSOR_1_ANGLE * (M_PI / 180.0));      
@@ -184,25 +184,38 @@ bool collisionDetector(const SensorData& sensor_data, const systemSettings& syst
 
         // Ignore distances where Z is higher than the user's head
         if (x_distance == 0 || z_distance > user_head_height) {
+            if(x_distance == 0) {
+                continue;
+            }
+            Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
             continue;
         } else {
-            double impact_time = x_distance / *velocity;
-            if(impact_time <= system_settings.getTiming()) {
-                Serial.println("Collision detected");
-                return true;
+            if (*velocity <= 0) {
+                Serial.println("Velocity is zero or negative; cannot calculate impact time.");
+            } else if (x_distance <= 0) {
+                Serial.println("Invalid x_distance; cannot calculate impact time.");
+            } else {
+                impact_time = (x_distance / 1000.0) / *velocity;
             }
+            impact_time = (x_distance/1000.0) / *velocity;
+            Serial.print("Obstacle detected. X_distance: ");
+            Serial.print(x_distance);
+            Serial.print(" | Z_distance: ");
+            Serial.print(z_distance);
+            Serial.print(" | Expected Impact time: ");
+            Serial.println(impact_time);
+            return impact_time;
         }
     }
-    return false;
+    return 0;
 }
 
 void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibrationMotor& vibration_motor, String vibration_pattern) {
-    Serial.println("Obstacle detected");
 
     static void* audio_params[3];
     audio_params[0] = (void*)&mp3;                  // pointer to MP3
     audio_params[1] = (void*)(uintptr_t)0x06;       //dir name
-    audio_params[2] = (void*)(uintptr_t)0x03;
+    audio_params[2] = (void*)(uintptr_t)0x03;       //file name
 
     static void* vibration_params[2];
     vibration_params[0] = (void*)&vibration_motor;          
@@ -213,7 +226,6 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
         vTaskDelay(1500);
     }
     if(system_settings.getMode() == "Sound") {
-        //file name
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1500);
     }
