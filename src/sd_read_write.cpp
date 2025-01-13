@@ -333,20 +333,14 @@ systemSettings readSettings(fs::FS &fs, const char *path)
                continue;
            }
 
-
-
         if (tokens[0]=="volume:")
            {
                m_volume = tokens[1].toInt();
                continue;
            }
-
-
-
-
     }
     file.close();
-    return systemSettings(m_mode,m_sound1,m_sound2,m_sound3,m_viberation1,m_viberation2,m_viberation3,m_timing1,m_timing2,m_timing3,m_usrheight,m_sysheight,m_enable_alert1,m_enable_alert2,m_enable_alert3,m_enable_voice_alerts,m_language,m_volume);
+    return systemSettings(m_mode,m_sound1,m_sound2,m_sound3,m_viberation1,m_viberation2,m_viberation3,m_timing1,m_timing2,m_timing3,m_usrheight,m_sysheight,true,true,true,m_enable_voice_alerts,m_language,m_volume);
 }
 
 

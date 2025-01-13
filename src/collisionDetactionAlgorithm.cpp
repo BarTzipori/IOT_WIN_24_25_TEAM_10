@@ -4,13 +4,17 @@
 #include <algorithm>
 #include "collisionDetectionAlgorithm.h"
 
+struct VibrationTaskParams {
+    vibrationMotor* motor;
+    vibrationPattern pattern;
+};
+
 // Vibration pattern for collision alert
 void vibrateMotorsAsTask(void *pvParameters) {
-    void** params = (void**) pvParameters;
-    vibrationMotor* motor = (vibrationMotor*)params[0];
-    String* vib_pattern = (String*)params[1];
-    
-    motor->vibrateFromPatternAsstring(*vib_pattern);
+    VibrationTaskParams* params = (VibrationTaskParams*)pvParameters;
+    vibrationMotor* motor = params->motor;
+    vibrationPattern pattern = params->pattern;
+    motor->vibrate(pattern);
     vTaskDelete(NULL);
 }
 // Play MP3 file as a task for collision alert
@@ -210,27 +214,29 @@ double collisionDetector(const SensorData& sensor_data, const systemSettings& sy
     return 0;
 }
 
-void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibrationMotor& vibration_motor, String vibration_pattern) {
+void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibrationMotor& vibration_motor, vibrationPattern vib_pattern, uint alert_sound_type) {
 
     static void* audio_params[3];
-    audio_params[0] = (void*)&mp3;                  // pointer to MP3
-    audio_params[1] = (void*)(uintptr_t)0x06;       //dir name
-    audio_params[2] = (void*)(uintptr_t)0x03;       //file name
+    audio_params[0] = (void*)&mp3;                  
+    audio_params[1] = (void*)(uintptr_t)ALERTS_DIR; //dir name
+    audio_params[2] = (void*)(uintptr_t)alert_sound_type;       //file name
 
-    static void* vibration_params[2];
-    vibration_params[0] = (void*)&vibration_motor;          
-    vibration_params[1] = (void*)vibration_pattern.c_str();       
+    // Parameters for vibration task
+    static VibrationTaskParams vibration_params = { &vibration_motor, vib_pattern };      
       
     if(system_settings.getMode() == "Vibration") {
-        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, vibration_params, 1, nullptr);
+        Serial.println("Alerted collision from vibration");
+        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &vibration_params, 1, nullptr);
         vTaskDelay(1500);
     }
     if(system_settings.getMode() == "Sound") {
+        Serial.println("Alerted collision from sound");
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1500);
     }
     if(system_settings.getMode() == "Both") {
-        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, vibration_params, 1, nullptr);  
+        Serial.println("Alerted collision from both");
+        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &vibration_params, 1, nullptr);  
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1500);
     }

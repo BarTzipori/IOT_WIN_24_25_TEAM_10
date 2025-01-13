@@ -184,7 +184,7 @@ void setup() {
   mp3.setVolume(0x15);
   // Initialize Distance measuring sensors
   //initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
-  initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
+  //initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
   initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
   initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
 
@@ -308,26 +308,32 @@ void loop() {
     if(collision_time > 0) {
       if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
           if(collision_time <= system_settings.getAlertTiming1()) {
-            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1());
+            Serial.println("Alerted collision from alert 1");
+            collisionAlert(system_settings, mp3, motor1, system_settings.getVibration1AsPattern(), system_settings.getAlertSound1AsInt());
           }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
-          if(collision_time <= system_settings.getAlertTiming1()) {
-            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1());
+          if(collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {
+            Serial.println("Alerted collision from alert 1");
+            collisionAlert(system_settings, mp3, motor1, system_settings.getVibration1AsPattern(), system_settings.getAlertSound1AsInt());
           }
-          if(collision_time <= system_settings.getAlertTiming2()) {
-            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2());
+          if(collision_time <= system_settings.getAlertTiming2() && collision_time > 0) {
+            Serial.println("Alerted collision from alert 2");
+            collisionAlert(system_settings, mp3, motor1, system_settings.getVibration2AsPattern() , system_settings.getAlertSound2AsInt());
           }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
-          if(collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1());
-            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1());
+          if(collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {            
+            Serial.println("Alerted collision from alert 1");
+            collisionAlert(system_settings, mp3, motor1, system_settings.getVibration1AsPattern(), system_settings.getAlertSound1AsInt());
           }
           if(collision_time <= system_settings.getAlertTiming2() && collision_time > system_settings.getAlertTiming3()) {
-            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2());
+            Serial.println("Alerted collision from alert 2");
+            collisionAlert(system_settings, mp3, motor1, system_settings.getVibration2AsPattern(), system_settings.getAlertSound2AsInt());
           }
           if(collision_time > 0 && collision_time <= system_settings.getAlertTiming3()) {
-            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3());
+            Serial.println("Alerted collision from alert 3");
+            collisionAlert(system_settings, mp3, motor1, system_settings.getVibration3AsPattern(), system_settings.getAlertSound3AsInt());
           }
       }
     }
