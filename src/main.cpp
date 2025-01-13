@@ -61,7 +61,7 @@ static unsigned long pressed_time = 0;
 static unsigned long released_time = 0;
 static bool is_pressing = false;
 static bool is_long_press = false;
-static float velocity = 0.0;
+static double velocity = 0.0;
 static bool initial_powerup = true;
 static int step_count = 0;
 static bool sd_flag;

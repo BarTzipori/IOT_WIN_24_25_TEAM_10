@@ -17,7 +17,7 @@ void setupFirebase(FirebaseConfig &config , FirebaseAuth &auth) {
 systemSettings getFirebaseSettings(FirebaseData *firebaseData) {
     Serial.println("Getting settings from Firebase...");
 
-    String mode, sound_1, sound_2, sound_3, vibration_1, vibration_2, vibration_3, voice_alerts_language;
+    String mode="Both", sound_1="Sound1", sound_2="Sound1", sound_3="Sound1", vibration_1="vibration1", vibration_2="vibration1", vibration_3="vibration1", voice_alerts_language="Hebrew";
     int userheight = 170, systemheight = 85, volume = 5; // Default values
     bool enable_alert_1 = true, enable_alert_2 = true, enable_alert_3 = true, enable_voice_alerts = true;
     double timing_1 = 1.5, timing_2 = 0.8, timing_3 = 0.3;
