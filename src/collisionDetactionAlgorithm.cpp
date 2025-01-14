@@ -11,12 +11,15 @@ struct VibrationTaskParams {
 
 // Vibration pattern for collision alert
 void vibrateMotorsAsTask(void *pvParameters) {
-    VibrationTaskParams* params = (VibrationTaskParams*)pvParameters;
-    vibrationMotor* motor = params->motor;
-    vibrationPattern pattern = params->pattern;
-    motor->vibrate(pattern);
+    // Extract parameters
+    void** params = (void**)pvParameters;
+    vibrationMotor* motor = (vibrationMotor*)params[0];
+    String* pattern = (String*)params[1];
+    Serial.println(*pattern);
+    motor->vibrateFromPatternAsstring(*pattern);
     vTaskDelay(1000);
-    vTaskDelete(NULL);
+    // End task
+    vTaskDelete(nullptr);
 }
 // Play MP3 file as a task for collision alert
 void playMP3AsTask(void *pvParameters) {
@@ -215,7 +218,7 @@ double collisionDetector(const SensorData& sensor_data, const systemSettings& sy
     return 0;
 }
 
-void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibrationMotor& vibration_motor, vibrationPattern vib_pattern, uint alert_sound_type) {
+void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibrationMotor& vibration_motor, String vib_pattern, uint alert_sound_type) {
 
     static void* audio_params[3];
     audio_params[0] = (void*)&mp3;                  
@@ -223,8 +226,10 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
     audio_params[2] = (void*)(uintptr_t)alert_sound_type;       //file name
 
     // Parameters for vibration task
-    static VibrationTaskParams vibration_params = { &vibration_motor, vib_pattern };      
-      
+    static void* vibration_params[2];
+    vibration_params[0] = (void*)&vibration_motor;          
+    vibration_params[1] = (void*)&vib_pattern; 
+
     if(system_settings.getMode() == "Vibration") {
         Serial.println("Alerted collision from vibration");
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &vibration_params, 4, nullptr);
