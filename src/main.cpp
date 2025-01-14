@@ -332,7 +332,6 @@ void loop() {
           }
           if(collision_time > 0 && collision_time <= system_settings.getAlertTiming3()) {
             Serial.println("Alerted collision from alert 3");
-            Serial.println(system_settings.getAlertVibration3());
             collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3(), system_settings.getAlertSound3AsInt());
           }
       }

@@ -4,10 +4,6 @@
 #include <algorithm>
 #include "collisionDetectionAlgorithm.h"
 
-struct VibrationTaskParams {
-    vibrationMotor* motor;
-    vibrationPattern pattern;
-};
 
 // Vibration pattern for collision alert
 void vibrateMotorsAsTask(void *pvParameters) {
@@ -15,10 +11,8 @@ void vibrateMotorsAsTask(void *pvParameters) {
     void** params = (void**)pvParameters;
     vibrationMotor* motor = (vibrationMotor*)params[0];
     String* pattern = (String*)params[1];
-    Serial.println(*pattern);
     motor->vibrateFromPatternAsstring(*pattern);
     vTaskDelay(1000);
-    // End task
     vTaskDelete(nullptr);
 }
 // Play MP3 file as a task for collision alert
@@ -32,7 +26,6 @@ void playMP3AsTask(void *pvParameters) {
 
   mp3->playWithFileName(directory_name, file_name);
   vTaskDelay(1000);
-  // Task is done, so delete itself
   vTaskDelete(NULL);
 }
 
