@@ -15,6 +15,7 @@ void vibrateMotorsAsTask(void *pvParameters) {
     vibrationMotor* motor = params->motor;
     vibrationPattern pattern = params->pattern;
     motor->vibrate(pattern);
+    vTaskDelay(1000);
     vTaskDelete(NULL);
 }
 // Play MP3 file as a task for collision alert
@@ -226,7 +227,7 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
       
     if(system_settings.getMode() == "Vibration") {
         Serial.println("Alerted collision from vibration");
-        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &vibration_params, 1, nullptr);
+        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &vibration_params, 4, nullptr);
         vTaskDelay(1500);
     }
     if(system_settings.getMode() == "Sound") {
@@ -236,7 +237,7 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
     }
     if(system_settings.getMode() == "Both") {
         Serial.println("Alerted collision from both");
-        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &vibration_params, 1, nullptr);  
+        xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &vibration_params, 4, nullptr);  
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1500);
     }

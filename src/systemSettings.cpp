@@ -230,6 +230,7 @@ vibrationPattern systemSettings::getVibration1AsPattern() {
         }
     }
     // Return a default value if no match is found
+    Serial.println("Vibration 1 not found");
     return vibrationPattern::shortBuzz;
  }
  vibrationPattern systemSettings::getVibration2AsPattern() {
@@ -242,7 +243,8 @@ vibrationPattern systemSettings::getVibration1AsPattern() {
         }
     }
     // Return a default value if no match is found
-    return vibrationPattern::shortBuzz;
+    Serial.println("Vibration 2 not found");
+    return vibrationPattern::doubleBuzz;
  }
 
  vibrationPattern systemSettings::getVibration3AsPattern() {
@@ -255,6 +257,7 @@ vibrationPattern systemSettings::getVibration1AsPattern() {
         }
     }
     // Return a default value if no match is found
-    return vibrationPattern::shortBuzz;
+    Serial.println("Vibration 3 not found");
+    return vibrationPattern::pulseBuzz;
  }
 
