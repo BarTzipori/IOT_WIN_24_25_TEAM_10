@@ -61,16 +61,16 @@ void vibrationMotor::vibrate(vibrationPattern pattern) {
     }
 }
 void vibrationMotor::vibrateFromPatternAsstring(String pattern) {
-    if (pattern == "shortBuzz") {
+    if (pattern == "Short buzz" || pattern == "shortBuzz" || pattern == "Short") {
         vibrate(vibrationPattern::shortBuzz);
     }
-    if (pattern == "longBuzz") {
+    if (pattern == "Long buzz" || pattern == "longBuzz" || pattern == "Long") {
         vibrate(vibrationPattern::longBuzz);
     }
-    if (pattern == "doubleBuzz") {
+    if (pattern == "Double buzz" || pattern == "doubleBuzz" || pattern == "Double") {
         vibrate(vibrationPattern::doubleBuzz);
     }
-    if (pattern == "pulseBuzz") {
+    if (pattern == "Pulse buzz" || pattern == "pulseBuzz" || pattern == "Pulse") {
         vibrate(vibrationPattern::pulseBuzz);
     }   
     if (pattern == "powerONBuzz") {

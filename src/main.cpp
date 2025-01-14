@@ -291,7 +291,6 @@ void loop() {
       system_calibrated = false;
       calibration_needed = true;
       motor1.vibrate(vibrationPattern::recalibrationBuzz);
-      motor2.vibrate(vibrationPattern::recalibrationBuzz);
       calibrateMPU(&mpu, calibration_needed);
       delay(10000);
       system_calibrated = true;
@@ -309,31 +308,31 @@ void loop() {
       if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
           if(collision_time <= system_settings.getAlertTiming1()) {
             Serial.println("Alerted collision from alert 1");
-            collisionAlert(system_settings, mp3, motor1, system_settings.getVibration1AsPattern(), system_settings.getAlertSound1AsInt());
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
           if(collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {
             Serial.println("Alerted collision from alert 1");
-            collisionAlert(system_settings, mp3, motor1, system_settings.getVibration1AsPattern(), system_settings.getAlertSound1AsInt());
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           }
           if(collision_time <= system_settings.getAlertTiming2() && collision_time > 0) {
             Serial.println("Alerted collision from alert 2");
-            collisionAlert(system_settings, mp3, motor1, system_settings.getVibration2AsPattern() , system_settings.getAlertSound2AsInt());
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2() , system_settings.getAlertSound2AsInt());
           }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
           if(collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {            
             Serial.println("Alerted collision from alert 1");
-            collisionAlert(system_settings, mp3, motor1, system_settings.getVibration1AsPattern(), system_settings.getAlertSound1AsInt());
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           }
           if(collision_time <= system_settings.getAlertTiming2() && collision_time > system_settings.getAlertTiming3()) {
             Serial.println("Alerted collision from alert 2");
-            collisionAlert(system_settings, mp3, motor1, system_settings.getVibration2AsPattern(), system_settings.getAlertSound2AsInt());
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           }
           if(collision_time > 0 && collision_time <= system_settings.getAlertTiming3()) {
             Serial.println("Alerted collision from alert 3");
-            collisionAlert(system_settings, mp3, motor1, system_settings.getVibration3AsPattern(), system_settings.getAlertSound3AsInt());
+            collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3(), system_settings.getAlertSound3AsInt());
           }
       }
     }
