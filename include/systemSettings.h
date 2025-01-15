@@ -12,31 +12,34 @@ class systemSettings
     String alert_Vibration_1,alert_Vibration_2,alert_Vibration_3;
     double alert_timing_1,alert_timing_2,alert_timing_3;
     int user_height,system_height;
-    bool enable_alert_1,enable_alert_2,enable_alert_3,enable_voice_alerts;
+    bool enable_alert_1,enable_alert_2,enable_alert_3,enable_voice_alerts,enable_camera;
     String voice_alerts_language;
     int volume;
 
 public:
     systemSettings(): Mode("Both"),
-        alert_sound_1("Alarm_clock_4_beeps"),
-        alert_sound_2("Beep (X2)"),
-        alert_sound_3("Collision_warning_hebrew"),
-        alert_Vibration_1("Short buzz"),
-        alert_Vibration_2("Double buzz"),
-        alert_Vibration_3("Pulse buzz"),
+        alert_sound_1("Sound1"),
+        alert_sound_2("Sound1"),
+        alert_sound_3("Sound1"),
+        alert_Vibration_1("Vibration1"),
+        alert_Vibration_2("Vibration1"),
+        alert_Vibration_3("Vibration1"),
         alert_timing_1(1.5),
         alert_timing_2(0.8),
         alert_timing_3(0.3),
         user_height(170),
-        system_height(75),
+        system_height(170/2),
         enable_alert_1(true),
         enable_alert_2(true),
         enable_alert_3(true),
         enable_voice_alerts(true),
         voice_alerts_language("English"),
-        volume(5) {};
+        volume(5),
+        enable_camera(true) {};
 
-    systemSettings(String mode,String s1,String s2,String s3,String v1,String v2,String v3,double t1,double t2,double t3,int u,int s,bool e1,bool e2,bool e3,bool e,String l,int vol);
+
+    
+    systemSettings(String mode,String s1,String s2,String s3,String v1,String v2,String v3,double t1,double t2,double t3,int u,int s,bool e1,bool e2,bool e3,bool e,String l,int vol,bool cam);
     
     
     String getMode() const {return Mode;}
@@ -57,6 +60,7 @@ public:
     bool getEnableVoiceAlerts() const {return enable_voice_alerts;}
     String getVoiceAlertsLanguage() const {return voice_alerts_language;}
     int getVolume() const {return volume;}
+    bool getEnableCamera() const {return enable_camera;}
 
     void setMode(String m) {Mode = m;}
     void setAlertSound1(String s) {alert_sound_1 = s;}
@@ -76,6 +80,7 @@ public:
     void setEnableVoiceAlerts(bool e) {enable_voice_alerts = e;}
     void setVoiceAlertsLanguage(String l) {voice_alerts_language = l;}
     void setVolume(int v) {volume = v;}
+    void setEnableCamera(bool c) {enable_camera = c;}
 
 
 
@@ -87,7 +92,6 @@ public:
     vibrationPattern getVibration1AsPattern();
     vibrationPattern getVibration2AsPattern();
     vibrationPattern getVibration3AsPattern();
-
 };
 
 #endif

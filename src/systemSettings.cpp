@@ -1,6 +1,9 @@
 #include "systemSettings.h"
-#include "vibrationMotor.h"
 #include <Arduino.h>
+#include "vibrationMotor.h"
+
+
+
 
 static const struct {
     const char* name; // Track name
@@ -27,7 +30,11 @@ static const struct {
     {"Pulse_buzz", vibrationPattern::pulseBuzz}
 };
 
-systemSettings::systemSettings(String mode, String s1, String s2, String s3, String v1, String v2, String v3, double t1, double t2, double t3, int u, int s, bool e1, bool e2, bool e3, bool e, String l, int vol)
+
+
+
+
+systemSettings::systemSettings(String mode, String s1, String s2, String s3, String v1, String v2, String v3, double t1, double t2, double t3, int u, int s, bool e1, bool e2, bool e3, bool e, String l, int vol,bool c)
 {
     Mode = mode;
     alert_sound_1 = s1;
@@ -47,6 +54,8 @@ systemSettings::systemSettings(String mode, String s1, String s2, String s3, Str
     enable_voice_alerts = e;
     voice_alerts_language = l;
     volume = vol;
+    enable_camera = c;
+    //Serial.println("system setting consturctor enabled camera: " + String(c));
 }
 
 bool systemSettings::updateSettings(systemSettings s)
@@ -56,100 +65,127 @@ bool systemSettings::updateSettings(systemSettings s)
     {
         Mode = s.getMode();
         changed = true;
+        Serial.println("Mode changed");
     }
     if (alert_sound_1 != s.getAlertSound1())
     {
         alert_sound_1 = s.getAlertSound1();
         changed = true;
+        Serial.println("Alert Sound 1 changed");
     }
     if (alert_sound_2 != s.getAlertSound2())
     {
         alert_sound_2 = s.getAlertSound2();
         changed = true;
+        Serial.println("Alert Sound 2 changed");
     }
     if (alert_sound_3 != s.getAlertSound3())
     {
         alert_sound_3 = s.getAlertSound3();
         changed = true;
+        Serial.println("Alert Sound 3 changed");
     }
 
     if (alert_Vibration_1 != s.getAlertVibration1())
     {
         alert_Vibration_1 = s.getAlertVibration1();
         changed = true;
+        Serial.println("Alert Vibration 1 changed");
     }
     if (alert_Vibration_2 != s.getAlertVibration2())
     {
         alert_Vibration_2 = s.getAlertVibration2();
         changed = true;
+        Serial.println("Alert Vibration 2 changed");
     }
     if (alert_Vibration_3 != s.getAlertVibration3())
     {
         alert_Vibration_3 = s.getAlertVibration3();
         changed = true;
+        Serial.println("Alert Vibration 3 changed");
     }
 
     if (alert_timing_1 != s.getAlertTiming1())
     {
         alert_timing_1 = s.getAlertTiming1();
         changed = true;
+        Serial.println("Alert Timing 1 changed");
     }
     if (alert_timing_2 != s.getAlertTiming2())
     {
         alert_timing_2 = s.getAlertTiming2();
         changed = true;
+        Serial.println("Alert Timing 2 changed");
     }
     if (alert_timing_3 != s.getAlertTiming3())
     {
         alert_timing_3 = s.getAlertTiming3();
         changed = true;
+        Serial.println("Alert Timing 3 changed");
     }
 
     if (user_height != s.getUserHeight())
     {
         user_height = s.getUserHeight();
         changed = true;
+        Serial.println("User Height changed");
     }
     if (system_height != s.getSystemHeight())
     {
         system_height = s.getSystemHeight();
         changed = true;
+        Serial.println("System Height changed");
     }
 
     if (enable_alert_1 != s.getEnableAlert1())
     {
         enable_alert_1 = s.getEnableAlert1();
         changed = true;
+        Serial.println("Enable Alert 1 changed");
     }
     if (enable_alert_2 != s.getEnableAlert2())
     {
         enable_alert_2 = s.getEnableAlert2();
         changed = true;
+        Serial.println("Enable Alert 2 changed");
     }
     if (enable_alert_3 != s.getEnableAlert3())
     {
         enable_alert_3 = s.getEnableAlert3();
         changed = true;
+        Serial.println("Enable Alert 3 changed");
     }
 
     if (enable_voice_alerts != s.getEnableVoiceAlerts())
     {
         enable_voice_alerts = s.getEnableVoiceAlerts();
         changed = true;
+        Serial.println("Enable Voice Alerts changed");
     }
 
     if (voice_alerts_language != s.getVoiceAlertsLanguage())
     {
         voice_alerts_language = s.getVoiceAlertsLanguage();
         changed = true;
+        Serial.println("Voice Alerts Language changed");
     }
 
     if (volume != s.getVolume())
     {
+        Serial.println(volume);
+        Serial.println(s.getVolume());
         volume = s.getVolume();
         changed = true;
+        Serial.println("Volume changed");
     }
-
+    if (enable_camera != s.getEnableCamera())
+    {
+        Serial.println(enable_camera);
+        Serial.println(s.getEnableCamera());
+        enable_camera = s.getEnableCamera();
+        changed = true;
+        Serial.println("Enable Camera changed");
+    }
 
 
     return changed;
@@ -157,6 +193,7 @@ bool systemSettings::updateSettings(systemSettings s)
 
 void systemSettings::print()
 {
+    Serial.println("------------------------");
     Serial.println("Print Settings: ");
     Serial.println("Mode: " + Mode);
     Serial.println("Alert Sound 1: " + alert_sound_1); 
@@ -176,6 +213,8 @@ void systemSettings::print()
     Serial.println("Enable Voice Alerts: " + String(enable_voice_alerts));
     Serial.println("Voice Alerts Language: " + voice_alerts_language);
     Serial.println("Volume: " + String(volume));
+    Serial.println("Enable Camera: " + String(enable_camera));
+    Serial.println("------------------------");
 }
 
 uint systemSettings::getAlertSound1AsInt()
@@ -260,4 +299,7 @@ vibrationPattern systemSettings::getVibration1AsPattern() {
     Serial.println("Vibration 3 not found");
     return vibrationPattern::pulseBuzz;
  }
+
+
+
 

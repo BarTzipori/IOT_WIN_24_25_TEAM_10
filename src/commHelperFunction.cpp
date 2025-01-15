@@ -14,26 +14,30 @@ void setupFirebase(FirebaseConfig &config , FirebaseAuth &auth) {
 
 
 
-systemSettings getFirebaseSettings(FirebaseData *firebaseData) {
+bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s) {
     Serial.println("Getting settings from Firebase...");
 
     String mode="Both", sound_1="Sound1", sound_2="Sound1", sound_3="Sound1", vibration_1="vibration1", vibration_2="vibration1", vibration_3="vibration1", voice_alerts_language="Hebrew";
     int userheight = 170, systemheight = 85, volume = 5; // Default values
-    bool enable_alert_1 = true, enable_alert_2 = true, enable_alert_3 = true, enable_voice_alerts = true;
+    bool enable_alert_1 = true, enable_alert_2 = true, enable_alert_3 = true, enable_voice_alerts = true,enable_camera = true;
     double timing_1 = 1.5, timing_2 = 0.8, timing_3 = 0.3;
 
     // Helper macro for fetching data from Firebase
-    #define GET_STRING(path, target) \
-        if (Firebase.RTDB.getString(firebaseData, path)) { \
-            target = firebaseData->to<const char *>(); \
-        } else { \
-            Serial.print("Failed to get "); \
-            Serial.print(path); \
-            Serial.print(": "); \
-            Serial.println(firebaseData->errorReason()); \
-        }
+#define GET_STRING(path, target)                     \
+    if (Firebase.RTDB.getString(firebaseData, path)) \
+    {                                                \
+        target = firebaseData->to<const char *>();   \
+    }                                                \
+    else                                             \
+    {                                                \
+        Serial.print("Failed to get ");              \
+        Serial.print(path);                          \
+        Serial.print(": ");                          \
+        Serial.println(firebaseData->errorReason()); \
+        return false;                                \
+}
 
-    #define GET_INT(path, target) \
+#define GET_INT(path, target) \
         if (Firebase.RTDB.getInt(firebaseData, path)) { \
             target = firebaseData->to<int>(); \
         } else { \
@@ -41,6 +45,7 @@ systemSettings getFirebaseSettings(FirebaseData *firebaseData) {
             Serial.print(path); \
             Serial.print(": "); \
             Serial.println(firebaseData->errorReason()); \
+            return false; \
         }
 
     #define GET_DOUBLE(path, target) \
@@ -51,6 +56,7 @@ systemSettings getFirebaseSettings(FirebaseData *firebaseData) {
             Serial.print(path); \
             Serial.print(": "); \
             Serial.println(firebaseData->errorReason()); \
+            return false; \
         }
 
     #define GET_BOOL(path, target) \
@@ -61,6 +67,7 @@ systemSettings getFirebaseSettings(FirebaseData *firebaseData) {
             Serial.print(path); \
             Serial.print(": "); \
             Serial.println(firebaseData->errorReason()); \
+            return false; \
         }
 
     // Fetching settings
@@ -85,6 +92,7 @@ systemSettings getFirebaseSettings(FirebaseData *firebaseData) {
     GET_BOOL("/System_Settings/settings/enableAlert2", enable_alert_2);
     GET_BOOL("/System_Settings/settings/enableAlert3", enable_alert_3);
     GET_BOOL("/System_Settings/settings/enableVoiceAlerts", enable_voice_alerts);
+    GET_BOOL("/System_Settings/settings/enableCamera", enable_camera);
 
     // Construct the systemSettings object with the fetched values
     systemSettings settings(mode, sound_1, sound_2, sound_3,
@@ -92,10 +100,11 @@ systemSettings getFirebaseSettings(FirebaseData *firebaseData) {
                             timing_1, timing_2, timing_3,
                             userheight, systemheight,
                             enable_alert_1, enable_alert_2, enable_alert_3,
-                            enable_voice_alerts, voice_alerts_language, volume);
+                            enable_voice_alerts, voice_alerts_language, volume,enable_camera);
 
     Serial.println("Settings retrieved successfully.");
-    return settings;
+    s.updateSettings(settings);
+    return true;
 }
 
 
@@ -169,15 +178,49 @@ void storeFirebaseSetting(FirebaseData *firebaseData, systemSettings &s) {
     SET_BOOL("/System_Settings/settings/enableAlert2", s.getEnableAlert2());
     SET_BOOL("/System_Settings/settings/enableAlert3", s.getEnableAlert3());
     SET_BOOL("/System_Settings/settings/enableVoiceAlerts", s.getEnableVoiceAlerts());
+    SET_BOOL("/System_Settings/settings/enableCamera", s.getEnableCamera());
 
     Serial.println("Settings stored successfully.");
 }
 
 
+bool updateFirebaseLocalIP(FirebaseData *firebaseData, String localIP) {
+    Serial.println("Updating local IP to Firebase...");
+
+    if (Firebase.RTDB.setString(firebaseData, "/System_Settings/localIP", localIP)) {
+        Serial.println("Local IP stored successfully.");
+        return true;
+    } else {
+        Serial.print("Error storing local IP: ");
+        Serial.println(firebaseData->errorReason());
+        return false;
+    }
+}
 
 
-bool WifiSetup(unsigned long &startTime, unsigned long &currTime)
+bool WifiSetup()
 {
+    // New wifi setup
+    WiFiManager wm;
+    wm.setConnectTimeout(15);
+    bool res = wm.autoConnect("SafeStepAP", "safestep2025");
+    if (!res)
+    {
+        Serial.println("Failed to connect");
+        return false;
+    }
+    else
+    {
+        Serial.println("Connected to Wi-Fi");
+        Serial.print("local ip: ");
+        Serial.println(WiFi.localIP());
+        return true;
+    }
+
+
+
+    //old wifi setup
+    /*
     startTime = millis();
     currTime = millis();
     // Connect to Wi-Fi
@@ -199,6 +242,7 @@ bool WifiSetup(unsigned long &startTime, unsigned long &currTime)
         Serial.println("\nNot Connected to Wi-Fi!");
         return false;
   }
+  */
 }
 
 

@@ -209,13 +209,13 @@ systemSettings readSettings(fs::FS &fs, const char *path)
     String m_mode,m_sound1,m_sound2,m_sound3,m_viberation1,m_viberation2,m_viberation3,m_language;
     double m_timing1,m_timing2,m_timing3;
     int m_usrheight,m_sysheight,m_volume;
-    bool m_enable_alert1,m_enable_alert2,m_enable_alert3,m_enable_voice_alerts;
+    bool m_enable_alert1,m_enable_alert2,m_enable_alert3,m_enable_voice_alerts,m_enable_camera;
     File file = fs.open(path);
     if(!file){
         Serial.println("Failed to open file for reading");
         return systemSettings();
     }
-
+    systemSettings s;
     Serial.println("Read from file: ");
     while(file.available()){
         //int tmp = file.read();
@@ -234,115 +234,145 @@ systemSettings readSettings(fs::FS &fs, const char *path)
         if (tokens[0]=="Mode:")
            {
                m_mode = tokens[1];
+               s.setMode(m_mode);
                continue;
            }
 
         if (tokens[0]=="alert_sound_1:")
            {
                m_sound1 = tokens[1];
+               s.setAlertSound1(m_sound1);
                continue;
            }
 
         if (tokens[0]=="alert_sound_2:")
            {
                m_sound2 = tokens[1];
+                s.setAlertSound2(m_sound2);
                continue;
            }
 
         if (tokens[0]=="alert_sound_3:")
            {
                m_sound3 = tokens[1];
+                s.setAlertSound3(m_sound3);
                continue;
            }
 
         if (tokens[0]=="alert_Vibration_1:")
            {
                m_viberation1 = tokens[1];
+                s.setAlertVibration1(m_viberation1);
                continue;
            }
 
         if (tokens[0]=="alert_Vibration_2:")
            {
                m_viberation2 = tokens[1];
+                s.setAlertVibration2(m_viberation2);
                continue;
            }
 
         if (tokens[0]=="alert_Vibration_3:")
            {
                m_viberation3 = tokens[1];
+                s.setAlertVibration3(m_viberation3);
                continue;
            }
 
         if (tokens[0]=="alert_timing_1:")
            {
                m_timing1 = tokens[1].toDouble();
+                s.setAlertTiming1(m_timing1);
                continue;
            }
 
         if (tokens[0]=="alert_timing_2:")
            {
                m_timing2 = tokens[1].toDouble();
+                s.setAlertTiming2(m_timing2);
                continue;
            }
 
         if (tokens[0]=="alert_timing_3:")
            {
                m_timing3 = tokens[1].toDouble();
+                s.setAlertTiming3(m_timing3);
                continue;
            }
 
         if (tokens[0]=="user_height:")
            {
                m_usrheight = tokens[1].toInt();
+                s.setUserHeight(m_usrheight);
                continue;
            }
 
         if (tokens[0]=="system_height:")
            {
                m_sysheight = tokens[1].toInt();
+                s.setSystemHeight(m_sysheight);
                continue;
            }
 
         if (tokens[0]=="enable_alert_1:")
            {
                m_enable_alert1 = tokens[1].toInt();
+                s.setEnableAlert1(m_enable_alert1);
                continue;
            }
 
         if (tokens[0]=="enable_alert_2:")
            {
                m_enable_alert2 = tokens[1].toInt();
+                s.setEnableAlert2(m_enable_alert2);
                continue;
            }
 
         if (tokens[0]=="enable_alert_3:")
            {
                m_enable_alert3 = tokens[1].toInt();
+                s.setEnableAlert3(m_enable_alert3);
                continue;
            }
 
         if (tokens[0]=="enable_voice_alerts:")
            {
                m_enable_voice_alerts = tokens[1].toInt();
+                s.setEnableVoiceAlerts(m_enable_voice_alerts);
                continue;
            }
 
         if (tokens[0]=="voice_alerts_language:")
            {
                m_language = tokens[1];
+                s.setVoiceAlertsLanguage(m_language);
                continue;
            }
+
+
 
         if (tokens[0]=="volume:")
            {
                m_volume = tokens[1].toInt();
+                s.setVolume(m_volume);
                continue;
            }
+
+        if (tokens[0]=="enable_camera:")
+           {
+               m_volume = tokens[1].toInt();
+                s.setEnableCamera(m_volume);
+               continue;
+           }
+
+
+
+
     }
     file.close();
-    return systemSettings(m_mode,m_sound1,m_sound2,m_sound3,m_viberation1,m_viberation2,m_viberation3,m_timing1,m_timing2,m_timing3,m_usrheight,m_sysheight,true,true,true,m_enable_voice_alerts,m_language,m_volume);
+    return s;
 }
-
 
 void endFile(fs::FS &fs,const char *path)
 {

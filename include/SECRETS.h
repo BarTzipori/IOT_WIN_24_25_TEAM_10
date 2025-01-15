@@ -42,14 +42,16 @@ extern const char* root_ca =
 // see https://cloud.google.com/docs/authentication?hl=ja#getting_credentials_for_server-centric_flow
 // see https://qiita.com/basi/items/3623a576b754f738138e (Japanese)
 
-#define WIFI_TIMEOUT 1500
+#define WIFI_TIMEOUT 15000
 // Replace with your network credentials
-#define WIFI_SSID "Bars iPhone"
-#define WIFI_PASSWORD "12348765"
+#define WIFI_SSID "ilay"
+#define WIFI_PASSWORD "123456789"
 // Firebase credentials
 #define FIREBASE_HOST "https://safestep-2bc31-default-rtdb.europe-west1.firebasedatabase.app" // Replace with your database URL
 #define API_KEY "AIzaSyBplNk42Hp3O6M17iJObv_FM2MuanadKjM"
 #define USER_EMAIL "neta.matano@gmail.com"
 #define USER_PASSWORD "123456"
-
+#define FIREBASE_AUTH "AIzaSyBplNk42Hp3O6M17iJObv_FM2MuanadKjM"
+#define FIREBASE_HOST_STORAGE  "https://console.firebase.google.com/project/safestep-2bc31/storage"
+#define STORAGE_BUCKET_ID "safestep-2bc31.firebasestorage.app"
 #endif  // _SECRETS_H
