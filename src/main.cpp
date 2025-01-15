@@ -87,8 +87,8 @@ void sampleSensorsData(void *pvParameters) {
             if(distance_sensors[i].first->dataReady()) {
                 int distance = distance_sensors[i].first->distance();
                 if (distance == -1) {
-                  //Serial.print(F("Couldn't get distance: "));
-                  //Serial.println(distance_sensors[i].first->vl_status);
+                  Serial.print(F("Couldn't get distance: "));
+                  Serial.println(distance_sensors[i].first->vl_status);
                   if(i == 0) {
                     sensor_data.setSensor1Distance(distance);
                   }
@@ -183,8 +183,8 @@ void setup() {
   //sets mp3 initial volume
   mp3.setVolume(0x15);
   // Initialize Distance measuring sensors
-  //initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
-  //initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
+  initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &secondBus);
+  initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &secondBus);  
   initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &secondBus);
   initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &secondBus);
 
@@ -302,7 +302,7 @@ void loop() {
   
   // sensor data update routine
   if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
-    //sensor_data.printData();
+    sensor_data.printData();
     double collision_time = collisionDetector(sensor_data, system_settings, &velocity);
     if(collision_time > 0) {
       if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
