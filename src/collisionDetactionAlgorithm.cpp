@@ -333,36 +333,36 @@ bool collisionTimeAlertHandler(double collision_time, systemSettings& system_set
 bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& system_settings, const MP3& mp3, vibrationMotor& motor1) {
     if (obstacle_distance > 0) {
       if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
-        if (obstacle_distance <= system_settings.getAlertTiming1()){
+        if (obstacle_distance <= system_settings.getAlertDistance1()){
           Serial.println("Alerted collision from alert 1");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
-        if (obstacle_distance <= system_settings.getAlertTiming1() && obstacle_distance > system_settings.getAlertTiming2()) {
+        if (obstacle_distance <= system_settings.getAlertDistance1() && obstacle_distance > system_settings.getAlertDistance2()) {
           Serial.println("Alerted collision from alert 1");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
-        if (obstacle_distance <= system_settings.getAlertTiming2() && obstacle_distance > 0) {
+        if (obstacle_distance <= system_settings.getAlertDistance2() && obstacle_distance > 0) {
           Serial.println("Alerted collision from alert 2");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
-        if (obstacle_distance <= system_settings.getAlertTiming1() && obstacle_distance > system_settings.getAlertTiming2()) {
+        if (obstacle_distance <= system_settings.getAlertDistance1() && obstacle_distance > system_settings.getAlertDistance2()) {
           Serial.println("Alerted collision from alert 1");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
-        if (obstacle_distance <= system_settings.getAlertTiming2() && obstacle_distance > system_settings.getAlertTiming3()) {
+        if (obstacle_distance <= system_settings.getAlertDistance2() && obstacle_distance > system_settings.getAlertDistance3()) {
           Serial.println("Alerted collision from alert 2");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
-        if (obstacle_distance > 0 && obstacle_distance <= system_settings.getAlertTiming3()) {
+        if (obstacle_distance > 0 && obstacle_distance <= system_settings.getAlertDistance3()) {
           Serial.println("Alerted collision from alert 3");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3(), system_settings.getAlertSound3AsInt());
           return true;

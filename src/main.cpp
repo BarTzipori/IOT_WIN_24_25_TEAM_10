@@ -370,14 +370,23 @@ void loop()
   wifiServerLoop();
 
   // sensor data update routine
-  if (mpu.update() && system_calibrated && is_system_on && !is_pressing)
-  {
-    // sensor_data.printData();
-    double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
-    double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity);
-    if(collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
-      capturePicture();
-    }
-  } 
+  if(system_settings.getAlertMethod() == "timeToImpact") {
+      if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
+          // sensor_data.printData();
+          double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
+          if(collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
+            if(system_settings.getEnableCamera()){
+              CaptureObstacle(fbdo, auth, config, wifi_flag);
+            }
+          }
+      }
+  } else {
+          double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity);
+          if(obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
+            if(system_settings.getEnableCamera()){
+              CaptureObstacle(fbdo, auth, config, wifi_flag);
+            }
+          }                
+  }
   vTaskDelay(50);
 }

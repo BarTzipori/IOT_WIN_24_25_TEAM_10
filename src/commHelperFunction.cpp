@@ -15,8 +15,8 @@ void setupFirebase(FirebaseConfig &config , FirebaseAuth &auth) {
 bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s) {
     Serial.println("Getting settings from Firebase...");
 
-    String mode="Both", sound_1="Sound1", sound_2="Sound1", sound_3="Sound1", vibration_1="vibration1", vibration_2="vibration1", vibration_3="vibration1", voice_alerts_language="Hebrew";
-    int userheight = 170, systemheight = 85, volume = 5; // Default values
+    String mode= "Both", alert_method= "timeToImpact" ,sound_1 = "Sound1", sound_2 = "Sound1", sound_3 = "Sound1", vibration_1 = "vibration1", vibration_2 = "vibration1", vibration_3 = "vibration1", voice_alerts_language = "English";
+    int userheight = 170, systemheight = 85, volume = 5, distance_1 = 1000, distance_2 = 500, distance_3 = 250;
     bool enable_alert_1 = true, enable_alert_2 = true, enable_alert_3 = true, enable_voice_alerts = true,enable_camera = true;
     double timing_1 = 1.5, timing_2 = 0.8, timing_3 = 0.3;
 
@@ -70,6 +70,7 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s) {
 
     // Fetching settings
     GET_STRING("/System_Settings/settings/mode", mode);
+    GET_STRING("/System_Settings/settings/method", alert_method);
     GET_STRING("/System_Settings/settings/alertSound1", sound_1);
     GET_STRING("/System_Settings/settings/alertSound2", sound_2);
     GET_STRING("/System_Settings/settings/alertSound3", sound_3);
@@ -82,6 +83,10 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s) {
     GET_DOUBLE("/System_Settings/settings/alertTiming2", timing_2);
     GET_DOUBLE("/System_Settings/settings/alertTiming3", timing_3);
 
+    GET_DOUBLE("/System_Settings/settings/alertDistance1", distance_1);
+    GET_DOUBLE("/System_Settings/settings/alertDistance2", distance_2);
+    GET_DOUBLE("/System_Settings/settings/alertDistance3", distance_3);
+
     GET_INT("/System_Settings/settings/userHeight", userheight);
     GET_INT("/System_Settings/settings/systemHeight", systemheight);
     GET_INT("/System_Settings/settings/volume", volume);
@@ -93,12 +98,13 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s) {
     GET_BOOL("/System_Settings/settings/enableCamera", enable_camera);
 
     // Construct the systemSettings object with the fetched values
-    systemSettings settings(mode, sound_1, sound_2, sound_3,
+    systemSettings settings(mode, alert_method, enable_alert_1, enable_alert_2, enable_alert_3,
+                            sound_1, sound_2, sound_3,
                             vibration_1, vibration_2, vibration_3,
                             timing_1, timing_2, timing_3,
+                            distance_1, distance_2, distance_3,
                             userheight, systemheight,
-                            enable_alert_1, enable_alert_2, enable_alert_3,
-                            enable_voice_alerts, voice_alerts_language, volume,enable_camera);
+                            enable_voice_alerts, voice_alerts_language, volume, enable_camera);
 
     Serial.println("Settings retrieved successfully.");
     s.updateSettings(settings);
@@ -156,6 +162,7 @@ void storeFirebaseSetting(FirebaseData *firebaseData, systemSettings &s) {
 
     // Store settings to Firebase
     SET_STRING("/System_Settings/settings/mode", s.getMode());
+    SET_STRING("/System_Settings/settings/method", s.getAlertMethod());
     SET_STRING("/System_Settings/settings/alertSound1", s.getAlertSound1());
     SET_STRING("/System_Settings/settings/alertSound2", s.getAlertSound2());
     SET_STRING("/System_Settings/settings/alertSound3", s.getAlertSound3());
@@ -167,6 +174,10 @@ void storeFirebaseSetting(FirebaseData *firebaseData, systemSettings &s) {
     SET_DOUBLE("/System_Settings/settings/alertTiming1", s.getAlertTiming1());
     SET_DOUBLE("/System_Settings/settings/alertTiming2", s.getAlertTiming2());
     SET_DOUBLE("/System_Settings/settings/alertTiming3", s.getAlertTiming3());
+
+    SET_DOUBLE("/System_Settings/settings/alertDistance1", s.getAlertDistance1());
+    SET_DOUBLE("/System_Settings/settings/alertDistance2", s.getAlertDistance2());
+    SET_DOUBLE("/System_Settings/settings/alertDistance3", s.getAlertDistance3());
 
     SET_INT("/System_Settings/settings/userHeight", s.getUserHeight());
     SET_INT("/System_Settings/settings/systemHeight", s.getSystemHeight());
