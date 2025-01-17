@@ -1,6 +1,5 @@
+//user defined parameters
 
-#ifndef PARAMETERS_H
-#define PARAMETERS_H
 //SAFESTEP system defines
 
 #define IRQ_PIN 2
@@ -29,9 +28,25 @@
 #define SD_MMC_CLK 39 //Please do not modify it. 
 #define SD_MMC_D0  40 //Please do not modify it.
 
+// Define the camera configuration
+#define PWDN_GPIO_NUM     -1
+#define RESET_GPIO_NUM    -1
+#define XCLK_GPIO_NUM     15
+#define SIOD_GPIO_NUM     4
+#define SIOC_GPIO_NUM     5
+#define Y9_GPIO_NUM       16
+#define Y8_GPIO_NUM       17
+#define Y7_GPIO_NUM       18
+#define Y6_GPIO_NUM       12
+#define Y5_GPIO_NUM       10
+#define Y4_GPIO_NUM       8
+#define Y3_GPIO_NUM       9
+#define Y2_GPIO_NUM       11
+#define VSYNC_GPIO_NUM    6
+#define HREF_GPIO_NUM     7
+#define PCLK_GPIO_NUM     13
+
 #define SENSOR_1_ANGLE 15
 #define SENSOR_2_ANGLE 30
 #define SENSOR_3_ANGLE 15
 #define SENSOR_4_ANGLE 30
-
-#endif

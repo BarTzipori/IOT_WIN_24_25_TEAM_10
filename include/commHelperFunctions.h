@@ -5,12 +5,14 @@
 #include "SECRETS.h"
 #include "systemSettings.h"
 #include <time.h>
+#include <WiFiManager.h>
 
 
 void setupFirebase(FirebaseConfig &config , FirebaseAuth &auth);
-systemSettings getFirebaseSettings(FirebaseData *firebaseData);
+bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s);
 void storeFirebaseSetting(FirebaseData *firebaseData ,systemSettings& s);
-bool WifiSetup(unsigned long &startTime, unsigned long &currTime);
+bool updateFirebaseLocalIP(FirebaseData *firebaseData, String localIP);
+bool WifiSetup();
 void setupTime();
 
 #endif

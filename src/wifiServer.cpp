@@ -5,7 +5,12 @@
 #include <Arduino.h>
 #include "vibrationMotor.h"
 #include "parameters.h"
+#include "systemSettings.h"
+#include "commHelperFunctions.h"
+#include "sdCardHelperFunctions.h"
 
+systemSettings system_settings;
+FirebaseData firebaseData;
 
 //MP3 mp3_forServer(MP3_RX, MP3_TX);
 MP3 mp3(MP3_RX, MP3_TX);
@@ -86,7 +91,21 @@ void handleNotFound() {
 
 void onSave(){
   //save_flag = true;
-
+  systemSettings s;
+  if (getFirebaseSettings(&firebaseData, s))
+  {
+    
+  system_settings.updateSettings(s);
+  updateSDSettings(system_settings);
+  Serial.println("Settings updated");
+  system_settings.print();
+  server.send(200, "text/plain", "Settings saved");
+  }
+  else
+  {
+    Serial.println("Failed to get settings from Firebase");
+    server.send(200, "text/plain", "Failed to save settings");
+  }
 }
 
 void setupWifiServer()
@@ -106,6 +125,8 @@ void setupWifiServer()
 
   server.begin();
   Serial.println("HTTP server started");
+  Serial.println("HTTP Server Available at: http://" + WiFi.localIP().toString());
+  
 }
  
  void wifiServerLoop()

@@ -26,6 +26,7 @@ bool setupSDCard() {
 
     uint64_t cardSize = SD_MMC.cardSize() / (1024 * 1024);
     Serial.printf("SD_MMC Card Size: %lluMB\n", cardSize);
+    createDir(SD_MMC, "/images");
     return true;
 }
 
@@ -38,12 +39,12 @@ bool init_sd_card()
     else  {
         createDir(SD_MMC, "/Settings");
         writeFile(SD_MMC, "/Settings/setting.txt", "Mode: Both");
-        appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_1: Alarm_clock_4_beeps");
-        appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_2: Beep (X2)");
-        appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_3: Collision_warning_hebrew");
-        appendFile(SD_MMC, "/Settings/setting.txt", "alert_Vibration_1: Short buzz");
-        appendFile(SD_MMC, "/Settings/setting.txt", "alert_Vibration_2: Double buzz");
-        appendFile(SD_MMC, "/Settings/setting.txt", "alert_Vibration_3: Pulse buzz");
+        appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_1: Sound1");
+        appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_2: Sound1");
+        appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_3: Sound1");
+        appendFile(SD_MMC, "/Settings/setting.txt", "alert_Vibration_1: Vibration1");
+        appendFile(SD_MMC, "/Settings/setting.txt", "alert_Vibration_2: Vibration1");
+        appendFile(SD_MMC, "/Settings/setting.txt", "alert_Vibration_3: Vibration1");
         appendFile(SD_MMC, "/Settings/setting.txt", "alert_timing_1: 1.5");
         appendFile(SD_MMC, "/Settings/setting.txt", "alert_timing_2: 0.8");
         appendFile(SD_MMC, "/Settings/setting.txt", "alert_timing_3: 0.3");
@@ -55,6 +56,7 @@ bool init_sd_card()
         appendFile(SD_MMC, "/Settings/setting.txt", "enable_voice_alerts: true");
         appendFile(SD_MMC, "/Settings/setting.txt", "voice_alerts_language: English");
         appendFile(SD_MMC, "/Settings/setting.txt", "volume: 5");
+        appendFile(SD_MMC, "/Settings/setting.txt", "enable_camera: true");
         endFile(SD_MMC, "/Settings/setting.txt");
         Serial.println("created setting file");
         return false;
@@ -84,6 +86,7 @@ void updateSDSettings(systemSettings &s)
     appendFile(SD_MMC, "/Settings/setting.txt", "enable_voice_alerts: " + String(s.getEnableVoiceAlerts()));
     appendFile(SD_MMC, "/Settings/setting.txt", "voice_alerts_language: " + s.getVoiceAlertsLanguage());
     appendFile(SD_MMC, "/Settings/setting.txt", "volume: " + String(s.getVolume()));
-    
+    appendFile(SD_MMC, "/Settings/setting.txt", "enable_camera: " + String(s.getEnableCamera()));
+
     endFile(SD_MMC, "/Settings/setting.txt");
 }
