@@ -12,8 +12,6 @@ void setupFirebase(FirebaseConfig &config , FirebaseAuth &auth) {
 }
 
 
-
-
 bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s) {
     Serial.println("Getting settings from Firebase...");
 

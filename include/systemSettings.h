@@ -37,8 +37,6 @@ public:
         volume(5),
         enable_camera(true) {};
 
-
-    
     systemSettings(String mode,String s1,String s2,String s3,String v1,String v2,String v3,double t1,double t2,double t3,int u,int s,bool e1,bool e2,bool e3,bool e,String l,int vol,bool cam);
     
     
