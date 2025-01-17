@@ -203,6 +203,7 @@ bool WifiSetup()
     // New wifi setup
     WiFiManager wm;
     wm.setConnectTimeout(15);
+    wm.setConfigPortalTimeout(180);
     bool res = wm.autoConnect("SafeStepAP", "safestep2025");
     if (!res)
     {
@@ -216,8 +217,6 @@ bool WifiSetup()
         Serial.println(WiFi.localIP());
         return true;
     }
-
-
 
     //old wifi setup
     /*

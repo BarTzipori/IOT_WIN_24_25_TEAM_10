@@ -132,8 +132,8 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
 double collisionDetector(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
     
     //user height
-    double user_height_in_mm = system_settings.getUserHeight()*1000;
-    double system_height_in_mm = system_settings.getSystemHeight()*1000; //height of the system in mm
+    double user_height_in_mm = system_settings.getUserHeight()*10; // height of user in mm
+    double system_height_in_mm = system_settings.getSystemHeight()*10; //height of the system in mm
     double impact_time = 0.0;
     //distance in X and Z from sensor 1
     int x_distance_from_sensor1 = sensor_data.getDistanceSensor1() * cos(SENSOR_1_ANGLE * (M_PI / 180.0));
