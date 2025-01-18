@@ -275,7 +275,6 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
           content: Text(errorMessage),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 5),
-          // Make it longer for multiple errors
         ),
       );
       return;
@@ -387,9 +386,36 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
     }
   }
 
-  // Removed _validateValue as we're no longer doing immediate validation
-
   bool _shouldShowItem(SettingsItem item) {
+    // First check if the item should be hidden based on mode selection
+    String? selectedMode = _data.firstWhere(
+          (element) => element.headerValue == '1. Mode',
+      orElse: () => _data[0],
+    ).selectedOption;
+
+    // Handle vibration panels visibility
+    if (item.headerValue.contains('Vibration')) {
+      if (selectedMode == 'Sound') {
+        return false;
+      }
+    }
+
+    // Handle sound panels visibility
+    if (item.headerValue.contains('Sound') &&
+        !item.headerValue.contains('Volume')) {  // Exclude Volume Sound from this check
+      if (selectedMode == 'Vibration') {
+        return false;
+      }
+    }
+
+    // Only show Volume Sound setting if mode includes Sound
+    if (item.headerValue == '20. Volume Sound') {
+      if (selectedMode == 'Vibration') {
+        return false;
+      }
+    }
+
+    // Then check dependencies as before
     if (item.dependsOn == null) return true;
 
     var dependsOnNumber = item.dependsOn?.split('.')[0].trim();
@@ -455,7 +481,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                               : (item.isNumericRange ? 'm' : null),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        onChanged: (value) {}, // Removed immediate validation
+                        onChanged: (value) {},
                       ),
                     )
                         : Column(
@@ -472,7 +498,6 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                                   setState(() {
                                     item.selectedOption = value;
                                   });
-                                  // Removed immediate validation
                                 },
                               ),
                             ),
