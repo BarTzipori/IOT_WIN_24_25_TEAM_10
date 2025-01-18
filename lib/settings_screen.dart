@@ -12,6 +12,10 @@ class SettingsItem {
     this.selectedOption,
     this.isTextField = false,
     this.textController,
+    this.dependsOn,
+    this.isNumericRange = false,
+    this.minValue,
+    this.maxValue,
   });
 
   List<String> options;
@@ -21,6 +25,10 @@ class SettingsItem {
   String? selectedOption;
   bool isTextField;
   TextEditingController? textController;
+  String? dependsOn;
+  bool isNumericRange;
+  double? minValue;
+  double? maxValue;
 }
 
 class SettingsQuestionnaire extends StatefulWidget {
@@ -32,83 +40,287 @@ class SettingsQuestionnaire extends StatefulWidget {
 
 class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
   late List<SettingsItem> _data;
-  final TextEditingController _heightController = TextEditingController();
-  final TextEditingController _systemHeightController = TextEditingController();
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
   final String _esp32Url = "http://172.20.10.10";
   String _connectionStatus = "Not Connected";
+
+  final Map<String, TextEditingController> _controllers = {};
 
   @override
   void initState() {
     super.initState();
     _data = generateItems();
+    // Initialize controllers for text fields
+    for (var item in _data) {
+      if (item.isTextField) {
+        _controllers[item.headerValue] = TextEditingController();
+        item.textController = _controllers[item.headerValue];
+      }
+    }
   }
 
   @override
   void dispose() {
-    _heightController.dispose();
-    _systemHeightController.dispose();
+    _controllers.forEach((_, controller) => controller.dispose());
     super.dispose();
   }
 
+  List<String> validateSettings() {
+    List<String> errors = [];
+    String? alertMethod = _data.firstWhere((item) => item.headerValue == '2. Alert Method').selectedOption;
+
+    if (alertMethod == 'Time to Impact') {
+      double? timing1 = double.tryParse(_data.firstWhere((item) => item.headerValue == '6. Alert 1 Timing').selectedOption ?? '');
+      double? timing2 = double.tryParse(_data.firstWhere((item) => item.headerValue == '7. Alert 2 Timing').selectedOption ?? '');
+      double? timing3 = double.tryParse(_data.firstWhere((item) => item.headerValue == '8. Alert 3 Timing').selectedOption ?? '');
+
+      if (timing1 != null && timing2 != null) {
+        // Check if they follow the required order
+        if (!( timing2 < timing1 )) {
+          errors.add('Alert timings must follow the order: Alert 2 < Alert 1');
+        }
+      }
+
+      // Check if all timings are set
+      if (timing1 != null && timing2 != null && timing3 != null) {
+        // Check if they follow the required order
+        if (!(timing3 < timing2 || timing2 < timing1 || timing3 < timing1)) {
+          errors.add('Alert timings must follow the order: Alert 3 < Alert 2 < Alert 1');
+        }
+      }
+    } else if (alertMethod == 'Distance') {
+      double? distance1 = double.tryParse(_controllers['9. Alert 1 Distance']?.text ?? '');
+      double? distance2 = double.tryParse(_controllers['10. Alert 2 Distance']?.text ?? '');
+      double? distance3 = double.tryParse(_controllers['11. Alert 3 Distance']?.text ?? '');
+
+      // Check range validation
+      if (distance1 != null && (distance1 < 0.25 || distance1 > 2.5)) {
+        errors.add('Alert 1 distance must be between [0.25m - 2.5m]');
+      }
+
+      if (distance2 != null && (distance2 < 0.25 || distance2 > 2.5)) {
+        errors.add('Alert 2 distance must be between [0.25m - 2.5m]');
+      }
+
+      if (distance3 != null && (distance3 < 0.25 || distance3 > 2.5)) {
+        errors.add('Alert 3 distance must be between [0.25m - 2.5m]');
+      }
+
+      if (distance1 != null && distance2 != null) {
+        // Check if they follow the required order
+        if (!( distance2 < distance1 )) {
+          errors.add('Alert distances must follow the order: Alert 2 < Alert 1');
+        }
+      }
+
+      // Check if all distances are set and within range
+      if (distance1 != null && distance2 != null && distance3 != null) {
+        // Check if they follow the required order
+        if (!(distance3 < distance2 || distance2 < distance1 || distance3 < distance1 )) {
+          errors.add('Alert distances must follow the order: Alert 3 < Alert 2 < Alert 1');
+        }
+      }
+    }
+    return errors;
+  }
+
+  List<double> _generateTimingOptions() {
+    List<double> options = [];
+    for (double i = 0.5; i <= 2.5; i += 0.1) {
+      options.add(double.parse(i.toStringAsFixed(1)));
+    }
+    return options;
+  }
+
   List<SettingsItem> generateItems() {
+    List<double> timingOptions = _generateTimingOptions();
+
     return [
       SettingsItem(
-        headerValue: '1. Sound or Vibration',
-        expandedValue: 'Choose between sound or vibration alerts',
+        headerValue: '1. Mode',
+        expandedValue: 'Choose the alert mode',
         options: ['Sound', 'Vibration', 'Both'],
       ),
       SettingsItem(
-        headerValue: '2. Sound Type',
-        expandedValue: 'Select the type of sound alert',
-        options: ['Sound 1', 'Sound 2', 'Sound 3', 'None'],
+        headerValue: '2. Alert Method',
+        expandedValue: 'Choose between time to impact or distance',
+        options: ['Time to Impact', 'Distance'],
       ),
       SettingsItem(
-        headerValue: '3. Vibration Type',
-        expandedValue: 'Select the type of vibration alert',
-        options: ['Short', 'Long', 'Double', 'Pulse', 'None'],
+        headerValue: '3. Alert 1',
+        expandedValue: 'Enable or disable Alert 1',
+        options: ['Enable', 'Disable'],
       ),
       SettingsItem(
-        headerValue: '4. Notification Timing',
-        expandedValue: 'When to notify about potential obstacles (in seconds before impact)',
-        options: ['1 second', '2 seconds', '3 seconds'],
+        headerValue: '4. Alert 2',
+        expandedValue: 'Enable or disable Alert 2',
+        options: ['Enable', 'Disable'],
       ),
       SettingsItem(
-        headerValue: '5. User Height',
-        expandedValue: 'Enter your height in meters',
+        headerValue: '5. Alert 3',
+        expandedValue: 'Enable or disable Alert 3',
+        options: ['Enable', 'Disable'],
+      ),
+      SettingsItem(
+        headerValue: '6. Alert 1 Timing',
+        expandedValue: 'Set timing for Alert 1',
+        options: timingOptions.map((e) => e.toString()).toList(),
+      ),
+      SettingsItem(
+        headerValue: '7. Alert 2 Timing',
+        expandedValue: 'Set timing for Alert 2',
+        options: timingOptions.map((e) => e.toString()).toList(),
+        dependsOn: '4',
+      ),
+      SettingsItem(
+        headerValue: '8. Alert 3 Timing',
+        expandedValue: 'Set timing for Alert 3',
+        options: timingOptions.map((e) => e.toString()).toList(),
+        dependsOn: '5',
+      ),
+      SettingsItem(
+        headerValue: '9. Alert 1 Distance',
+        expandedValue: 'Enter distance for Alert 1 (0.25m - 2.5m)',
         options: [],
         isTextField: true,
-        textController: _heightController,
+        isNumericRange: true,
+        minValue: 0.25,
+        maxValue: 2.5,
       ),
       SettingsItem(
-        headerValue: '6. System Height',
-        expandedValue: 'Enter the system height in meters',
+        headerValue: '10. Alert 2 Distance',
+        expandedValue: 'Enter distance for Alert 2 (0.25m - 2.5m)',
         options: [],
         isTextField: true,
-        textController: _systemHeightController,
+        isNumericRange: true,
+        minValue: 0.25,
+        maxValue: 2.5,
+        dependsOn: '4',
+      ),
+      SettingsItem(
+        headerValue: '11. Alert 3 Distance',
+        expandedValue: 'Enter distance for Alert 3 (0.25m - 2.5m)',
+        options: [],
+        isTextField: true,
+        isNumericRange: true,
+        minValue: 0.25,
+        maxValue: 2.5,
+        dependsOn: '5',
+      ),
+      SettingsItem(
+        headerValue: '12. Alert 1 Vibration',
+        expandedValue: 'Choose vibration type for Alert 1',
+        options: ['Short', 'Long', 'Double', 'Pulse'],
+      ),
+      SettingsItem(
+        headerValue: '13. Alert 2 Vibration',
+        expandedValue: 'Choose vibration type for Alert 2',
+        options: ['Short', 'Long', 'Double', 'Pulse'],
+        dependsOn: '4',
+      ),
+      SettingsItem(
+        headerValue: '14. Alert 3 Vibration',
+        expandedValue: 'Choose vibration type for Alert 3',
+        options: ['Short', 'Long', 'Double', 'Pulse'],
+        dependsOn: '5',
+      ),
+      SettingsItem(
+        headerValue: '15. Alert 1 Sound',
+        expandedValue: 'Choose sound type for Alert 1',
+        options: List.generate(8, (index) => 'Sound ${index + 1}'),
+      ),
+      SettingsItem(
+        headerValue: '16. Alert 2 Sound',
+        expandedValue: 'Choose sound type for Alert 2',
+        options: List.generate(8, (index) => 'Sound ${index + 1}'),
+        dependsOn: '4',
+      ),
+      SettingsItem(
+        headerValue: '17. Alert 3 Sound',
+        expandedValue: 'Choose sound type for Alert 3',
+        options: List.generate(8, (index) => 'Sound ${index + 1}'),
+        dependsOn: '5',
+      ),
+      SettingsItem(
+        headerValue: '18. User Height',
+        expandedValue: 'Enter user height in centimeters',
+        options: [],
+        isTextField: true,
+      ),
+      SettingsItem(
+        headerValue: '19. System Height',
+        expandedValue: 'Enter system height in centimeters',
+        options: [],
+        isTextField: true,
+      ),
+      SettingsItem(
+        headerValue: '20. Volume Sound',
+        expandedValue: 'Set sound volume (1-5)',
+        options: List.generate(5, (index) => (index + 1).toString()),
       ),
     ];
   }
 
   Future<void> _saveSettingsToDatabase() async {
+    // Collect all validation errors
+    List<String> errors = validateSettings();
+
+    // If there are any errors, display them and don't save
+    if (errors.isNotEmpty) {
+      String errorMessage = 'Cannot save due to the following errors:\n' +
+          errors.map((e) => '• $e').join('\n');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+          // Make it longer for multiple errors
+        ),
+      );
+      return;
+    }
+
     try {
-      // Prepare settings data
-      final Map<String, dynamic> settingsData = {
-        'soundOrVibration': _data[0].selectedOption ?? '',
-        'soundType': _data[1].selectedOption ?? '',
-        'vibrationType': _data[2].selectedOption ?? '',
-        'notificationTiming': _data[3].selectedOption ?? '',
-        'userHeight': _data[4].textController?.text.trim() ?? '',
-        'systemHeight': _data[5].textController?.text.trim() ?? '',
+      Map<String, dynamic> settingsData = {};
+
+      final Map<String, String> headerToVarName = {
+        '1. Mode': 'mode',
+        '2. Alert Method': 'alertMethod',
+        '3. Alert 1': 'enableAlert1',
+        '4. Alert 2': 'enableAlert2',
+        '5. Alert 3': 'enableAlert3',
+        '6. Alert 1 Timing': 'alertTiming1',
+        '7. Alert 2 Timing': 'alertTiming2',
+        '8. Alert 3 Timing': 'alertTiming3',
+        '9. Alert 1 Distance': 'alertDistance1',
+        '10. Alert 2 Distance': 'alertDistance2',
+        '11. Alert 3 Distance': 'alertDistance3',
+        '12. Alert 1 Vibration': 'alertVibration1',
+        '13. Alert 2 Vibration': 'alertVibration2',
+        '14. Alert 3 Vibration': 'alertVibration3',
+        '15. Alert 1 Sound': 'alertSound1',
+        '16. Alert 2 Sound': 'alertSound2',
+        '17. Alert 3 Sound': 'alertSound3',
+        '18. User Height': 'userHeight',
+        '19. System Height': 'systemHeight',
+        '20. Volume Sound': 'volume'
       };
 
-      // Log data for debugging
-      print('Settings Data to Save: $settingsData');
+      for (var item in _data) {
+        String? dbVarName = headerToVarName[item.headerValue];
+        if (dbVarName != null) {
+          if (item.isTextField) {
+            settingsData[dbVarName] = item.textController?.text.trim() ?? '';
+          } else {
+            settingsData[dbVarName] = item.selectedOption ?? '';
+          }
+        }
+      }
 
-      // Remove empty values (optional)
+      print('Settings Data to Save: $settingsData');
       settingsData.removeWhere((key, value) => value.isEmpty);
 
-      // Save to Firebase
       await _databaseRef.child('System_Settings/settings').update(settingsData);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -125,15 +337,11 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
   Future<void> _testConnection() async {
     try {
       final response = await http.get(Uri.parse(_esp32Url));
-      if (response.statusCode == 200) {
-        setState(() {
-          _connectionStatus = "Connected to ESP32";
-        });
-      } else {
-        setState(() {
-          _connectionStatus = "Connection failed: ${response.statusCode}";
-        });
-      }
+      setState(() {
+        _connectionStatus = response.statusCode == 200
+            ? "Connected to ESP32"
+            : "Connection failed: ${response.statusCode}";
+      });
     } catch (e) {
       setState(() {
         _connectionStatus = "Connection error: $e";
@@ -146,15 +354,13 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       final url = Uri.parse("$_esp32Url/play_sound=${Uri.encodeComponent(sound)}");
       final response = await http.get(url);
 
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Playing $sound')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to play $sound. Status: ${response.statusCode}')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(response.statusCode == 200
+              ? 'Playing $sound'
+              : 'Failed to play $sound. Status: ${response.statusCode}'),
+        ),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -167,20 +373,32 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       final url = Uri.parse("$_esp32Url/play_vibration=${Uri.encodeComponent(vibration)}");
       final response = await http.get(url);
 
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Playing $vibration')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to play $vibration. Status: ${response.statusCode}')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(response.statusCode == 200
+              ? 'Playing $vibration'
+              : 'Failed to play $vibration. Status: ${response.statusCode}'),
+        ),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
     }
+  }
+
+  // Removed _validateValue as we're no longer doing immediate validation
+
+  bool _shouldShowItem(SettingsItem item) {
+    if (item.dependsOn == null) return true;
+
+    var dependsOnNumber = item.dependsOn?.split('.')[0].trim();
+    final dependentItem = _data.firstWhere(
+          (element) => element.headerValue.startsWith(dependsOnNumber ?? ''),
+      orElse: () => _data[0],
+    );
+
+    return dependentItem.selectedOption == 'Enable';
   }
 
   @override
@@ -203,6 +421,15 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                   });
                 },
                 children: _data.map<ExpansionPanel>((SettingsItem item) {
+                  if (!_shouldShowItem(item)) {
+                    return ExpansionPanel(
+                      headerBuilder: (_, __) => const SizedBox(),
+                      body: const SizedBox(),
+                      isExpanded: false,
+                      canTapOnHeader: false,
+                    );
+                  }
+
                   return ExpansionPanel(
                     headerBuilder: (BuildContext context, bool isExpanded) {
                       return ListTile(
@@ -214,21 +441,22 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                       );
                     },
                     body: item.isTextField
-                        ? TextField(
-                      controller: item.textController,
-                      decoration: InputDecoration(
-                        labelText: item.headerValue.contains('Height')
-                            ? 'Height (m)'
-                            : 'Enter Value',
-                        hintText: item.headerValue.contains('Height')
-                            ? 'Enter height (e.g., 1.75)'
-                            : '',
-                        border: const OutlineInputBorder(),
-                        suffixText: item.headerValue.contains('Height')
-                            ? 'm'
-                            : null,
+                        ? Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: TextField(
+                        controller: item.textController,
+                        decoration: InputDecoration(
+                          labelText: item.isNumericRange
+                              ? 'Enter value (${item.minValue}-${item.maxValue}m)'
+                              : 'Enter value',
+                          border: const OutlineInputBorder(),
+                          suffixText: item.headerValue.toLowerCase().contains('height')
+                              ? 'cm'
+                              : (item.isNumericRange ? 'm' : null),
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        onChanged: (value) {}, // Removed immediate validation
                       ),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     )
                         : Column(
                       children: item.options.map((String option) {
@@ -244,20 +472,24 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                                   setState(() {
                                     item.selectedOption = value;
                                   });
+                                  // Removed immediate validation
                                 },
                               ),
                             ),
-                            if ((item.headerValue == '2. Sound Type' && option != 'None') ||
-                                (item.headerValue == '3. Vibration Type' && option != 'None'))
-                              ElevatedButton(
-                                onPressed: () {
-                                  if (item.headerValue == '2. Sound Type') {
-                                    _makeSound(option);
-                                  } else {
-                                    _makeVibration(option);
-                                  }
-                                },
-                                child: const Text('Play'),
+                            if (item.headerValue.contains('Sound') ||
+                                item.headerValue.contains('Vibration'))
+                              Padding(
+                                padding: const EdgeInsets.only(right: 16.0),
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    if (item.headerValue.contains('Sound')) {
+                                      _makeSound(option);
+                                    } else {
+                                      _makeVibration(option);
+                                    }
+                                  },
+                                  child: const Text('Play'),
+                                ),
                               ),
                           ],
                         );
@@ -273,10 +505,12 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                 child: const Text('Test Connection'),
               ),
               Text('Connection Status: $_connectionStatus'),
+              const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _saveSettingsToDatabase,
-                child: const Text('Save'),
+                child: const Text('Save Settings'),
               ),
+              const SizedBox(height: 32),
             ],
           ),
         ),
