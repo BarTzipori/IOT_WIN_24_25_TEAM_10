@@ -188,6 +188,14 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
             if(x_distance == 0) {
                 continue;
             }
+            Serial.println("x distance");
+            Serial.println(x_distance);
+            Serial.println("z distance");
+            Serial.println(z_distance);
+            Serial.println("user head height");
+            Serial.println(user_head_height);
+            Serial.println("system height");
+            Serial.println(system_height_in_mm);
             Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
             continue;
         } else {
@@ -270,6 +278,10 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
                 return -1;
             }
             Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
+            Serial.println("x distance");
+            Serial.println(x_distance);
+            Serial.println("z distance");
+            Serial.println(z_distance);
             continue;
         } else {
             if (*velocity <= 0) {

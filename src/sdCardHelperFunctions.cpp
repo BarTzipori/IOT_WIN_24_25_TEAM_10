@@ -35,8 +35,7 @@ bool init_sd_card()
   if (isExist(SD_MMC, "/Settings", "setting.txt")){
     Serial.println("setting file exist!");
     return true;
-  }
-    else  {
+  } else  {
         createDir(SD_MMC, "/Settings");
         writeFile(SD_MMC, "/Settings/setting.txt", "Mode: Both");
         appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_1: Sound1");

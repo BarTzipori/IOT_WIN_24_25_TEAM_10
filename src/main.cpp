@@ -191,7 +191,7 @@ void calculateVelocityAsTask(void *pvParameters)
 void systemInit()
 {
   Serial.println("--------- System Init ---------");
-  wifi_flag = WifiSetup();
+  //wifi_flag = WifiSetup();
   if (setupSDCard())
   {
     init_sd_card();
@@ -370,9 +370,9 @@ void loop()
   wifiServerLoop();
 
   // sensor data update routine
-  if(system_settings.getAlertMethod() == "timeToImpact") {
-      if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
-          // sensor_data.printData();
+  if(system_settings.getAlertMethod() == "timeToImpact" || true) {
+      if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {  
+          sensor_data.printData();
           double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
           if(collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
             if(system_settings.getEnableCamera()){
@@ -381,12 +381,14 @@ void loop()
           }
       }
   } else {
+        if (is_system_on && !is_pressing) {
           double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity);
           if(obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
             if(system_settings.getEnableCamera()){
               CaptureObstacle(fbdo, auth, config, wifi_flag);
             }
-          }                
+          }  
+        }              
   }
   vTaskDelay(50);
 }
