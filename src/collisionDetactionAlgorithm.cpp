@@ -129,7 +129,7 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     Serial.println(*stepCount);
 }
 
-double collisionDetector(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
+double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
     
     //user height
     double user_height_in_mm = system_settings.getUserHeight()*10; // height of user in mm
@@ -188,6 +188,14 @@ double collisionDetector(const SensorData& sensor_data, const systemSettings& sy
             if(x_distance == 0) {
                 continue;
             }
+            Serial.println("x distance");
+            Serial.println(x_distance);
+            Serial.println("z distance");
+            Serial.println(z_distance);
+            Serial.println("user head height");
+            Serial.println(user_head_height);
+            Serial.println("system height");
+            Serial.println(system_height_in_mm);
             Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
             continue;
         } else {
@@ -209,6 +217,171 @@ double collisionDetector(const SensorData& sensor_data, const systemSettings& sy
         }
     }
     return 0;
+}
+
+double distanceToNearestObstacle(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
+        //user height
+    double user_height_in_mm = system_settings.getUserHeight()*10; // height of user in mm
+    double system_height_in_mm = system_settings.getSystemHeight()*10; //height of the system in mm
+    double impact_time = 0.0;
+    //distance in X and Z from sensor 1
+    int x_distance_from_sensor1 = sensor_data.getDistanceSensor1() * cos(SENSOR_1_ANGLE * (M_PI / 180.0));
+    int z_distance_from_sensor1 = sensor_data.getDistanceSensor1() * sin(SENSOR_1_ANGLE * (M_PI / 180.0));      
+    //distance in X and Z fron semsor 2
+    int x_distance_from_sensor2 = sensor_data.getDistanceSensor2() * cos(SENSOR_2_ANGLE * (M_PI / 180.0));
+    int z_distance_from_sensor2 = sensor_data.getDistanceSensor2() * sin(SENSOR_2_ANGLE * (M_PI / 180.0));
+    //distance in X and Z from sensor 3
+    int x_distance_from_sensor3 = sensor_data.getDistanceSensor3() * cos(SENSOR_3_ANGLE * (M_PI / 180.0));
+    int z_distance_from_sensor3 = sensor_data.getDistanceSensor3() * sin(SENSOR_3_ANGLE * (M_PI / 180.0));
+    //distance in X and Z from sensor 4
+    int x_distance_from_sensor4 = sensor_data.getDistanceSensor4() * cos(SENSOR_4_ANGLE * (M_PI / 180.0));
+    int z_distance_from_sensor4 = sensor_data.getDistanceSensor4() * sin(SENSOR_4_ANGLE * (M_PI / 180.0));
+
+// Calculate the height of the user's head
+    double user_head_height = user_height_in_mm - system_height_in_mm;
+
+    // Store distances (X, Z) in a vector for sorting
+    std::vector<std::pair<int, int>> distances;
+
+    // Calculate and store distances for each sensor
+    distances.push_back({ 
+        sensor_data.getDistanceSensor1() * cos(SENSOR_1_ANGLE * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor1() * sin(SENSOR_1_ANGLE * (M_PI / 180.0)) 
+    });
+
+    distances.push_back({ 
+        sensor_data.getDistanceSensor2() * cos(SENSOR_2_ANGLE * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor2() * sin(SENSOR_2_ANGLE * (M_PI / 180.0)) 
+    });
+
+    distances.push_back({ 
+        sensor_data.getDistanceSensor3() * cos(SENSOR_3_ANGLE * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor3() * sin(SENSOR_3_ANGLE * (M_PI / 180.0)) 
+    });
+
+    distances.push_back({ 
+        sensor_data.getDistanceSensor4() * cos(SENSOR_4_ANGLE * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor4() * sin(SENSOR_4_ANGLE * (M_PI / 180.0)) 
+    });
+
+    // Sort distances by X (ascending)
+    std::sort(distances.begin(), distances.end());
+
+    // Process each distance
+    for (const auto& distance : distances) {
+        int x_distance = distance.first;
+        int z_distance = distance.second;
+
+        // Ignore distances where Z is higher than the user's head
+        if (x_distance == 0 || z_distance > user_head_height) {
+            if(x_distance == 0) {
+                return -1;
+            }
+            Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
+            Serial.println("x distance");
+            Serial.println(x_distance);
+            Serial.println("z distance");
+            Serial.println(z_distance);
+            continue;
+        } else {
+            if (*velocity <= 0) {
+                Serial.println("Velocity is zero or negative; Ignoring obstacle.");
+            } else if (x_distance <= 0) {
+                Serial.println("Invalid x_distance; Ignoring obstacle.");
+            } else {
+                Serial.print("Obstacle detected. X_distance: ");
+                Serial.print(x_distance);
+                Serial.print(" | Z_distance: ");
+                Serial.print(z_distance);
+                return x_distance;
+            }
+        }
+    }
+    return 0;
+}
+
+bool collisionTimeAlertHandler(double collision_time, systemSettings& system_settings, const MP3& mp3, vibrationMotor& motor1) {
+    if (collision_time > 0) {
+      if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
+        if (collision_time <= system_settings.getAlertTiming1()) {
+          Serial.println("Alerted collision from alert 1");
+          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
+          return true;
+        }
+      }
+      if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
+        if (collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {
+          Serial.println("Alerted collision from alert 1");
+          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
+          return true;
+        }
+        if (collision_time <= system_settings.getAlertTiming2() && collision_time > 0) {
+          Serial.println("Alerted collision from alert 2");
+          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
+          return true;
+        }
+      }
+      if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
+        if (collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {
+          Serial.println("Alerted collision from alert 1");
+          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
+          return true;
+        }
+        if (collision_time <= system_settings.getAlertTiming2() && collision_time > system_settings.getAlertTiming3()) {
+          Serial.println("Alerted collision from alert 2");
+          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
+          return true;
+        }
+        if (collision_time > 0 && collision_time <= system_settings.getAlertTiming3()) {
+          Serial.println("Alerted collision from alert 3");
+          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3(), system_settings.getAlertSound3AsInt());
+          return true;
+        }
+      }
+    }
+    return false;
+}
+
+bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& system_settings, const MP3& mp3, vibrationMotor& motor1) {
+    if (obstacle_distance > 0) {
+      if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
+        if (obstacle_distance <= system_settings.getAlertDistance1()){
+          Serial.println("Alerted collision from alert 1");
+          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
+          return true;
+        }
+      }
+      if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
+        if (obstacle_distance <= system_settings.getAlertDistance1() && obstacle_distance > system_settings.getAlertDistance2()) {
+          Serial.println("Alerted collision from alert 1");
+          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
+          return true;
+        }
+        if (obstacle_distance <= system_settings.getAlertDistance2() && obstacle_distance > 0) {
+          Serial.println("Alerted collision from alert 2");
+          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
+          return true;
+        }
+      }
+      if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
+        if (obstacle_distance <= system_settings.getAlertDistance1() && obstacle_distance > system_settings.getAlertDistance2()) {
+          Serial.println("Alerted collision from alert 1");
+          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
+          return true;
+        }
+        if (obstacle_distance <= system_settings.getAlertDistance2() && obstacle_distance > system_settings.getAlertDistance3()) {
+          Serial.println("Alerted collision from alert 2");
+          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
+          return true;
+        }
+        if (obstacle_distance > 0 && obstacle_distance <= system_settings.getAlertDistance3()) {
+          Serial.println("Alerted collision from alert 3");
+          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3(), system_settings.getAlertSound3AsInt());
+          return true;
+        }
+      }
+    }
+    return false;
 }
 
 void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibrationMotor& vibration_motor, String vib_pattern, uint alert_sound_type) {

@@ -3,8 +3,6 @@
 #include "vibrationMotor.h"
 
 
-
-
 static const struct {
     const char* name; // Track name
     uint value;       // Corresponding track number
@@ -31,12 +29,10 @@ static const struct {
 };
 
 
-
-
-
-systemSettings::systemSettings(String mode, String s1, String s2, String s3, String v1, String v2, String v3, double t1, double t2, double t3, int u, int s, bool e1, bool e2, bool e3, bool e, String l, int vol,bool c)
+systemSettings::systemSettings(String mode, String method, bool e1, bool e2, bool e3, String s1, String s2, String s3, String v1, String v2, String v3, double t1, double t2, double t3, int d1, int d2, int d3, int u, int s, bool e, String l, int vol,bool c)
 {
     Mode = mode;
+    alert_method = method;
     alert_sound_1 = s1;
     alert_sound_2 = s2;
     alert_sound_3 = s3;
@@ -46,6 +42,9 @@ systemSettings::systemSettings(String mode, String s1, String s2, String s3, Str
     alert_timing_1 = t1;
     alert_timing_2 = t2;
     alert_timing_3 = t3;
+    alert_distance_1 = d1;
+    alert_distance_2 = d2;
+    alert_distance_3 = d3;
     user_height = u;
     system_height = s;
     enable_alert_1 = e1;
@@ -66,6 +65,12 @@ bool systemSettings::updateSettings(systemSettings s)
         Mode = s.getMode();
         changed = true;
         Serial.println("Mode changed");
+    }
+    if (alert_method != s.getAlertMethod())
+    {
+        alert_method = s.getAlertMethod();
+        changed = true;
+        Serial.println("Alert method changed");
     }
     if (alert_sound_1 != s.getAlertSound1())
     {
@@ -122,6 +127,24 @@ bool systemSettings::updateSettings(systemSettings s)
         alert_timing_3 = s.getAlertTiming3();
         changed = true;
         Serial.println("Alert Timing 3 changed");
+    }
+
+    if (alert_distance_1 != s.getAlertDistance1()) {
+        alert_distance_1 = s.getAlertDistance1();
+        changed = true;
+        Serial.println("Alert Distance 1 changed");
+    }
+
+    if (alert_distance_2 != s.getAlertDistance2()) {
+        alert_distance_2 = s.getAlertDistance2();
+        changed = true;
+        Serial.println("Alert Distance 2 changed");
+    }
+
+    if (alert_distance_3 != s.getAlertDistance3()) {
+        alert_distance_3 = s.getAlertDistance3();
+        changed = true;
+        Serial.println("Alert Distance 3 changed");
     }
 
     if (user_height != s.getUserHeight())
@@ -196,6 +219,7 @@ void systemSettings::print()
     Serial.println("------------------------");
     Serial.println("Print Settings: ");
     Serial.println("Mode: " + Mode);
+    Serial.println("Alert Method: " + alert_method);
     Serial.println("Alert Sound 1: " + alert_sound_1); 
     Serial.println("Alert Sound 2: " + alert_sound_2);
     Serial.println("Alert Sound 3: " + alert_sound_3);
@@ -205,6 +229,9 @@ void systemSettings::print()
     Serial.println("Alert Timing 1: " + String(alert_timing_1));
     Serial.println("Alert Timing 2: " + String(alert_timing_2));
     Serial.println("Alert Timing 3: " + String(alert_timing_3));
+    Serial.println("Alert Distance 1: " + String(alert_distance_1));
+    Serial.println("Alert Distance 2: " + String(alert_distance_2));
+    Serial.println("Alert Distance 3: " + String(alert_distance_3));
     Serial.println("User Height: " + String(user_height));
     Serial.println("System Height: " + String(system_height));
     Serial.println("Enable Alert 1: " + String(enable_alert_1));

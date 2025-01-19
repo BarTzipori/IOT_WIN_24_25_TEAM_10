@@ -191,7 +191,7 @@ void calculateVelocityAsTask(void *pvParameters)
 void systemInit()
 {
   Serial.println("--------- System Init ---------");
-  wifi_flag = WifiSetup();
+  //wifi_flag = WifiSetup();
   if (setupSDCard())
   {
     init_sd_card();
@@ -370,53 +370,25 @@ void loop()
   wifiServerLoop();
 
   // sensor data update routine
-  if (mpu.update() && system_calibrated && is_system_on && !is_pressing)
-  {
-    // sensor_data.printData();
-    double collision_time = collisionDetector(sensor_data, system_settings, &velocity);
-    if (collision_time > 0)
-    {
-      if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3())
-      {
-        if (collision_time <= system_settings.getAlertTiming1())
-        {
-          Serial.println("Alerted collision from alert 1");
-          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
-        }
+  if(system_settings.getAlertMethod() == "TimeToImpact") {
+      if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {  
+          sensor_data.printData();
+          double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
+          if(collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
+            if(system_settings.getEnableCamera()){
+              CaptureObstacle(fbdo, auth, config, wifi_flag);
+            }
+          }
       }
-      if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3())
-      {
-        if (collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2())
-        {
-          Serial.println("Alerted collision from alert 1");
-          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
-        }
-        if (collision_time <= system_settings.getAlertTiming2() && collision_time > 0)
-        {
-          Serial.println("Alerted collision from alert 2");
-          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
-        }
-      }
-      if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3())
-      {
-        if (collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2())
-        {
-          Serial.println("Alerted collision from alert 1");
-          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
-        }
-        if (collision_time <= system_settings.getAlertTiming2() && collision_time > system_settings.getAlertTiming3())
-        {
-          Serial.println("Alerted collision from alert 2");
-          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
-        }
-        if (collision_time > 0 && collision_time <= system_settings.getAlertTiming3())
-        {
-          Serial.println("Alerted collision from alert 3");
-          collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3(), system_settings.getAlertSound3AsInt());
-          CaptureObstacle(fbdo, auth, config, wifi_flag);
-        }
-      }
-    }
+  } else {
+        if (is_system_on && !is_pressing) {
+          double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity);
+          if(obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
+            if(system_settings.getEnableCamera()){
+              CaptureObstacle(fbdo, auth, config, wifi_flag);
+            }
+          }  
+        }              
   }
   vTaskDelay(50);
 }
