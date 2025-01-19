@@ -206,7 +206,7 @@ systemSettings readSettings(fs::FS &fs, const char *path)
 {
     Serial.printf("Reading file: %s\n", path);
     std::vector<String> tokens;
-    String m_mode,m_sound1,m_sound2,m_sound3,m_viberation1,m_viberation2,m_viberation3,m_language;
+    String m_mode, m_method, m_sound1,m_sound2,m_sound3,m_viberation1,m_viberation2,m_viberation3,m_language;
     double m_timing1,m_timing2,m_timing3;
     int m_usrheight,m_sysheight,m_volume, m_distance1,m_distance2,m_distance3;
     bool m_enable_alert1,m_enable_alert2,m_enable_alert3,m_enable_voice_alerts,m_enable_camera;
@@ -234,6 +234,12 @@ systemSettings readSettings(fs::FS &fs, const char *path)
         if (tokens[0]=="Mode:") {
                m_mode = tokens[1];
                s.setMode(m_mode);
+               continue;
+        }
+
+        if (tokens[0]=="Method:") {
+               m_method = tokens[1];
+               s.setAlertMethod(m_method);
                continue;
         }
 

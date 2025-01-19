@@ -370,7 +370,7 @@ void loop()
   wifiServerLoop();
 
   // sensor data update routine
-  if(system_settings.getAlertMethod() == "timeToImpact" || true) {
+  if(system_settings.getAlertMethod() == "TimeToImpact") {
       if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {  
           sensor_data.printData();
           double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);

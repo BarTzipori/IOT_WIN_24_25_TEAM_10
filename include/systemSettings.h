@@ -23,20 +23,20 @@ public:
         enable_alert_1(true),
         enable_alert_2(true),
         enable_alert_3(true),
-        alert_sound_1("Sound1"),
-        alert_sound_2("Sound1"),
-        alert_sound_3("Sound1"),
-        alert_Vibration_1("Vibration1"),
-        alert_Vibration_2("Vibration1"),
-        alert_Vibration_3("Vibration1"),
+        alert_sound_1("Beep_2"),
+        alert_sound_2("Alarm_clock_4_beeps"),
+        alert_sound_3("Collision_warning_hebrew"),
+        alert_Vibration_1("Short"),
+        alert_Vibration_2("Double"),
+        alert_Vibration_3("Pulse"),
         alert_timing_1(1.5),
         alert_timing_2(0.8),
         alert_timing_3(0.3),
-        alert_distance_1(1000), //in cm
-        alert_distance_2(500), // in cm
-        alert_distance_3(250), // in cm
+        alert_distance_1(1000), //in mm
+        alert_distance_2(500), // in mm
+        alert_distance_3(250), // in mm
         user_height(170),
-        system_height(170/2),
+        system_height(85),
         enable_voice_alerts(true),
         voice_alerts_language("English"),
         volume(5),
@@ -92,6 +92,7 @@ public:
     bool getEnableCamera() const {return enable_camera;}
 
     void setMode(String m) {Mode = m;}
+    void setAlertMethod(String m) {alert_method = m;}
     void setAlertSound1(String s) {alert_sound_1 = s;}
     void setAlertSound2(String s) {alert_sound_2 = s;}
     void setAlertSound3(String s) {alert_sound_3 = s;}
