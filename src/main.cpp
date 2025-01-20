@@ -62,25 +62,27 @@ extern systemSettings system_settings;
 WiFiClientSecure client;
 
 static bool is_system_on = false;
+static bool initial_powerup = true;
 static unsigned long pressed_time = 0;
 static unsigned long released_time = 0;
 static bool is_pressing = false;
 static bool is_long_press = false;
 static double velocity = 0.0;
-static bool initial_powerup = true;
 static int step_count = 0;
 static unsigned long startTime, currTime;
 static bool calibrate_flag = false;
 static bool system_calibrated = false;
 static bool calibration_needed = false;
+static bool mpu_degraded_flag = false;
 unsigned long pressStartTime = 0;
 unsigned long lastPressTime = 0;
 
 
 // Samples sensors data
-void sampleSensorsData(void *pvParameters)
-{
+void sampleSensorsData(void *pvParameters) {
   int delay_in_ms = *(int *)pvParameters;
+  int distance = 0;
+  bool distance_sensor_degraded_notification_flag = true;
   while (true)
   {
     if (is_system_on)
@@ -93,63 +95,35 @@ void sampleSensorsData(void *pvParameters)
           Serial.print("Sensor: ");
           Serial.print(i + 1);
           Serial.println(" not connected");
-        }
-        else
-        {
-          if (distance_sensors[i].first->dataReady())
-          {
-            int distance = distance_sensors[i].first->distance();
-            if (distance == -1)
-            {
-              //Serial.print(F("Couldn't get distance: "));
-              //Serial.println(distance_sensors[i].first->vl_status);
-              if (i == 0)
-              {
-                sensor_data.setSensor1Distance(distance);
-              }
-              if (i == 1)
-              {
-                sensor_data.setSensor2Distance(distance);
-              }
-              if (i == 2)
-              {
-                sensor_data.setSensor3Distance(distance);
-              }
-              if (i == 3)
-              {
-                sensor_data.setSensor4Distance(distance);
-              }
-            }
-            else
-            {
-              if (i == 0)
-              {
-                sensor_data.setSensor1Distance(distance);
-              }
-              if (i == 1)
-              {
-                sensor_data.setSensor2Distance(distance);
-              }
-              if (i == 2)
-              {
-                sensor_data.setSensor3Distance(distance);
-              }
-              if (i == 3)
-              {
-                sensor_data.setSensor4Distance(distance);
-              }
-            }
-            distance_sensors[i].first->clearInterrupt();
+          distance = -1;
+          if(distance_sensor_degraded_notification_flag){
+            mp3.playWithFileName(VOICE_ALERTS_DIR, DISTANCE_SENSOR_DEGRADED);
+            distance_sensor_degraded_notification_flag = false;
           }
-          else
-          {
+        } else {
+          if (distance_sensors[i].first->dataReady()){
+            distance = distance_sensors[i].first->distance();
+          } else {
             Serial.println(F("Data not ready"));
           }
         }
+        if (i == 0) {
+          sensor_data.setSensor1Distance(distance);
+        }
+        if (i == 1) {
+          sensor_data.setSensor2Distance(distance);
+        }
+        if (i == 2) {
+          sensor_data.setSensor3Distance(distance);
+        }
+        if (i == 3) {
+          sensor_data.setSensor4Distance(distance);
+        }
+        distance_sensors[i].first->clearInterrupt();
+        }
       }
       // samples MPU data
-      if (mpu_sensors[0].first->update())
-      {
+      if (!mpu_degraded_flag && mpu_sensors[0].first->update()) {
         vTaskDelay(delay_in_ms);
         sensor_data.setPitch(mpu_sensors[0].first->getPitch());
         int yaw = mpu_sensors[0].first->getYaw();
@@ -168,12 +142,11 @@ void sampleSensorsData(void *pvParameters)
         sensor_data.setGyroX(mpu_sensors[0].first->getGyroX());
         sensor_data.setGyroY(mpu_sensors[0].first->getGyroY());
         sensor_data.setGyroZ(mpu_sensors[0].first->getGyroZ());
-        sensor_data.updateLinearAccelX();
-        sensor_data.setlastUpdateTime(millis());
-      }
+        sensor_data.updateLinearAccelX();       
+      } 
+      sensor_data.setlastUpdateTime(millis());
     }
     vTaskDelay(delay_in_ms);
-  }
 }
 
 void calculateVelocityAsTask(void *pvParameters)
@@ -311,16 +284,14 @@ void setup()
   mpu_setting.accel_dlpf_cfg = ACCEL_DLPF_CFG::DLPF_5HZ;
 
   // Initializes MPU
-  if (!mpu.setup(MPU9250_ADDRESS, mpu_setting))
-  { // change to your own address
-    while (1)
-    {
-      Serial.println("MPU connection failed. Please check your connection with `connection_check` example.");
+  if (!mpu.setup(MPU9250_ADDRESS, mpu_setting)){ 
+      Serial.println("MPU NOT DETECTED - SYSTEM WILL OPERATE IN DOWNGRADED MODE");
+      mp3.playWithFileName(VOICE_ALERTS_DIR, MPU_SENSOR_DEGRADED);
+      mpu_degraded_flag = true;
       delay(5000);
-    }
+  } else {
+    calibrateMPU(&mpu, calibration_needed, &mp3);
   }
-  calibrateMPU(&mpu, calibration_needed, &mp3);
-
   if (calibration_needed)
   {
     delay(10000);
@@ -456,5 +427,8 @@ if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRES
     }
   }
   system_settings.changeVolume(system_settings.getVolume(), &mp3);
+  if(mpu_degraded_flag) {
+    system_settings.setAlertMethod("Distance");
+  }
   vTaskDelay(50);
 }

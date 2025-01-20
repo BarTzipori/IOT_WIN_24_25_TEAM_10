@@ -284,9 +284,7 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
             Serial.print(z_distance);*/
             continue;
         } else {
-            if (*velocity <= 0) {
-                //Serial.println("Velocity is zero or negative; Ignoring obstacle.");
-            } else if (x_distance <= 0) {
+            if (x_distance <= 0) {
                 //Serial.println("Invalid x_distance; Ignoring obstacle.");
             } else {
                 //Serial.print("Obstacle detected. X_distance: ");
