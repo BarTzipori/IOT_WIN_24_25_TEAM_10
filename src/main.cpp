@@ -93,7 +93,6 @@ void sampleSensorsData(void *pvParameters)
           Serial.print("Sensor: ");
           Serial.print(i + 1);
           Serial.println(" not connected");
-          continue;
         }
         else
         {
@@ -120,7 +119,6 @@ void sampleSensorsData(void *pvParameters)
               {
                 sensor_data.setSensor4Distance(distance);
               }
-              continue;
             }
             else
             {

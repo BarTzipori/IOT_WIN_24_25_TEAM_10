@@ -73,6 +73,7 @@ bool initializeVL53L1XSensor(Adafruit_VL53L1X* sensor, int xshut_pin, int i2c_ad
         Serial.println("Failed to initialize VL53L1X sensor");
         return false;
     }
+   return true;
 }
 
 void disableAllVL53L1XSensors(std::vector<int>* distance_sensors_xshut_pins) {
