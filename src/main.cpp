@@ -62,7 +62,6 @@ extern systemSettings system_settings;
 WiFiClientSecure client;
 
 static bool is_system_on = false;
-static bool initial_powerup = true;
 static unsigned long pressed_time = 0;
 static unsigned long released_time = 0;
 static bool is_pressing = false;
@@ -98,9 +97,11 @@ void sampleSensorsData(void *pvParameters) {
           distance = -1;
           if(distance_sensor_degraded_notification_flag){
             mp3.playWithFileName(VOICE_ALERTS_DIR, DISTANCE_SENSOR_DEGRADED);
+            vTaskDelay(3000);
             distance_sensor_degraded_notification_flag = false;
           }
         } else {
+          vTaskDelay(50);
           if (distance_sensors[i].first->dataReady()){
             distance = distance_sensors[i].first->distance();
           } else {
@@ -165,30 +166,24 @@ void calculateVelocityAsTask(void *pvParameters)
 void systemInit()
 {
   Serial.println("--------- System Init ---------");
-  if (!wifi_flag)
+  if (!wifi_flag) {
     wifi_flag = WifiSetup();
-  if (wifi_flag){
+  }
+  if(wifi_flag) {
     mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_CONNECTED);
     delay(1000);
-  }
-    else{
+  } else {
     mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_NOT_CONNECTED);
     delay(2000);
   }
-  if (!sd_flag)
-  {
-    if (setupSDCard())
-    {
-      init_sd_card();
-      
+  if(!sd_flag) {
+    if (setupSDCard()) {
+      init_sd_card();     
       system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
       sd_flag = true;
       // Serial.println("----------------");
       // system_settings.print();
-    }
-
-    else
-    {
+    } else {
       Serial.println("Failed to initialize SD card");
       mp3.playWithFileName(VOICE_ALERTS_DIR, NO_SD_DETECTED);
       delay(4000);
@@ -198,11 +193,7 @@ void systemInit()
   // if we managed to connect to WIFI - use firebase settings, as they are the most updated.
   if (wifi_flag)
   {
-    if (initial_powerup)
-    {
-      setupFirebase(config, auth);
-      initial_powerup = false;
-    }
+    setupFirebase(config, auth);
     // storeFirebaseSetting(&firebaseData,system_settings);
     systemSettings system_settings_from_fb;
     if (getFirebaseSettings(&firebaseData, system_settings_from_fb))
@@ -220,12 +211,6 @@ void systemInit()
     setupTime();
     // createDir(SD_MMC,"/images");
   }
-  else
-  {
-    initial_powerup = true;
-  }
-  is_system_on = true;
-
   if(!camera_flag) {
     camera_flag = setupCamera();
     if (!camera_flag) {
@@ -300,7 +285,8 @@ void setup()
   systemInit();
   Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
   mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_READY_TO_USE);
-  delay(200);
+  delay(2000);
+  is_system_on = true;
   // Creates threaded tasks
   xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
   xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &SpeedCalcDelay, 2, nullptr);
@@ -417,7 +403,8 @@ if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRES
         }
     } else {
           if (is_system_on && !is_pressing) {
-            double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity);
+            sensor_data.printData();
+            double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity, mpu_degraded_flag);
             if(obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
               if(system_settings.getEnableCamera()){
                 CaptureObstacle(fbdo, auth, config, wifi_flag);
