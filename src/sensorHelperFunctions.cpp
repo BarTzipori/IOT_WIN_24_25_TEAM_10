@@ -94,7 +94,7 @@ void calibrateMPU(MPU9250* mpu, bool calibration_needed) {
     if(calibration_needed) {
       // calibrate anytime you want to
       Serial.println("Accel Gyro calibration will start in 5sec.");
-      Serial.println("Please leave the device still on the flat plane.");
+      Serial.println("Please leave the device still on a flat plane.");
       mpu->verbose(true);
       delay(5000);
       mpu->calibrateAccelGyro();

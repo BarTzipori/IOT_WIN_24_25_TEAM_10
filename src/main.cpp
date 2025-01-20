@@ -426,5 +426,6 @@ if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRES
           }              
     }
   }
+  system_settings.changeVolume(system_settings.getVolume(), &mp3);
   vTaskDelay(50);
 }
