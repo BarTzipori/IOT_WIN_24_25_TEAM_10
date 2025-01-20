@@ -210,9 +210,11 @@ bool WifiManagerSetup()
 {
     // New wifi setup
     WiFiManager wm;
-    //wm.setConnectTimeout(10);
-    wm.setConfigPortalTimeout(60); 
-    //bool res = wm.autoConnect("SafeStepAP", "safestep2025");
+    Preferences preferences;
+    preferences.begin("wifi-data", false);
+    // wm.setConnectTimeout(10);
+    wm.setConfigPortalTimeout(30);
+    // bool res = wm.autoConnect("SafeStepAP", "safestep2025");
     bool res = wm.startConfigPortal("SafeStepAP", "safestep2025");
     if (!res)
     {
@@ -224,40 +226,66 @@ bool WifiManagerSetup()
         Serial.println("Connected to Wi-Fi");
         Serial.print("local ip: ");
         Serial.println(WiFi.localIP());
+        String ssid = WiFi.SSID(); // Get the SSID of the connected network
+        if (!ssid.isEmpty())
+        {
+            preferences.putString("savedSSID", ssid);
+            Serial.println("Saved SSID to NVS: " + ssid);
+        }
+        else
+        {
+            Serial.println("no Wi-Fi configured.");
+        }
+
         return true;
     }
 }
 
 bool WifiSetup()
 {
-
-    //old wifi setup
-
+    Preferences preferences;
+    preferences.begin("wifi-data", false);
     unsigned long startTime = millis();
     unsigned long currTime = millis();
     // Connect to Wi-Fi
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    // WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    WiFi.mode(WIFI_STA);
+    WiFi.begin();
+
     Serial.println("Connecting to Wi-Fi");
-    Serial.print("Trying to Connect to "+ String(WIFI_SSID));
+    String ssid = preferences.getString("savedSSID", "No SSID saved");
+    if (ssid.length() > 0)
+    {
+        Serial.print("Attempting to connect to Wi-Fi network: ");
+        Serial.print(ssid);
+    }
+    else
+    {
+        Serial.println("No saved Wi-Fi credentials found.");
+    }
+    // Serial.print("Trying to Connect to "+ String(WiFi.SSID()));
     while (WiFi.status() != WL_CONNECTED && currTime - startTime < WIFI_TIMEOUT)
     {
         delay(1000);
         Serial.print(".");
         currTime = millis();
         // Serial.println(currTime - startTime);
-  }
-  if(WiFi.status()==WL_CONNECTED){
-      Serial.println("\nConnected to Wi-Fi");
-      Serial.print("IP Address: ");
-      Serial.println(WiFi.localIP());
-      return true;
-  } else {
+    }
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        Serial.println("\nConnected to Wi-Fi");
+        Serial.print("IP Address: ");
+        Serial.println(WiFi.localIP());
+        return true;
+    }
+    else
+    {
         Serial.println("\nNot Connected to Wi-Fi!");
         WiFi.disconnect(true);
         return false;
-  }
-  
+    }
 }
+
 
 void setupTime()
 {

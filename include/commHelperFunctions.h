@@ -6,6 +6,7 @@
 #include "systemSettings.h"
 #include <time.h>
 #include <WiFiManager.h>
+#include <Preferences.h>
 
 
 void setupFirebase(FirebaseConfig &config , FirebaseAuth &auth);
