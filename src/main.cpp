@@ -196,11 +196,20 @@ void systemInit()
   Serial.println("--------- System Init ---------");
   if (!wifi_flag)
     wifi_flag = WifiSetup();
+  if (wifi_flag){
+    mp3.playWithFileName(VOICE_ALERTS_DIR, 0x05);
+    delay(200);
+  }
+    else{
+    mp3.playWithFileName(VOICE_ALERTS_DIR, 0x06);
+    delay(200);
+  }
   if (!sd_flag)
   {
     if (setupSDCard())
     {
       init_sd_card();
+      
       system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
       sd_flag = true;
       // Serial.println("----------------");
@@ -210,6 +219,8 @@ void systemInit()
     else
     {
       Serial.println("Failed to initialize SD card");
+      mp3.playWithFileName(VOICE_ALERTS_DIR, 0x08);
+      delay(200);
       sd_flag = false;
     }
   }
@@ -243,6 +254,19 @@ void systemInit()
     initial_powerup = true;
   }
   is_system_on = true;
+
+  if(!camera_flag) {
+    camera_flag = setupCamera();
+    if (!camera_flag) {
+      mp3.playWithFileName(VOICE_ALERTS_DIR, 0x0A);
+      delay(200);
+    }
+  }
+
+  if(!wifi_flag && !sd_flag){
+    mp3.playWithFileName(VOICE_ALERTS_DIR, 0x09);
+    delay(200);
+  }
 
   Serial.printf("--------- System Init Done ---------\n");
 }
