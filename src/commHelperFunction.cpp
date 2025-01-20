@@ -211,7 +211,7 @@ bool WifiManagerSetup()
     // New wifi setup
     WiFiManager wm;
     //wm.setConnectTimeout(10);
-    wm.setConfigPortalTimeout(30); 
+    wm.setConfigPortalTimeout(60); 
     //bool res = wm.autoConnect("SafeStepAP", "safestep2025");
     bool res = wm.startConfigPortal("SafeStepAP", "safestep2025");
     if (!res)

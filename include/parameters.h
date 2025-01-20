@@ -22,7 +22,8 @@
 #define SHORT_PRESS_TIME 10000
 #define VOICE_ALERTS_DIR 0x06
 #define ALERTS_DIR 0x07
-
+#define LONG_PRESS_THRESHOLD 10000  // 10 second for long press
+#define DOUBLE_PRESS_THRESHOLD 500 // 500 ms for double press
 
 #define SD_MMC_CMD 38 //Please do not modify it.
 #define SD_MMC_CLK 39 //Please do not modify it. 

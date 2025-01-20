@@ -73,6 +73,9 @@ static unsigned long startTime, currTime;
 static bool calibrate_flag = false;
 static bool system_calibrated = false;
 static bool calibration_needed = false;
+unsigned long pressStartTime = 0;
+unsigned long lastPressTime = 0;
+
 
 // Samples sensors data
 void sampleSensorsData(void *pvParameters)
@@ -99,8 +102,8 @@ void sampleSensorsData(void *pvParameters)
             int distance = distance_sensors[i].first->distance();
             if (distance == -1)
             {
-              Serial.print(F("Couldn't get distance: "));
-              Serial.println(distance_sensors[i].first->vl_status);
+              //Serial.print(F("Couldn't get distance: "));
+              //Serial.println(distance_sensors[i].first->vl_status);
               if (i == 0)
               {
                 sensor_data.setSensor1Distance(distance);
@@ -304,7 +307,7 @@ void setup()
   system_calibrated = true;
   systemInit();
   camera_flag = setupCamera();
-  Serial.println("Waiting for system to be powered on");
+  Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
   // Creates threaded tasks
   xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
   xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &SpeedCalcDelay, 2, nullptr);
@@ -313,90 +316,115 @@ void setup()
 void loop()
 {
 
-  // Serial.println(system_settings.getAlertVibration1());
-  //  button loop
-  onOffButton.loop();
-  // press detection
-  if (onOffButton.isPressed())
-  {
+onOffButton.loop(); // Update button state
+
+static bool is_double_press_pending = false; // Flag to track potential double press
+static unsigned long double_press_start_time = 0; // Tracks time of the first press in a double press
+
+// Press detection
+if (onOffButton.isPressed())
+{
     Serial.println("Press detected");
     pressed_time = millis();
     is_pressing = true;
     is_long_press = false;
-  }
-  // release detection: short press = on off toggle. long press = recalibrate system.
-  if (onOffButton.isReleased())
-  {
+}
+
+// Release detection
+if (onOffButton.isReleased())
+{
     is_pressing = false;
-    released_time = millis();
+    unsigned long pressDuration = millis() - pressed_time; // Calculate press duration
+    unsigned long currentTime = millis();
 
-    long press_duration = released_time - pressed_time;
-    // short press - on off toggle
-    if (press_duration < SHORT_PRESS_TIME)
+    if (pressDuration >= LONG_PRESS_THRESHOLD)
     {
-      // on/off routine
-      Serial.println("Short press detected");
-      if (is_system_on)
-      {
-        is_system_on = false;
-        client.stop();
-        WiFi.disconnect();
-        Firebase.reset(&config);
-        Serial.println("System shut down");
-        motor1.vibrate(vibrationPattern::powerOFFBuzz);
-      }
-      else
-      {
+        // Long press detected
+        Serial.println("Long press detected");
+        Serial.println("SAFESTEP MPU RECALIBRATION ROUTINE STARTING...");
+        is_long_press = true; // Set long press flag
+        system_calibrated = false;
+        calibration_needed = true;
+        motor1.vibrate(vibrationPattern::recalibrationBuzz);
+        calibrateMPU(&mpu, calibration_needed);
+        delay(10000);
+        system_calibrated = true;
+        calibration_needed = false;
+        is_long_press = false;
 
-        Serial.println("Powering on system");
-        motor1.vibrate(vibrationPattern::powerONBuzz);
-        velocity = 0;
-        Firebase.reset(&config);
-        systemInit();
-      }
+        // Reset double press tracking
+        is_double_press_pending = false;
     }
-  }
-  if (is_pressing == true && is_long_press == false)
-  {
-    long press_duration = millis() - pressed_time;
-    if (press_duration > LONG_PRESS_TIME)
+    else
     {
-      Serial.println("Long press detected - Calibrating system");
-      is_long_press = true;
-      is_system_on = false;
-      system_calibrated = false;
-      calibration_needed = true;
-      motor1.vibrate(vibrationPattern::recalibrationBuzz);
-      calibrateMPU(&mpu, calibration_needed);
-      delay(10000);
-      system_calibrated = true;
-      calibration_needed = false;
-      is_system_on = true;
+        if (is_double_press_pending)
+        {
+            // Confirmed double press
+            Serial.println("Double press detected");
+            Serial.println("SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...");
+            motor1.vibrate(vibrationPattern::pulseBuzz);
+            if(!WifiManagerSetup()) {
+              Serial.println("Failed to connect to a new network, using SD card settings instead...");
+            } else {
+              wifi_flag = true;
+              systemInit();
+            }; // Perform double press action
+            // Reset double press tracking
+            is_double_press_pending = false;
+        }
+        else
+        {
+            // First press of a potential double press
+            is_double_press_pending = true;
+            double_press_start_time = currentTime;
+        }
     }
-  }
-  wifiServerLoop();
-  msgServerLoop();
+}
 
-  // sensor data update routine
-  if(system_settings.getAlertMethod() == "TimeToImpact") {
-      if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {  
-          sensor_data.printData();
-          double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
-          if(collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
-            if(system_settings.getEnableCamera()){
-              CaptureObstacle(fbdo, auth, config, wifi_flag);
+// Check for short press after double press timeout
+if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRESS_THRESHOLD))
+{
+    // No second press detected, treat as a short press
+    Serial.println("Short press detected");
+    Serial.println("SAFESTEP SHORT PRESS ROUTINE STARTING...");
+    motor1.vibrate(vibrationPattern::shortBuzz);
+
+    // Toggle system mode
+    String curr_mode = system_settings.getMode();
+    if (curr_mode == "Both" || curr_mode == "Sound")
+    {
+        system_settings.setMode("Vibration");
+    }
+    else
+    {
+        system_settings.setMode("Both");
+    }
+
+    // Reset double press tracking
+    is_double_press_pending = false;
+}
+  if(is_system_on && !is_pressing && system_calibrated) {
+    // sensor data update routine
+    if(system_settings.getAlertMethod() == "TimeToImpact") {
+        if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {  
+            sensor_data.printData();
+            double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
+            if(collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
+              if(system_settings.getEnableCamera()){
+                CaptureObstacle(fbdo, auth, config, wifi_flag);
+              }
             }
-          }
-      }
-  } else {
-        if (is_system_on && !is_pressing) {
-          double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity);
-          if(obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
-            if(system_settings.getEnableCamera()){
-              CaptureObstacle(fbdo, auth, config, wifi_flag);
-            }
-          }  
-        }              
+        }
+    } else {
+          if (is_system_on && !is_pressing) {
+            double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity);
+            if(obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
+              if(system_settings.getEnableCamera()){
+                CaptureObstacle(fbdo, auth, config, wifi_flag);
+              }
+            }  
+          }              
+    }
   }
   vTaskDelay(50);
 }
