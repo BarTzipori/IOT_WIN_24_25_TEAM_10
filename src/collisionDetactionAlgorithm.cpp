@@ -121,12 +121,13 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     prevGyroMagnitude = currentGyroMagnitude;
 
     // Debug output
-    /Serial.print("Delta AccX: ");
+    Serial.print("Delta AccX: ");
     Serial.print(deltaAccX);
     Serial.print(" | Delta Gyro Magnitude: ");
-    /Serial.print(deltaGyroMagnitude);
+    Serial.print(deltaGyroMagnitude);
     Serial.print(" | Step Count: ");
     Serial.println(*stepCount);
+    Serial.println();
 }
 
 double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
@@ -197,6 +198,7 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
             Serial.print("system height: ");
             Serial.println(system_height_in_mm);
             Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
+            Serial.println();
             continue;
         } else {
             if (*velocity <= 0) {
@@ -213,6 +215,7 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
             Serial.print(z_distance);
             Serial.print(" | Expected Impact time: ");
             Serial.println(impact_time);
+            Serial.println();
             return impact_time;
         }
     }
@@ -282,6 +285,7 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
             Serial.println(x_distance);
             Serial.print("z distance: ");
             Serial.println(z_distance);
+            Serial.println();
             continue;
         } else {
             if (x_distance <= 0) {
@@ -292,6 +296,7 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
                   Serial.print(x_distance);
                   Serial.print(" | Z_distance: ");
                   Serial.print(z_distance);
+                  Serial.println();
                   return x_distance;
                 } else {
                   if(*velocity > 0) {
@@ -299,6 +304,7 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
                     Serial.print(x_distance);
                     Serial.print(" | Z_distance: ");
                     Serial.print(z_distance);
+                    Serial.println();
                     return x_distance;
                   } else {
                     Serial.println("Velocity is zero or negative; Ignoring obstacle.");
