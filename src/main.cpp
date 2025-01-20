@@ -191,19 +191,24 @@ void calculateVelocityAsTask(void *pvParameters)
 void systemInit()
 {
   Serial.println("--------- System Init ---------");
-  //wifi_flag = WifiSetup();
-  if (setupSDCard())
+  if (!wifi_flag)
+    wifi_flag = WifiSetup();
+  if (!sd_flag)
   {
-    init_sd_card();
-    system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
-    sd_flag = true;
-    // Serial.println("----------------");
-    // system_settings.print();
-  }
-  else
-  {
-    Serial.println("Failed to initialize SD card");
-    sd_flag = false;
+    if (setupSDCard())
+    {
+      init_sd_card();
+      system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
+      sd_flag = true;
+      // Serial.println("----------------");
+      // system_settings.print();
+    }
+
+    else
+    {
+      Serial.println("Failed to initialize SD card");
+      sd_flag = false;
+    }
   }
   // if we managed to connect to WIFI - use firebase settings, as they are the most updated.
   if (wifi_flag)
@@ -238,6 +243,7 @@ void systemInit()
 
   Serial.printf("--------- System Init Done ---------\n");
 }
+
 
 void setup()
 {
@@ -296,6 +302,7 @@ void setup()
     delay(10000);
   }
   system_calibrated = true;
+  systemInit();
   camera_flag = setupCamera();
   Serial.println("Waiting for system to be powered on");
   // Creates threaded tasks
@@ -368,6 +375,7 @@ void loop()
     }
   }
   wifiServerLoop();
+  msgServerLoop();
 
   // sensor data update routine
   if(system_settings.getAlertMethod() == "TimeToImpact") {

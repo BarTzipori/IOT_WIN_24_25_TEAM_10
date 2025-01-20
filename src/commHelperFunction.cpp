@@ -206,13 +206,14 @@ bool updateFirebaseLocalIP(FirebaseData *firebaseData, String localIP) {
 }
 
 
-bool WifiSetup()
+bool WifiManagerSetup()
 {
     // New wifi setup
     WiFiManager wm;
-    wm.setConnectTimeout(15);
-    wm.setConfigPortalTimeout(180);
-    bool res = wm.autoConnect("SafeStepAP", "safestep2025");
+    //wm.setConnectTimeout(10);
+    wm.setConfigPortalTimeout(30); 
+    //bool res = wm.autoConnect("SafeStepAP", "safestep2025");
+    bool res = wm.startConfigPortal("SafeStepAP", "safestep2025");
     if (!res)
     {
         Serial.println("Failed to connect");
@@ -225,14 +226,19 @@ bool WifiSetup()
         Serial.println(WiFi.localIP());
         return true;
     }
+}
+
+bool WifiSetup()
+{
 
     //old wifi setup
-    /*
-    startTime = millis();
-    currTime = millis();
+
+    unsigned long startTime = millis();
+    unsigned long currTime = millis();
     // Connect to Wi-Fi
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    Serial.print("Connecting to Wi-Fi");
+    Serial.println("Connecting to Wi-Fi");
+    Serial.print("Trying to Connect to "+ String(WIFI_SSID));
     while (WiFi.status() != WL_CONNECTED && currTime - startTime < WIFI_TIMEOUT)
     {
         delay(1000);
@@ -247,11 +253,11 @@ bool WifiSetup()
       return true;
   } else {
         Serial.println("\nNot Connected to Wi-Fi!");
+        WiFi.disconnect(true);
         return false;
   }
-  */
+  
 }
-
 
 void setupTime()
 {

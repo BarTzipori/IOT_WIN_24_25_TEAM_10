@@ -13,6 +13,7 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s);
 void storeFirebaseSetting(FirebaseData *firebaseData ,systemSettings& s);
 bool updateFirebaseLocalIP(FirebaseData *firebaseData, String localIP);
 bool WifiSetup();
+bool WifiManagerSetup();
 void setupTime();
 
 #endif
