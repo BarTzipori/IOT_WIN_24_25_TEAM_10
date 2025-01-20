@@ -272,7 +272,6 @@ void systemInit()
 
 void setup()
 {
-
   static int DistanceSensorDelay = 50;
   static int SpeedCalcDelay = 100;
   delay(500);
@@ -283,14 +282,12 @@ void setup()
   Wire.begin(3, 14);
   Wire.setClock(100000); // Set I2C clock speed to 100 kHz
   delay(100);
-  // secondBus.begin(35, 36);
-  // secondBus.setClock(400000); // Set I2C clock speed to 100 kHz
   Serial.println("Starting setup");
-  // onOffButton.setDebounceTime(50);
+  // nOffButton.setDebounceTime(50);
 
   while (!Serial)
     delay(10);
-  // Initialize XSHUT pins
+  //Initialize XSHUT pins
   for (size_t i = 0; i < distance_sensors_xshut_pins.size(); i++)
   {
     pinMode(distance_sensors_xshut_pins[i], OUTPUT);
