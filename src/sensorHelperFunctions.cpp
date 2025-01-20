@@ -87,23 +87,31 @@ void enableAllVL53L1XSensors(std::vector<int>* distance_sensors_xshut_pins) {
     }
 }
 
-void calibrateMPU(MPU9250* mpu, bool calibration_needed) {
+void calibrateMPU(MPU9250* mpu, bool calibration_needed, MP3* mp3) {
     #if defined(ESP_PLATFORM) || defined(ESP8266)
         EEPROM.begin(0x80);
     #endif
     if(calibration_needed) {
+      mp3->playWithFileName(VOICE_ALERTS_DIR, MPU_CALIBRATION_START);
+      delay(4000);
       // calibrate anytime you want to
       Serial.println("Accel Gyro calibration will start in 5sec.");
       Serial.println("Please leave the device still on a flat plane.");
+      mp3->playWithFileName(VOICE_ALERTS_DIR, GYRO_CALIBRATION_START);
+      delay(4000);
       mpu->verbose(true);
       delay(5000);
       mpu->calibrateAccelGyro();
 
       Serial.println("Mag calibration will start in 5sec.");
       Serial.println("Please Wave device in a figure eight until done.");
+      mp3->playWithFileName(VOICE_ALERTS_DIR, MAG_CALIBRATION_START);
+      delay(5000);
       delay(5000);
       mpu->calibrateMag();
       Serial.println("done calibrating");
+      mp3->playWithFileName(VOICE_ALERTS_DIR, MPU_CALIBRATION_DONE);
+      delay(2000);
       // save to eeprom
       saveCalibration();
       Serial.println("MPU calibration saved");

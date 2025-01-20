@@ -197,12 +197,12 @@ void systemInit()
   if (!wifi_flag)
     wifi_flag = WifiSetup();
   if (wifi_flag){
-    mp3.playWithFileName(VOICE_ALERTS_DIR, 0x05);
-    delay(200);
+    mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_CONNECTED);
+    delay(1000);
   }
     else{
-    mp3.playWithFileName(VOICE_ALERTS_DIR, 0x06);
-    delay(200);
+    mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_NOT_CONNECTED);
+    delay(2000);
   }
   if (!sd_flag)
   {
@@ -219,8 +219,8 @@ void systemInit()
     else
     {
       Serial.println("Failed to initialize SD card");
-      mp3.playWithFileName(VOICE_ALERTS_DIR, 0x08);
-      delay(200);
+      mp3.playWithFileName(VOICE_ALERTS_DIR, NO_SD_DETECTED);
+      delay(4000);
       sd_flag = false;
     }
   }
@@ -258,14 +258,14 @@ void systemInit()
   if(!camera_flag) {
     camera_flag = setupCamera();
     if (!camera_flag) {
-      mp3.playWithFileName(VOICE_ALERTS_DIR, 0x0A);
-      delay(200);
+      mp3.playWithFileName(VOICE_ALERTS_DIR, NO_CAMERA_DETECTED);
+      delay(3000);
     }
   }
 
   if(!wifi_flag && !sd_flag){
-    mp3.playWithFileName(VOICE_ALERTS_DIR, 0x09);
-    delay(200);
+    mp3.playWithFileName(VOICE_ALERTS_DIR, NO_SD_AND_WIFI);
+    delay(7000);
   }
 
   Serial.printf("--------- System Init Done ---------\n");
@@ -277,6 +277,7 @@ void setup()
 
   static int DistanceSensorDelay = 50;
   static int SpeedCalcDelay = 100;
+  delay(500);
   mp3.playWithFileName(VOICE_ALERTS_DIR, POWERING_ON_SYSTEM);
   delay(200);
   Serial.begin(115200);
@@ -297,7 +298,7 @@ void setup()
     pinMode(distance_sensors_xshut_pins[i], OUTPUT);
   }
   // sets mp3 initial volume
-  mp3.setVolume(0x15);
+  //mp3.setVolume(0x15);
   // Initialize Distance measuring sensors
   initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &Wire);
   initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &Wire);
@@ -323,7 +324,7 @@ void setup()
       delay(5000);
     }
   }
-  calibrateMPU(&mpu, calibration_needed);
+  calibrateMPU(&mpu, calibration_needed, &mp3);
 
   if (calibration_needed)
   {
@@ -331,7 +332,6 @@ void setup()
   }
   system_calibrated = true;
   systemInit();
-  camera_flag = setupCamera();
   Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
   mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_READY_TO_USE);
   delay(200);
@@ -373,7 +373,7 @@ if (onOffButton.isReleased())
         system_calibrated = false;
         calibration_needed = true;
         motor1.vibrate(vibrationPattern::recalibrationBuzz);
-        calibrateMPU(&mpu, calibration_needed);
+        calibrateMPU(&mpu, calibration_needed, &mp3);
         delay(10000);
         system_calibrated = true;
         calibration_needed = false;
@@ -388,6 +388,8 @@ if (onOffButton.isReleased())
         {
             // Confirmed double press
             Serial.println("Double press detected");
+            mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_PAIRING_INITIATED);
+            delay(100);
             Serial.println("SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...");
             motor1.vibrate(vibrationPattern::pulseBuzz);
             if(!WifiManagerSetup()) {
