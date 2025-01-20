@@ -88,7 +88,7 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
         stepsInWindow += 1; // Increment steps in the current window
         lastStepTime = currentTime;
 
-        Serial.println("Step detected (with gyroscope)");
+        //Serial.println("Step detected (with gyroscope)");
     } else if (isStepDetected && deltaAccX < STEP_LOW_THRESHOLD && deltaGyroMagnitude < GYRO_THRESHOLD) {
         // Reset state after step detected
         isStepDetected = false;
@@ -105,11 +105,11 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
         // Estimate speed (meters per second)
         *speed = stepFrequency * strideLength;
 
-        Serial.print("Steps in window: ");
-        Serial.print(stepsInWindow);
-        Serial.print("| Speed estimated: ");
-        Serial.print(*speed);
-        Serial.println(" m/s");
+        //Serial.print("Steps in window: ");
+        //Serial.print(stepsInWindow);
+        //Serial.print("| Speed estimated: ");
+        //Serial.print(*speed);
+        //Serial.println(" m/s");
 
         // Reset for the next window
         stepsInWindow = 0;
@@ -121,12 +121,12 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     prevGyroMagnitude = currentGyroMagnitude;
 
     // Debug output
-    Serial.print("Delta AccX: ");
-    Serial.print(deltaAccX);
-    Serial.print(" | Delta Gyro Magnitude: ");
-    Serial.print(deltaGyroMagnitude);
-    Serial.print(" | Step Count: ");
-    Serial.println(*stepCount);
+    //Serial.print("Delta AccX: ");
+    //Serial.print(deltaAccX);
+    //Serial.print(" | Delta Gyro Magnitude: ");
+    //Serial.print(deltaGyroMagnitude);
+    //Serial.print(" | Step Count: ");
+    //Serial.println(*stepCount);
 }
 
 double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
@@ -188,15 +188,15 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
             if(x_distance == 0) {
                 continue;
             }
-            Serial.println("x distance");
+            /*Serial.print("x distance: ");
             Serial.println(x_distance);
-            Serial.println("z distance");
+            Serial.print("z distance: ");
             Serial.println(z_distance);
-            Serial.println("user head height");
+            Serial.print("user head height: ");
             Serial.println(user_head_height);
-            Serial.println("system height");
+            Serial.print("system height: ");
             Serial.println(system_height_in_mm);
-            Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
+            Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");*/
             continue;
         } else {
             if (*velocity <= 0) {
@@ -207,12 +207,12 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
                 impact_time = (x_distance / 1000.0) / *velocity;
             }
             impact_time = (x_distance/1000.0) / *velocity;
-            Serial.print("Obstacle detected. X_distance: ");
+            /*Serial.print("Obstacle detected. X_distance: ");
             Serial.print(x_distance);
             Serial.print(" | Z_distance: ");
             Serial.print(z_distance);
             Serial.print(" | Expected Impact time: ");
-            Serial.println(impact_time);
+            Serial.println(impact_time);*/
             return impact_time;
         }
     }
@@ -277,22 +277,22 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
             if(x_distance == 0) {
                 return -1;
             }
-            Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
-            Serial.println("x distance");
+            /*Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
+            Serial.print("x distance: ");
             Serial.println(x_distance);
-            Serial.println("z distance");
-            Serial.println(z_distance);
+            Serial.println("z distance: ");
+            Serial.print(z_distance);*/
             continue;
         } else {
             if (*velocity <= 0) {
-                Serial.println("Velocity is zero or negative; Ignoring obstacle.");
+                //Serial.println("Velocity is zero or negative; Ignoring obstacle.");
             } else if (x_distance <= 0) {
-                Serial.println("Invalid x_distance; Ignoring obstacle.");
+                //Serial.println("Invalid x_distance; Ignoring obstacle.");
             } else {
-                Serial.print("Obstacle detected. X_distance: ");
-                Serial.print(x_distance);
-                Serial.print(" | Z_distance: ");
-                Serial.print(z_distance);
+                //Serial.print("Obstacle detected. X_distance: ");
+                //Serial.print(x_distance);
+                //Serial.print(" | Z_distance: ");
+                //Serial.print(z_distance);
                 return x_distance;
             }
         }
