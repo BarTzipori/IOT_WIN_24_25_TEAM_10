@@ -93,7 +93,6 @@ void sampleSensorsData(void *pvParameters)
           Serial.print("Sensor: ");
           Serial.print(i + 1);
           Serial.println(" not connected");
-          continue;
         }
         else
         {
@@ -120,7 +119,6 @@ void sampleSensorsData(void *pvParameters)
               {
                 sensor_data.setSensor4Distance(distance);
               }
-              continue;
             }
             else
             {
@@ -196,11 +194,20 @@ void systemInit()
   Serial.println("--------- System Init ---------");
   if (!wifi_flag)
     wifi_flag = WifiSetup();
+  if (wifi_flag){
+    mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_CONNECTED);
+    delay(1000);
+  }
+    else{
+    mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_NOT_CONNECTED);
+    delay(2000);
+  }
   if (!sd_flag)
   {
     if (setupSDCard())
     {
       init_sd_card();
+      
       system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
       sd_flag = true;
       // Serial.println("----------------");
@@ -210,6 +217,8 @@ void systemInit()
     else
     {
       Serial.println("Failed to initialize SD card");
+      mp3.playWithFileName(VOICE_ALERTS_DIR, NO_SD_DETECTED);
+      delay(4000);
       sd_flag = false;
     }
   }
@@ -244,35 +253,47 @@ void systemInit()
   }
   is_system_on = true;
 
+  if(!camera_flag) {
+    camera_flag = setupCamera();
+    if (!camera_flag) {
+      mp3.playWithFileName(VOICE_ALERTS_DIR, NO_CAMERA_DETECTED);
+      delay(3000);
+    }
+  }
+
+  if(!wifi_flag && !sd_flag){
+    mp3.playWithFileName(VOICE_ALERTS_DIR, NO_SD_AND_WIFI);
+    delay(7000);
+  }
+
   Serial.printf("--------- System Init Done ---------\n");
 }
 
 
 void setup()
 {
-
   static int DistanceSensorDelay = 50;
   static int SpeedCalcDelay = 100;
-
+  delay(500);
+  mp3.playWithFileName(VOICE_ALERTS_DIR, POWERING_ON_SYSTEM);
+  delay(200);
   Serial.begin(115200);
   delay(100);
   Wire.begin(3, 14);
   Wire.setClock(100000); // Set I2C clock speed to 100 kHz
   delay(100);
-  // secondBus.begin(35, 36);
-  // secondBus.setClock(400000); // Set I2C clock speed to 100 kHz
   Serial.println("Starting setup");
-  // onOffButton.setDebounceTime(50);
+  // nOffButton.setDebounceTime(50);
 
   while (!Serial)
     delay(10);
-  // Initialize XSHUT pins
+  //Initialize XSHUT pins
   for (size_t i = 0; i < distance_sensors_xshut_pins.size(); i++)
   {
     pinMode(distance_sensors_xshut_pins[i], OUTPUT);
   }
   // sets mp3 initial volume
-  mp3.setVolume(0x15);
+  //mp3.setVolume(0x15);
   // Initialize Distance measuring sensors
   initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &Wire);
   initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &Wire);
@@ -298,7 +319,7 @@ void setup()
       delay(5000);
     }
   }
-  calibrateMPU(&mpu, calibration_needed);
+  calibrateMPU(&mpu, calibration_needed, &mp3);
 
   if (calibration_needed)
   {
@@ -306,8 +327,9 @@ void setup()
   }
   system_calibrated = true;
   systemInit();
-  camera_flag = setupCamera();
   Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
+  mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_READY_TO_USE);
+  delay(200);
   // Creates threaded tasks
   xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
   xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &SpeedCalcDelay, 2, nullptr);
@@ -346,7 +368,7 @@ if (onOffButton.isReleased())
         system_calibrated = false;
         calibration_needed = true;
         motor1.vibrate(vibrationPattern::recalibrationBuzz);
-        calibrateMPU(&mpu, calibration_needed);
+        calibrateMPU(&mpu, calibration_needed, &mp3);
         delay(10000);
         system_calibrated = true;
         calibration_needed = false;
@@ -361,6 +383,8 @@ if (onOffButton.isReleased())
         {
             // Confirmed double press
             Serial.println("Double press detected");
+            mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_PAIRING_INITIATED);
+            delay(100);
             Serial.println("SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...");
             motor1.vibrate(vibrationPattern::pulseBuzz);
             if(!WifiManagerSetup()) {
@@ -394,10 +418,15 @@ if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRES
     if (curr_mode == "Both" || curr_mode == "Sound")
     {
         system_settings.setMode("Vibration");
+        mp3.playWithFileName(VOICE_ALERTS_DIR, SILENT_MODE_ACTIVATED);
+        delay(100);
     }
     else
     {
         system_settings.setMode("Both");
+        mp3.playWithFileName(VOICE_ALERTS_DIR, SILENT_MODE_DEACTIVATED);
+        delay(100);
+
     }
 
     // Reset double press tracking
