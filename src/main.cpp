@@ -393,7 +393,7 @@ if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRES
     // sensor data update routine
     if(system_settings.getAlertMethod() == "TimeToImpact") {
         if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {  
-            sensor_data.printData();
+            //sensor_data.printData();
             double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
             if(collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
               if(system_settings.getEnableCamera()){
@@ -403,7 +403,7 @@ if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRES
         }
     } else {
           if (is_system_on && !is_pressing) {
-            sensor_data.printData();
+            //sensor_data.printData();
             double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity, mpu_degraded_flag);
             if(obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
               if(system_settings.getEnableCamera()){
