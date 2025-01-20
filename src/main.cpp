@@ -253,7 +253,8 @@ void setup()
 
   static int DistanceSensorDelay = 50;
   static int SpeedCalcDelay = 100;
-
+  mp3.playWithFileName(VOICE_ALERTS_DIR, POWERING_ON_SYSTEM);
+  delay(200);
   Serial.begin(115200);
   delay(100);
   Wire.begin(3, 14);
@@ -308,6 +309,8 @@ void setup()
   systemInit();
   camera_flag = setupCamera();
   Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
+  mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_READY_TO_USE);
+  delay(200);
   // Creates threaded tasks
   xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
   xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &SpeedCalcDelay, 2, nullptr);
@@ -394,10 +397,15 @@ if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRES
     if (curr_mode == "Both" || curr_mode == "Sound")
     {
         system_settings.setMode("Vibration");
+        mp3.playWithFileName(VOICE_ALERTS_DIR, SILENT_MODE_ACTIVATED);
+        delay(100);
     }
     else
     {
         system_settings.setMode("Both");
+        mp3.playWithFileName(VOICE_ALERTS_DIR, SILENT_MODE_DEACTIVATED);
+        delay(100);
+
     }
 
     // Reset double press tracking

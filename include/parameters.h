@@ -60,3 +60,10 @@
 #define VOLUME_4 0x40
 #define VOLUME_5 0x50
 
+//voice alerts indexes
+
+#define POWERING_ON_SYSTEM 0x04
+#define SYSTEM_READY_TO_USE 0x01
+#define SILENT_MODE_ACTIVATED 0x02
+#define SILENT_MODE_DEACTIVATED 0x03
+
