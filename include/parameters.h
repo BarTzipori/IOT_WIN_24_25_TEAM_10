@@ -51,3 +51,12 @@
 #define SENSOR_2_ANGLE 30
 #define SENSOR_3_ANGLE 15
 #define SENSOR_4_ANGLE 30
+
+
+//MP3 volume levels
+#define VOLUME_1 0x10
+#define VOLUME_2 0x20
+#define VOLUME_3 0x30
+#define VOLUME_4 0x40
+#define VOLUME_5 0x50
+

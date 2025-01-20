@@ -1,7 +1,4 @@
 #include "systemSettings.h"
-#include <Arduino.h>
-#include "vibrationMotor.h"
-
 
 static const struct {
     const char* name; // Track name
@@ -326,6 +323,31 @@ vibrationPattern systemSettings::getVibration1AsPattern() {
     Serial.println("Vibration 3 not found");
     return vibrationPattern::pulseBuzz;
  }
+
+
+void systemSettings::changeVolume(int volume, MP3* mp3) {
+    // Set the volume of the MP3 module based on the input
+    switch (volume) {
+        case 1:
+            mp3->setVolume(VOLUME_1);
+            break;
+        case 2:
+            mp3->setVolume(VOLUME_2);
+            break;
+        case 3:
+            mp3->setVolume(VOLUME_3);
+            break;
+        case 4:
+            mp3->setVolume(VOLUME_4);
+            break;
+        case 5:
+            mp3->setVolume(VOLUME_5);
+            break;
+        default:
+            Serial.println("Invalid volume level");
+            break;
+    }
+}
 
 
 

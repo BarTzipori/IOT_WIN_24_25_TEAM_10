@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 #include "vibrationMotor.h"
+#include "parameters.h"
+#include "RedMP3.h"
 
 class systemSettings
 {
@@ -125,6 +127,8 @@ public:
     vibrationPattern getVibration1AsPattern();
     vibrationPattern getVibration2AsPattern();
     vibrationPattern getVibration3AsPattern();
+    void changeVolume(int volume, MP3* mp3);
+
 };
 
 #endif
