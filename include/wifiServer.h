@@ -13,6 +13,15 @@ void handleRoot();
 void playSound1();
 void playSound2();
 void playSound3();
+void playSound4();
+void playSound5();
+void playSound6();
+void playSound7();
+void playSound8();
+void playVibrationShort();
+void playVibrationLong();
+void playVibrationDouble();
+void playVibrationPulse();
 void handleNotFound();
 void wifiServerLoop();
 
