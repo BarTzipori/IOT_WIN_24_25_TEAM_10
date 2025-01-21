@@ -448,3 +448,15 @@ void appendFile(fs::FS &fs, const char * path, String message){
         Serial.println("Append failed");
     }
 }
+
+bool isExistFolder(fs::FS &fs, const char * path)
+{
+File root = fs.open(path);
+    if(!root){
+        Serial.println("Failed to open directory");
+        root.close();
+        return false;
+    }
+    root.close();
+    return true;
+}
