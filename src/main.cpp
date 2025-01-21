@@ -67,20 +67,21 @@ static unsigned long released_time = 0;
 static bool is_pressing = false;
 static bool is_long_press = false;
 static double velocity = 0.0;
-static bool initial_powerup = true;
 static int step_count = 0;
 static unsigned long startTime, currTime;
 static bool calibrate_flag = false;
 static bool system_calibrated = false;
 static bool calibration_needed = false;
+static bool mpu_degraded_flag = false;
 unsigned long pressStartTime = 0;
 unsigned long lastPressTime = 0;
 
 
 // Samples sensors data
-void sampleSensorsData(void *pvParameters)
-{
+void sampleSensorsData(void *pvParameters) {
   int delay_in_ms = *(int *)pvParameters;
+  int distance = 0;
+  bool distance_sensor_degraded_notification_flag = true;
   while (true)
   {
     if (is_system_on)
@@ -93,63 +94,37 @@ void sampleSensorsData(void *pvParameters)
           Serial.print("Sensor: ");
           Serial.print(i + 1);
           Serial.println(" not connected");
-        }
-        else
-        {
-          if (distance_sensors[i].first->dataReady())
-          {
-            int distance = distance_sensors[i].first->distance();
-            if (distance == -1)
-            {
-              //Serial.print(F("Couldn't get distance: "));
-              //Serial.println(distance_sensors[i].first->vl_status);
-              if (i == 0)
-              {
-                sensor_data.setSensor1Distance(distance);
-              }
-              if (i == 1)
-              {
-                sensor_data.setSensor2Distance(distance);
-              }
-              if (i == 2)
-              {
-                sensor_data.setSensor3Distance(distance);
-              }
-              if (i == 3)
-              {
-                sensor_data.setSensor4Distance(distance);
-              }
-            }
-            else
-            {
-              if (i == 0)
-              {
-                sensor_data.setSensor1Distance(distance);
-              }
-              if (i == 1)
-              {
-                sensor_data.setSensor2Distance(distance);
-              }
-              if (i == 2)
-              {
-                sensor_data.setSensor3Distance(distance);
-              }
-              if (i == 3)
-              {
-                sensor_data.setSensor4Distance(distance);
-              }
-            }
-            distance_sensors[i].first->clearInterrupt();
+          distance = -1;
+          if(distance_sensor_degraded_notification_flag){
+            mp3.playWithFileName(VOICE_ALERTS_DIR, DISTANCE_SENSOR_DEGRADED);
+            vTaskDelay(3000);
+            distance_sensor_degraded_notification_flag = false;
           }
-          else
-          {
+        } else {
+          vTaskDelay(50);
+          if (distance_sensors[i].first->dataReady()){
+            distance = distance_sensors[i].first->distance();
+          } else {
             Serial.println(F("Data not ready"));
           }
         }
+        if (i == 0) {
+          sensor_data.setSensor1Distance(distance);
+        }
+        if (i == 1) {
+          sensor_data.setSensor2Distance(distance);
+        }
+        if (i == 2) {
+          sensor_data.setSensor3Distance(distance);
+        }
+        if (i == 3) {
+          sensor_data.setSensor4Distance(distance);
+        }
+        distance_sensors[i].first->clearInterrupt();
+        }
       }
       // samples MPU data
-      if (mpu_sensors[0].first->update())
-      {
+      if (!mpu_degraded_flag && mpu_sensors[0].first->update()) {
         vTaskDelay(delay_in_ms);
         sensor_data.setPitch(mpu_sensors[0].first->getPitch());
         int yaw = mpu_sensors[0].first->getYaw();
@@ -168,12 +143,11 @@ void sampleSensorsData(void *pvParameters)
         sensor_data.setGyroX(mpu_sensors[0].first->getGyroX());
         sensor_data.setGyroY(mpu_sensors[0].first->getGyroY());
         sensor_data.setGyroZ(mpu_sensors[0].first->getGyroZ());
-        sensor_data.updateLinearAccelX();
-        sensor_data.setlastUpdateTime(millis());
-      }
+        sensor_data.updateLinearAccelX();       
+      } 
+      sensor_data.setlastUpdateTime(millis());
     }
     vTaskDelay(delay_in_ms);
-  }
 }
 
 void calculateVelocityAsTask(void *pvParameters)
@@ -192,30 +166,24 @@ void calculateVelocityAsTask(void *pvParameters)
 void systemInit()
 {
   Serial.println("--------- System Init ---------");
-  if (!wifi_flag)
+  if (!wifi_flag) {
     wifi_flag = WifiSetup();
-  if (wifi_flag){
+  }
+  if(wifi_flag) {
     mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_CONNECTED);
     delay(1000);
-  }
-    else{
+  } else {
     mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_NOT_CONNECTED);
     delay(2000);
   }
-  if (!sd_flag)
-  {
-    if (setupSDCard())
-    {
-      init_sd_card();
-      
+  if(!sd_flag) {
+    if (setupSDCard()) {
+      init_sd_card();     
       system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
       sd_flag = true;
       // Serial.println("----------------");
       // system_settings.print();
-    }
-
-    else
-    {
+    } else {
       Serial.println("Failed to initialize SD card");
       mp3.playWithFileName(VOICE_ALERTS_DIR, NO_SD_DETECTED);
       delay(4000);
@@ -225,11 +193,7 @@ void systemInit()
   // if we managed to connect to WIFI - use firebase settings, as they are the most updated.
   if (wifi_flag)
   {
-    if (initial_powerup)
-    {
-      setupFirebase(config, auth);
-      initial_powerup = false;
-    }
+    setupFirebase(config, auth);
     // storeFirebaseSetting(&firebaseData,system_settings);
     systemSettings system_settings_from_fb;
     if (getFirebaseSettings(&firebaseData, system_settings_from_fb))
@@ -247,12 +211,6 @@ void systemInit()
     setupTime();
     // createDir(SD_MMC,"/images");
   }
-  else
-  {
-    initial_powerup = true;
-  }
-  is_system_on = true;
-
   if(!camera_flag) {
     camera_flag = setupCamera();
     if (!camera_flag) {
@@ -311,16 +269,14 @@ void setup()
   mpu_setting.accel_dlpf_cfg = ACCEL_DLPF_CFG::DLPF_5HZ;
 
   // Initializes MPU
-  if (!mpu.setup(MPU9250_ADDRESS, mpu_setting))
-  { // change to your own address
-    while (1)
-    {
-      Serial.println("MPU connection failed. Please check your connection with `connection_check` example.");
+  if (!mpu.setup(MPU9250_ADDRESS, mpu_setting)){ 
+      Serial.println("MPU NOT DETECTED - SYSTEM WILL OPERATE IN DOWNGRADED MODE");
+      mp3.playWithFileName(VOICE_ALERTS_DIR, MPU_SENSOR_DEGRADED);
+      mpu_degraded_flag = true;
       delay(5000);
-    }
+  } else {
+    calibrateMPU(&mpu, calibration_needed, &mp3);
   }
-  calibrateMPU(&mpu, calibration_needed, &mp3);
-
   if (calibration_needed)
   {
     delay(10000);
@@ -329,7 +285,8 @@ void setup()
   systemInit();
   Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
   mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_READY_TO_USE);
-  delay(200);
+  delay(2000);
+  is_system_on = true;
   // Creates threaded tasks
   xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
   xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &SpeedCalcDelay, 2, nullptr);
@@ -436,7 +393,7 @@ if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRES
     // sensor data update routine
     if(system_settings.getAlertMethod() == "TimeToImpact") {
         if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {  
-            sensor_data.printData();
+            //sensor_data.printData();
             double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
             if(collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
               if(system_settings.getEnableCamera()){
@@ -446,7 +403,8 @@ if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRES
         }
     } else {
           if (is_system_on && !is_pressing) {
-            double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity);
+            //sensor_data.printData();
+            double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity, mpu_degraded_flag);
             if(obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
               if(system_settings.getEnableCamera()){
                 CaptureObstacle(fbdo, auth, config, wifi_flag);
@@ -456,5 +414,8 @@ if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRES
     }
   }
   system_settings.changeVolume(system_settings.getVolume(), &mp3);
+  if(mpu_degraded_flag) {
+    system_settings.setAlertMethod("Distance");
+  }
   vTaskDelay(50);
 }

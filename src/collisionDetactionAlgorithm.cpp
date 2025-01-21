@@ -105,11 +105,11 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
         // Estimate speed (meters per second)
         *speed = stepFrequency * strideLength;
 
-        //Serial.print("Steps in window: ");
-        //Serial.print(stepsInWindow);
-        //Serial.print("| Speed estimated: ");
-        //Serial.print(*speed);
-        //Serial.println(" m/s");
+        Serial.print("Steps in window: ");
+        Serial.print(stepsInWindow);
+        Serial.print("| Speed estimated: ");
+        Serial.print(*speed);
+        Serial.println(" m/s");
 
         // Reset for the next window
         stepsInWindow = 0;
@@ -121,19 +121,20 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     prevGyroMagnitude = currentGyroMagnitude;
 
     // Debug output
-    //Serial.print("Delta AccX: ");
-    //Serial.print(deltaAccX);
-    //Serial.print(" | Delta Gyro Magnitude: ");
-    //Serial.print(deltaGyroMagnitude);
-    //Serial.print(" | Step Count: ");
-    //Serial.println(*stepCount);
+    Serial.print("Delta AccX: ");
+    Serial.print(deltaAccX);
+    Serial.print(" | Delta Gyro Magnitude: ");
+    Serial.print(deltaGyroMagnitude);
+    Serial.print(" | Step Count: ");
+    Serial.println(*stepCount);
+    Serial.println();
 }
 
 double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
     
     //user height
-    double user_height_in_mm = system_settings.getUserHeight()*10; // height of user in mm
-    double system_height_in_mm = system_settings.getSystemHeight()*10; //height of the system in mm
+    double user_height_in_mm = system_settings.getUserHeight(); // height of user in mm
+    double system_height_in_mm = system_settings.getSystemHeight(); //height of the system in mm
     double impact_time = 0.0;
     //distance in X and Z from sensor 1
     int x_distance_from_sensor1 = sensor_data.getDistanceSensor1() * cos(SENSOR_1_ANGLE * (M_PI / 180.0));
@@ -188,7 +189,7 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
             if(x_distance == 0) {
                 continue;
             }
-            /*Serial.print("x distance: ");
+            Serial.print("x distance: ");
             Serial.println(x_distance);
             Serial.print("z distance: ");
             Serial.println(z_distance);
@@ -196,7 +197,8 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
             Serial.println(user_head_height);
             Serial.print("system height: ");
             Serial.println(system_height_in_mm);
-            Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");*/
+            Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
+            Serial.println();
             continue;
         } else {
             if (*velocity <= 0) {
@@ -207,22 +209,23 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
                 impact_time = (x_distance / 1000.0) / *velocity;
             }
             impact_time = (x_distance/1000.0) / *velocity;
-            /*Serial.print("Obstacle detected. X_distance: ");
+            Serial.print("Obstacle detected. X_distance: ");
             Serial.print(x_distance);
             Serial.print(" | Z_distance: ");
             Serial.print(z_distance);
             Serial.print(" | Expected Impact time: ");
-            Serial.println(impact_time);*/
+            Serial.println(impact_time);
+            Serial.println();
             return impact_time;
         }
     }
     return 0;
 }
 
-double distanceToNearestObstacle(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
+double distanceToNearestObstacle(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity, bool mpu_degraded_flag) {
         //user height
-    double user_height_in_mm = system_settings.getUserHeight()*10; // height of user in mm
-    double system_height_in_mm = system_settings.getSystemHeight()*10; //height of the system in mm
+    double user_height_in_mm = system_settings.getUserHeight(); // height of user in mm
+    double system_height_in_mm = system_settings.getSystemHeight(); //height of the system in mm
     double impact_time = 0.0;
     //distance in X and Z from sensor 1
     int x_distance_from_sensor1 = sensor_data.getDistanceSensor1() * cos(SENSOR_1_ANGLE * (M_PI / 180.0));
@@ -275,25 +278,39 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
         // Ignore distances where Z is higher than the user's head
         if (x_distance == 0 || z_distance > user_head_height) {
             if(x_distance == 0) {
-                return -1;
+                return 0;
             }
-            /*Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
+            Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
             Serial.print("x distance: ");
             Serial.println(x_distance);
-            Serial.println("z distance: ");
-            Serial.print(z_distance);*/
+            Serial.print("z distance: ");
+            Serial.println(z_distance);
+            Serial.println();
             continue;
         } else {
-            if (*velocity <= 0) {
-                //Serial.println("Velocity is zero or negative; Ignoring obstacle.");
-            } else if (x_distance <= 0) {
-                //Serial.println("Invalid x_distance; Ignoring obstacle.");
+            if (x_distance <= 0) {
+                Serial.println("Invalid x_distance; Ignoring obstacle.");
             } else {
-                //Serial.print("Obstacle detected. X_distance: ");
-                //Serial.print(x_distance);
-                //Serial.print(" | Z_distance: ");
-                //Serial.print(z_distance);
-                return x_distance;
+                if(mpu_degraded_flag) {
+                  Serial.print("Obstacle detected. X_distance: ");
+                  Serial.print(x_distance);
+                  Serial.print(" | Z_distance: ");
+                  Serial.print(z_distance);
+                  Serial.println();
+                  return x_distance;
+                } else {
+                  if(*velocity > 0) {
+                    Serial.print("Obstacle detected. X_distance: ");
+                    Serial.print(x_distance);
+                    Serial.print(" | Z_distance: ");
+                    Serial.print(z_distance);
+                    Serial.println();
+                    return x_distance;
+                  } else {
+                    Serial.println("Velocity is zero or negative; Ignoring obstacle.");
+                    return 0;
+                  }
+                }
             }
         }
     }
@@ -397,17 +414,14 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
     vibration_params[1] = (void*)&vib_pattern; 
 
     if(system_settings.getMode() == "Vibration") {
-        Serial.println("Alerted collision from vibration");
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &vibration_params, 4, nullptr);
         vTaskDelay(1500);
     }
     if(system_settings.getMode() == "Sound") {
-        Serial.println("Alerted collision from sound");
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1500);
     }
     if(system_settings.getMode() == "Both") {
-        Serial.println("Alerted collision from both");
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &vibration_params, 4, nullptr);  
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1500);

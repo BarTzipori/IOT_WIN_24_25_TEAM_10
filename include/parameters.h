@@ -1,4 +1,3 @@
-//user defined parameters
 
 //SAFESTEP system defines
 
@@ -18,8 +17,6 @@
 #define MP3_RX 45
 #define MP3_TX 48
 #define ON_OFF_BUTTON_PIN 46
-#define LONG_PRESS_TIME 10000
-#define SHORT_PRESS_TIME 10000
 #define VOICE_ALERTS_DIR 0x06
 #define ALERTS_DIR 0x07
 #define LONG_PRESS_THRESHOLD 10000  // 10 second for long press
@@ -76,6 +73,8 @@
 #define GYRO_CALIBRATION_START 0x0C
 #define MAG_CALIBRATION_START 0x0D
 #define MPU_CALIBRATION_DONE 0x0E
+#define MPU_SENSOR_DEGRADED 0x0F
+#define DISTANCE_SENSOR_DEGRADED 0x10
 
 
 
