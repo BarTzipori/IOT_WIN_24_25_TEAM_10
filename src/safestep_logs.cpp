@@ -1,4 +1,5 @@
-#include "logs.h"
+#include "safestep_logs.h"
+#include "WebSerial.h"
 
 String log_filename;
 

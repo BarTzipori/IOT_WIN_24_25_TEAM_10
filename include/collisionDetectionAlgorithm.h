@@ -7,6 +7,7 @@
 #include "parameters.h"
 #include "vibrationMotor.h"
 #include "RedMP3.h"
+#include "safestep_logs.h"
 
 // Function prototypes
 void vibrateMotorsAsTask(void *pvParameters);

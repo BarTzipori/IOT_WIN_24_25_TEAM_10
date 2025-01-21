@@ -182,9 +182,10 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
             Serial.print(x_distance);
             Serial.print(", Z_distance: ");
             Serial.println(z_distance);
+            String log_data = "Obstacle ignored (above user's head or at X=0). X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance);
+            logData(log_data);
             continue;
         }
-
         // Check if we are walking toward the obstacle
         if (previous_x_distance == -1 || x_distance < previous_x_distance) {
             if (*velocity <= 0) {
@@ -198,18 +199,19 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
                 Serial.print(" | Expected Impact time: ");
                 Serial.println(impact_time);
                 Serial.println();
-
+                String log_data = "Obstacle detected. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance) + ", Expected Impact time: " + String(impact_time);
+                logData(log_data);
                 // Update the previous x_distance
                 previous_x_distance = x_distance;
-
                 return impact_time;
             }
         } else {
             Serial.print("Obstacle detected, but user is not walking toward it. X_distance: ");
             Serial.println(x_distance);
+            String log_data = "Obstacle detected, but user is not walking toward it. X_distance: " + String(x_distance);
+            logData(log_data);
         }
     }
-
     // If no obstacles are detected or all are ignored, do not reset previous_x_distance
     if (distances.empty()) {
         previous_x_distance = -1; // Reset if no obstacles are valid
@@ -272,6 +274,8 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
             Serial.println(x_distance);
             Serial.print("z distance: ");
             Serial.println(z_distance);
+            String log_data = "Obstacle detected but will be ignored as it is above user's head or at X=0. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance);
+            logData(log_data);
             continue;
         }
 
@@ -285,6 +289,8 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
                 Serial.print(z_distance);
                 Serial.println();
                 previous_x_distance = x_distance; // Update the previous distance
+                String log_data = "Obstacle detected in degraded mode. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance);
+                //logData(log_data);
                 return x_distance;
             } else {
                 // Handle normal scenario
@@ -295,6 +301,8 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
                     Serial.print(z_distance);
                     Serial.println();
                     previous_x_distance = x_distance; // Update the previous distance
+                    String log_data = "Obstacle detected. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance);
+                    logData(log_data);
                     return x_distance;
                 } else {
                     Serial.println("Velocity is zero or negative; Ignoring obstacle.");
@@ -302,6 +310,8 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
             }
         } else {
             Serial.print("Obstacle detected, but user is not walking toward it. X_distance: ");
+            String log_data = "Obstacle detected, but user is not walking toward it. X_distance: " + String(x_distance);
+            logData(log_data);
             Serial.println(x_distance);
         }
     }
@@ -356,36 +366,36 @@ bool collisionTimeAlertHandler(double collision_time, systemSettings& system_set
 bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& system_settings, const MP3& mp3, vibrationMotor& motor1) {
     if (obstacle_distance > 0) {
       if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
-        if (obstacle_distance <= system_settings.getAlertDistance1()){
+        if (obstacle_distance <= system_settings.getAlertDistance1()*10){
           Serial.println("Alerted collision from alert 1");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
-        if (obstacle_distance <= system_settings.getAlertDistance1() && obstacle_distance > system_settings.getAlertDistance2()) {
+        if (obstacle_distance <= system_settings.getAlertDistance1()*10 && obstacle_distance > system_settings.getAlertDistance2()*10) {
           Serial.println("Alerted collision from alert 1");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
-        if (obstacle_distance <= system_settings.getAlertDistance2() && obstacle_distance > 0) {
+        if (obstacle_distance <= system_settings.getAlertDistance2()*10 && obstacle_distance > 0) {
           Serial.println("Alerted collision from alert 2");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
-        if (obstacle_distance <= system_settings.getAlertDistance1() && obstacle_distance > system_settings.getAlertDistance2()) {
+        if (obstacle_distance <= system_settings.getAlertDistance1()*10 && obstacle_distance > system_settings.getAlertDistance2()*10) {
           Serial.println("Alerted collision from alert 1");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
-        if (obstacle_distance <= system_settings.getAlertDistance2() && obstacle_distance > system_settings.getAlertDistance3()) {
+        if (obstacle_distance <= system_settings.getAlertDistance2()*10 && obstacle_distance > system_settings.getAlertDistance3()*10) {
           Serial.println("Alerted collision from alert 2");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
-        if (obstacle_distance > 0 && obstacle_distance <= system_settings.getAlertDistance3()) {
+        if (obstacle_distance > 0 && obstacle_distance <= system_settings.getAlertDistance3()*10) {
           Serial.println("Alerted collision from alert 3");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3(), system_settings.getAlertSound3AsInt());
           return true;

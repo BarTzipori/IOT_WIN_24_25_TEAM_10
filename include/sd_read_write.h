@@ -1,5 +1,5 @@
-#ifndef __SD_READ_WRITE_H
-#define __SD_READ_WRITE_H
+#ifndef _SD_READ_WRITE_H
+#define _SD_READ_WRITE_H
 
 #include "Arduino.h"
 #include "FS.h"
