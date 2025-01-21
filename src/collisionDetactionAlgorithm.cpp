@@ -131,49 +131,41 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
 }
 
 double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
-    
-    //user height
-    double user_height_in_mm = system_settings.getUserHeight(); // height of user in mm
-    double system_height_in_mm = system_settings.getSystemHeight(); //height of the system in mm
-    double impact_time = 0.0;
-    //distance in X and Z from sensor 1
-    int x_distance_from_sensor1 = sensor_data.getDistanceSensor1() * cos(SENSOR_1_ANGLE * (M_PI / 180.0));
-    int z_distance_from_sensor1 = sensor_data.getDistanceSensor1() * sin(SENSOR_1_ANGLE * (M_PI / 180.0));      
-    //distance in X and Z fron semsor 2
-    int x_distance_from_sensor2 = sensor_data.getDistanceSensor2() * cos(SENSOR_2_ANGLE * (M_PI / 180.0));
-    int z_distance_from_sensor2 = sensor_data.getDistanceSensor2() * sin(SENSOR_2_ANGLE * (M_PI / 180.0));
-    //distance in X and Z from sensor 3
-    int x_distance_from_sensor3 = sensor_data.getDistanceSensor3() * cos(SENSOR_3_ANGLE * (M_PI / 180.0));
-    int z_distance_from_sensor3 = sensor_data.getDistanceSensor3() * sin(SENSOR_3_ANGLE * (M_PI / 180.0));
-    //distance in X and Z from sensor 4
-    int x_distance_from_sensor4 = sensor_data.getDistanceSensor4() * cos(SENSOR_4_ANGLE * (M_PI / 180.0));
-    int z_distance_from_sensor4 = sensor_data.getDistanceSensor4() * sin(SENSOR_4_ANGLE * (M_PI / 180.0));
+    // Static variable to store the previous x_distance
+    static int previous_x_distance = -1; // Initialize with an invalid value
 
-// Calculate the height of the user's head
+    // User and system heights
+    double user_height_in_mm = system_settings.getUserHeight()*10; // Height of user in mm
+    double system_height_in_mm = system_settings.getSystemHeight()*10; // Height of the system in mm
+    double impact_time = 0.0;
+
+    // Calculate the height of the user's head
     double user_head_height = user_height_in_mm - system_height_in_mm;
 
     // Store distances (X, Z) in a vector for sorting
     std::vector<std::pair<int, int>> distances;
 
+    double pitch_value = sensor_data.getPitch();
+
     // Calculate and store distances for each sensor
     distances.push_back({ 
-        sensor_data.getDistanceSensor1() * cos(SENSOR_1_ANGLE * (M_PI / 180.0)), 
-        sensor_data.getDistanceSensor1() * sin(SENSOR_1_ANGLE * (M_PI / 180.0)) 
+        sensor_data.getDistanceSensor1() * cos((SENSOR_1_ANGLE + pitch_value) * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor1() * sin((SENSOR_1_ANGLE + pitch_value) * (M_PI / 180.0)) 
     });
 
     distances.push_back({ 
-        sensor_data.getDistanceSensor2() * cos(SENSOR_2_ANGLE * (M_PI / 180.0)), 
-        sensor_data.getDistanceSensor2() * sin(SENSOR_2_ANGLE * (M_PI / 180.0)) 
+        sensor_data.getDistanceSensor2() * cos((SENSOR_2_ANGLE + pitch_value) * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor2() * sin((SENSOR_2_ANGLE + pitch_value) * (M_PI / 180.0)) 
     });
 
     distances.push_back({ 
-        sensor_data.getDistanceSensor3() * cos(SENSOR_3_ANGLE * (M_PI / 180.0)), 
-        sensor_data.getDistanceSensor3() * sin(SENSOR_3_ANGLE * (M_PI / 180.0)) 
+        sensor_data.getDistanceSensor3() * cos((SENSOR_3_ANGLE + pitch_value) * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor3() * sin((SENSOR_3_ANGLE + pitch_value) * (M_PI / 180.0)) 
     });
 
     distances.push_back({ 
-        sensor_data.getDistanceSensor4() * cos(SENSOR_4_ANGLE * (M_PI / 180.0)), 
-        sensor_data.getDistanceSensor4() * sin(SENSOR_4_ANGLE * (M_PI / 180.0)) 
+        sensor_data.getDistanceSensor4() * cos((SENSOR_4_ANGLE + pitch_value) * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor4() * sin((SENSOR_4_ANGLE + pitch_value) * (M_PI / 180.0)) 
     });
 
     // Sort distances by X (ascending)
@@ -184,87 +176,85 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
         int x_distance = distance.first;
         int z_distance = distance.second;
 
-        // Ignore distances where Z is higher than the user's head
+        // Ignore distances where Z is higher than the user's head or X is 0
         if (x_distance == 0 || z_distance > user_head_height) {
-            if(x_distance == 0) {
-                continue;
-            }
-            Serial.print("x distance: ");
-            Serial.println(x_distance);
-            Serial.print("z distance: ");
+            Serial.print("Obstacle ignored (above user's head or at X=0). X_distance: ");
+            Serial.print(x_distance);
+            Serial.print(", Z_distance: ");
             Serial.println(z_distance);
-            Serial.print("user head height: ");
-            Serial.println(user_head_height);
-            Serial.print("system height: ");
-            Serial.println(system_height_in_mm);
-            Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
-            Serial.println();
             continue;
-        } else {
+        }
+
+        // Check if we are walking toward the obstacle
+        if (previous_x_distance == -1 || x_distance < previous_x_distance) {
             if (*velocity <= 0) {
                 Serial.println("Velocity is zero or negative; cannot calculate impact time.");
-            } else if (x_distance <= 0) {
-                Serial.println("Invalid x_distance; cannot calculate impact time.");
             } else {
                 impact_time = (x_distance / 1000.0) / *velocity;
+                Serial.print("Obstacle detected. X_distance: ");
+                Serial.print(x_distance);
+                Serial.print(" | Z_distance: ");
+                Serial.print(z_distance);
+                Serial.print(" | Expected Impact time: ");
+                Serial.println(impact_time);
+                Serial.println();
+
+                // Update the previous x_distance
+                previous_x_distance = x_distance;
+
+                return impact_time;
             }
-            impact_time = (x_distance/1000.0) / *velocity;
-            Serial.print("Obstacle detected. X_distance: ");
-            Serial.print(x_distance);
-            Serial.print(" | Z_distance: ");
-            Serial.print(z_distance);
-            Serial.print(" | Expected Impact time: ");
-            Serial.println(impact_time);
-            Serial.println();
-            return impact_time;
+        } else {
+            Serial.print("Obstacle detected, but user is not walking toward it. X_distance: ");
+            Serial.println(x_distance);
         }
     }
+
+    // If no obstacles are detected or all are ignored, do not reset previous_x_distance
+    if (distances.empty()) {
+        previous_x_distance = -1; // Reset if no obstacles are valid
+    }
+
     return 0;
 }
 
 double distanceToNearestObstacle(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity, bool mpu_degraded_flag) {
-        //user height
-    double user_height_in_mm = system_settings.getUserHeight(); // height of user in mm
-    double system_height_in_mm = system_settings.getSystemHeight(); //height of the system in mm
-    double impact_time = 0.0;
-    //distance in X and Z from sensor 1
-    int x_distance_from_sensor1 = sensor_data.getDistanceSensor1() * cos(SENSOR_1_ANGLE * (M_PI / 180.0));
-    int z_distance_from_sensor1 = sensor_data.getDistanceSensor1() * sin(SENSOR_1_ANGLE * (M_PI / 180.0));      
-    //distance in X and Z fron semsor 2
-    int x_distance_from_sensor2 = sensor_data.getDistanceSensor2() * cos(SENSOR_2_ANGLE * (M_PI / 180.0));
-    int z_distance_from_sensor2 = sensor_data.getDistanceSensor2() * sin(SENSOR_2_ANGLE * (M_PI / 180.0));
-    //distance in X and Z from sensor 3
-    int x_distance_from_sensor3 = sensor_data.getDistanceSensor3() * cos(SENSOR_3_ANGLE * (M_PI / 180.0));
-    int z_distance_from_sensor3 = sensor_data.getDistanceSensor3() * sin(SENSOR_3_ANGLE * (M_PI / 180.0));
-    //distance in X and Z from sensor 4
-    int x_distance_from_sensor4 = sensor_data.getDistanceSensor4() * cos(SENSOR_4_ANGLE * (M_PI / 180.0));
-    int z_distance_from_sensor4 = sensor_data.getDistanceSensor4() * sin(SENSOR_4_ANGLE * (M_PI / 180.0));
+    // Static variable to track the previous x_distance
+    static int previous_x_distance = -1; // Initialize with an invalid value
 
-// Calculate the height of the user's head
+    // User and system heights
+    double user_height_in_mm = system_settings.getUserHeight()*10; // Height of user in mm
+    double system_height_in_mm = system_settings.getSystemHeight()*10; // Height of the system in mm
+
+    // Calculate the height of the user's head
     double user_head_height = user_height_in_mm - system_height_in_mm;
 
     // Store distances (X, Z) in a vector for sorting
     std::vector<std::pair<int, int>> distances;
+    double pitch_value = 0;
+    if(!mpu_degraded_flag) {
+      double pitch_value = sensor_data.getPitch();
+    }
 
     // Calculate and store distances for each sensor
     distances.push_back({ 
-        sensor_data.getDistanceSensor1() * cos(SENSOR_1_ANGLE * (M_PI / 180.0)), 
-        sensor_data.getDistanceSensor1() * sin(SENSOR_1_ANGLE * (M_PI / 180.0)) 
+        sensor_data.getDistanceSensor1() * cos((SENSOR_1_ANGLE + pitch_value) * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor1() * sin((SENSOR_1_ANGLE + pitch_value) * (M_PI / 180.0)) 
     });
 
     distances.push_back({ 
-        sensor_data.getDistanceSensor2() * cos(SENSOR_2_ANGLE * (M_PI / 180.0)), 
-        sensor_data.getDistanceSensor2() * sin(SENSOR_2_ANGLE * (M_PI / 180.0)) 
+        sensor_data.getDistanceSensor2() * cos((SENSOR_2_ANGLE + pitch_value) * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor2() * sin((SENSOR_2_ANGLE + pitch_value) * (M_PI / 180.0)) 
     });
 
     distances.push_back({ 
-        sensor_data.getDistanceSensor3() * cos(SENSOR_3_ANGLE * (M_PI / 180.0)), 
-        sensor_data.getDistanceSensor3() * sin(SENSOR_3_ANGLE * (M_PI / 180.0)) 
+        sensor_data.getDistanceSensor3() * cos((SENSOR_3_ANGLE + pitch_value) * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor3() * sin((SENSOR_3_ANGLE + pitch_value) * (M_PI / 180.0)) 
     });
 
     distances.push_back({ 
-        sensor_data.getDistanceSensor4() * cos(SENSOR_4_ANGLE * (M_PI / 180.0)), 
-        sensor_data.getDistanceSensor4() * sin(SENSOR_4_ANGLE * (M_PI / 180.0)) 
+        sensor_data.getDistanceSensor4() * cos((SENSOR_4_ANGLE + pitch_value) * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor4() * sin((SENSOR_4_ANGLE + pitch_value) * (M_PI / 180.0)) 
     });
 
     // Sort distances by X (ascending)
@@ -275,45 +265,49 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
         int x_distance = distance.first;
         int z_distance = distance.second;
 
-        // Ignore distances where Z is higher than the user's head
+        // Ignore distances where Z is higher than the user's head or X is 0
         if (x_distance == 0 || z_distance > user_head_height) {
-            if(x_distance == 0) {
-                return 0;
-            }
-            Serial.println("Obstacle detected but will be ignored as it is above user's head or at 0");
+            Serial.println("Obstacle detected but will be ignored as it is above user's head or at X=0");
             Serial.print("x distance: ");
             Serial.println(x_distance);
             Serial.print("z distance: ");
             Serial.println(z_distance);
-            Serial.println();
             continue;
-        } else {
-            if (x_distance <= 0) {
-                Serial.println("Invalid x_distance; Ignoring obstacle.");
+        }
+
+        // Check if the user is approaching the obstacle
+        if (previous_x_distance == -1 || x_distance < previous_x_distance) {
+            if (mpu_degraded_flag) {
+                // Handle mpu degraded scenario
+                Serial.print("Obstacle detected in degraded mode. X_distance: ");
+                Serial.print(x_distance);
+                Serial.print(" | Z_distance: ");
+                Serial.print(z_distance);
+                Serial.println();
+                previous_x_distance = x_distance; // Update the previous distance
+                return x_distance;
             } else {
-                if(mpu_degraded_flag) {
-                  Serial.print("Obstacle detected. X_distance: ");
-                  Serial.print(x_distance);
-                  Serial.print(" | Z_distance: ");
-                  Serial.print(z_distance);
-                  Serial.println();
-                  return x_distance;
-                } else {
-                  if(*velocity > 0) {
+                // Handle normal scenario
+                if (*velocity > 0) {
                     Serial.print("Obstacle detected. X_distance: ");
                     Serial.print(x_distance);
                     Serial.print(" | Z_distance: ");
                     Serial.print(z_distance);
                     Serial.println();
+                    previous_x_distance = x_distance; // Update the previous distance
                     return x_distance;
-                  } else {
+                } else {
                     Serial.println("Velocity is zero or negative; Ignoring obstacle.");
-                    return 0;
-                  }
                 }
             }
+        } else {
+            Serial.print("Obstacle detected, but user is not walking toward it. X_distance: ");
+            Serial.println(x_distance);
         }
     }
+
+    // If no valid obstacles are found, reset previous_x_distance
+    previous_x_distance = -1;
     return 0;
 }
 

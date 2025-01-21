@@ -29,23 +29,58 @@ void playSound1() {
   Serial.println("played sound 1");
   Serial.println("playing sound");
   mp3.setVolume(0x1e);
-  mp3.playWithFileName(0x06,0x01);
+  mp3.playWithFileName(ALERTS_DIR,COLLISION_WARNING_HEBREW);
   server.send(200, "text/plain", "Sound 1 played");
 }
 
 void playSound2() {
   // Add code to play sound 2
   mp3.setVolume(0x1e);
-  mp3.playWithFileName(0x06,0x02);
+  mp3.playWithFileName(ALERTS_DIR,ALARM_CLOCK_4_BEEPS);
   server.send(200, "text/plain", "Sound 2 played");
 }
 
 void playSound3() {
   // Add code to play sound 3
   mp3.setVolume(0x1e);
-  mp3.playWithFileName(0x06,0x03);
+  mp3.playWithFileName(ALERTS_DIR,ALERT_1);
   
   server.send(200, "text/plain", "Sound 3 played");
+}
+void playSound4() {
+  // Add code to play sound 3
+  mp3.setVolume(0x1e);
+  mp3.playWithFileName(ALERTS_DIR,ALERT_2);
+  
+  server.send(200, "text/plain", "Sound 4 played");
+}
+void playSound5() {
+  // Add code to play sound 3
+  mp3.setVolume(0x1e);
+  mp3.playWithFileName(ALERTS_DIR,BEEP_BEEP);
+  
+  server.send(200, "text/plain", "Sound 5 played");
+}
+void playSound6() {
+  // Add code to play sound 3
+  mp3.setVolume(0x1e);
+  mp3.playWithFileName(ALERTS_DIR,WARNING_BEEPS);
+  
+  server.send(200, "text/plain", "Sound 6 played");
+}
+void playSound7() {
+  // Add code to play sound 3
+  mp3.setVolume(0x1e);
+  mp3.playWithFileName(ALERTS_DIR,NOTIFICATION_SOUND);
+  
+  server.send(200, "text/plain", "Sound 7 played");
+}
+void playSound8() {
+  // Add code to play sound 3
+  mp3.setVolume(0x1e);
+  mp3.playWithFileName(ALERTS_DIR,BEEP_BEEP_BEEP);
+  
+  server.send(200, "text/plain", "Sound 8 played");
 }
 
 void playVibrationShort() {

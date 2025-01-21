@@ -76,6 +76,17 @@
 #define MPU_SENSOR_DEGRADED 0x0F
 #define DISTANCE_SENSOR_DEGRADED 0x10
 
+//notification sounds indexes
+
+#define COLLISION_WARNING_HEBREW 0x01
+#define ALARM_CLOCK_4_BEEPS 0x02
+#define ALERT_1 0x03
+#define ALERT_2 0x04
+#define BEEP_BEEP 0x05
+#define WARNING_BEEPS 0x06
+#define NOTIFICATION_SOUND 0x07
+#define BEEP_BEEP_BEEP 0x08
+
 
 
 

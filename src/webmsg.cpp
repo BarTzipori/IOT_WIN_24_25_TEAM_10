@@ -11,7 +11,6 @@ void onReceive(uint8_t* data, size_t len) {
   Serial.println();
 }
 
-
 void setupMsgServer(){
     WebSerial.begin(&msgserver);
 
