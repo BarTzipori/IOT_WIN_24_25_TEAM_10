@@ -279,11 +279,11 @@ void setup()
   mpu_setting.accel_dlpf_cfg = ACCEL_DLPF_CFG::DLPF_5HZ;
   
   systemInit();
-  
+
   // Initializes MPU
   if (!mpu.setup(MPU9250_ADDRESS, mpu_setting)){ 
       Serial.println("ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATE IN DOWNGRADED MODE");
-      String log_data = "ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATR IN DEGRADED MODE";
+      String log_data = "ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATRE IN DEGRADED MODE";
       logData(log_data);
       mp3.playWithFileName(VOICE_ALERTS_DIR, MPU_SENSOR_DEGRADED);
       mpu_degraded_flag = true;
