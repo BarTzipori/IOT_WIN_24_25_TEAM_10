@@ -29,6 +29,14 @@
 #include "camera.h"
 #include "webmsg.h"
 
+
+struct VelocityTaskParams {
+    int delay_in_ms; // Delay in milliseconds
+    systemSettings *settings; // Pointer to systemSettings object
+    double *velocity; // Pointer to the velocity variable
+    int *step_count;  
+};
+
 // system sensor objects
 Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1);
 Adafruit_VL53L1X vl53_2 = Adafruit_VL53L1X(XSHUT_PIN_2);
@@ -150,15 +158,20 @@ void sampleSensorsData(void *pvParameters) {
 
 void calculateVelocityAsTask(void *pvParameters)
 {
-  int delay_in_ms = *(int *)pvParameters;
-  while (true)
-  {
-    if (is_system_on)
-    {
-      calculateStepCountAndSpeed(sensor_data, &step_count, &velocity, 1.75);
+    // Cast the void* parameter to VelocityTaskParams*
+    VelocityTaskParams *params = (VelocityTaskParams *)pvParameters;
+    int delay_in_ms = params->delay_in_ms;
+    systemSettings *settings = params->settings; 
+    double *velocity = params->velocity;             
+    int *step_count = params->step_count;  
+    float user_height_in_meters = settings->getUserHeight()/100;
+
+    while (true) {
+      if (is_system_on) {
+        calculateStepCountAndSpeed(sensor_data, step_count, velocity, user_height_in_meters);
+      }
+      vTaskDelay(delay_in_ms);
     }
-    vTaskDelay(delay_in_ms);
-  }
 }
 
 void systemInit()
@@ -227,7 +240,6 @@ void systemInit()
   Serial.printf("--------- System Init Done ---------\n");
 }
 
-
 void setup()
 {
   
@@ -285,8 +297,10 @@ void setup()
   delay(2000);
   is_system_on = true;
   // Creates threaded tasks
+  VelocityTaskParams params = {SpeedCalcDelay, &system_settings, &velocity, &step_count};
+
   xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
-  xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &SpeedCalcDelay, 3, nullptr);
+  xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &params, 3, nullptr);
 }
 
 void loop()
