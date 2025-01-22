@@ -52,11 +52,9 @@ extern FirebaseData firebaseData; // Firebase object
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
-bool wifi_flag = false;
-bool sd_flag = false;
-bool camera_flag = false;
+Flags flags;
 
-extern systemSettings system_settings;
+systemSettings system_settings;
 // bool save_flag = false;
 
 WiFiClientSecure client;
@@ -166,32 +164,34 @@ void calculateVelocityAsTask(void *pvParameters)
 void systemInit()
 {
   Serial.println("--------- System Init ---------");
-  if (!wifi_flag) {
-    wifi_flag = WifiSetup();
+  if (!flags.wifi_flag) {
+    flags.wifi_flag = WifiSetup();
   }
-  if(wifi_flag) {
+  if(flags.wifi_flag) {
+    setupTime();
     mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_CONNECTED);
     delay(1000);
   } else {
     mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_NOT_CONNECTED);
     delay(2000);
   }
-  if(!sd_flag) {
+  if(!flags.sd_flag) {
     if (setupSDCard()) {
-      init_sd_card();     
+      init_sd_card();
+      init_logs(flags.wifi_flag);
       system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
-      sd_flag = true;
+      flags.sd_flag = true;
       // Serial.println("----------------");
       // system_settings.print();
     } else {
       Serial.println("Failed to initialize SD card");
       mp3.playWithFileName(VOICE_ALERTS_DIR, NO_SD_DETECTED);
       delay(4000);
-      sd_flag = false;
+      flags.sd_flag = false;
     }
   }
   // if we managed to connect to WIFI - use firebase settings, as they are the most updated.
-  if (wifi_flag)
+  if (flags.wifi_flag)
   {
     setupFirebase(config, auth);
     // storeFirebaseSetting(&firebaseData,system_settings);
@@ -201,7 +201,7 @@ void systemInit()
       if (system_settings.updateSettings(system_settings_from_fb))
       {
         system_settings.print();
-        if (sd_flag)
+        if (flags.sd_flag)
           updateSDSettings(system_settings);
       }
     }
@@ -211,15 +211,15 @@ void systemInit()
     setupTime();
     // createDir(SD_MMC,"/images");
   }
-  if(!camera_flag) {
-    camera_flag = setupCamera();
-    if (!camera_flag) {
+  if(!flags.camera_flag) {
+    flags.camera_flag = setupCamera();
+    if (!flags.camera_flag) {
       mp3.playWithFileName(VOICE_ALERTS_DIR, NO_CAMERA_DETECTED);
       delay(3000);
     }
   }
 
-  if(!wifi_flag && !sd_flag){
+  if(!flags.wifi_flag && !flags.sd_flag){
     mp3.playWithFileName(VOICE_ALERTS_DIR, NO_SD_AND_WIFI);
     delay(7000);
   }
@@ -230,6 +230,7 @@ void systemInit()
 
 void setup()
 {
+  
   static int DistanceSensorDelay = 50;
   static int SpeedCalcDelay = 100;
   delay(500);
@@ -288,13 +289,17 @@ void setup()
   delay(2000);
   is_system_on = true;
   // Creates threaded tasks
-  xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
+  //xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
   xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &SpeedCalcDelay, 2, nullptr);
 }
 
 void loop()
 {
-
+if(flags.wifi_flag)
+{
+  wifiServerLoop();
+  msgServerLoop();
+}
 onOffButton.loop(); // Update button state
 
 static bool is_double_press_pending = false; // Flag to track potential double press
@@ -347,7 +352,7 @@ if (onOffButton.isReleased())
             if(!WifiManagerSetup()) {
               Serial.println("Failed to connect to a new network, using SD card settings instead...");
             } else {
-              wifi_flag = true;
+              flags.wifi_flag = true;
               systemInit();
             }; // Perform double press action
             // Reset double press tracking
@@ -397,7 +402,7 @@ if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRES
             double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
             if(collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
               if(system_settings.getEnableCamera()){
-                CaptureObstacle(fbdo, auth, config, wifi_flag);
+                CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
               }
             }
         }
@@ -407,7 +412,7 @@ if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRES
             double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity, mpu_degraded_flag);
             if(obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
               if(system_settings.getEnableCamera()){
-                CaptureObstacle(fbdo, auth, config, wifi_flag);
+                CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
               }
             }  
           }              

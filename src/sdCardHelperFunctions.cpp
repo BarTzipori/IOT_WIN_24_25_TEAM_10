@@ -101,6 +101,7 @@ void updateSDSettings(systemSettings &s)
     String mode("Mode: ");
     mode = mode + s.getMode();
     writeFile(SD_MMC, "/Settings/setting.txt", mode);
+    appendFile(SD_MMC, "/Settings/setting.txt", "Method: " + s.getAlertMethod());
     appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_1: " + s.getAlertSound1());
     appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_2: " + s.getAlertSound2());
     appendFile(SD_MMC, "/Settings/setting.txt", "alert_sound_3: " + s.getAlertSound3());
@@ -110,6 +111,9 @@ void updateSDSettings(systemSettings &s)
     appendFile(SD_MMC, "/Settings/setting.txt", "alert_timing_1: " + String(s.getAlertTiming1()));
     appendFile(SD_MMC, "/Settings/setting.txt", "alert_timing_2: " + String(s.getAlertTiming2()));
     appendFile(SD_MMC, "/Settings/setting.txt", "alert_timing_3: " + String(s.getAlertTiming3()));
+    appendFile(SD_MMC, "/Settings/setting.txt", "alert_distance_1: " + String(s.getAlertDistance1()));
+    appendFile(SD_MMC, "/Settings/setting.txt", "alert_distance_2: " + String(s.getAlertDistance2()));
+    appendFile(SD_MMC, "/Settings/setting.txt", "alert_distance_3: " + String(s.getAlertDistance3()));
     appendFile(SD_MMC, "/Settings/setting.txt", "user_height: " + String(s.getUserHeight()));
     appendFile(SD_MMC, "/Settings/setting.txt", "system_height: " + String(s.getSystemHeight()));
     appendFile(SD_MMC, "/Settings/setting.txt", "enable_alert_1: " + String(s.getEnableAlert1()));

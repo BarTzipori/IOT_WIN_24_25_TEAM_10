@@ -128,18 +128,15 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     Serial.print(" | Step Count: ");
     Serial.println(*stepCount);
     Serial.println();
-    String log_data = "Delta AccX: " + String(deltaAccX) + ", Delta Gyro Magnitude: " + String(deltaGyroMagnitude) + ", Step Count: " + String(*stepCount);
-    logData(log_data);
 }
 
 double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
     // Static variable to store the previous x_distance
     static int previous_x_distance = -1; // Initialize with an invalid value
-    const int DISTANCE_CHANGE_THRESHOLD = 20; // Threshold in mm to consider significant movement
 
     // User and system heights
-    double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
-    double system_height_in_mm = system_settings.getSystemHeight() * 10; // Height of the system in mm
+    double user_height_in_mm = system_settings.getUserHeight()*10; // Height of user in mm
+    double system_height_in_mm = system_settings.getSystemHeight()*10; // Height of the system in mm
     double impact_time = 0.0;
 
     // Calculate the height of the user's head
@@ -151,31 +148,28 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
     double pitch_value = sensor_data.getPitch();
 
     // Calculate and store distances for each sensor
-    distances.push_back({
-        sensor_data.getDistanceSensor1() * cos((SENSOR_1_ANGLE + pitch_value) * (M_PI / 180.0)),
-        sensor_data.getDistanceSensor1() * sin((SENSOR_1_ANGLE + pitch_value) * (M_PI / 180.0))
+    distances.push_back({ 
+        sensor_data.getDistanceSensor1() * cos((SENSOR_1_ANGLE + pitch_value) * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor1() * sin((SENSOR_1_ANGLE + pitch_value) * (M_PI / 180.0)) 
     });
 
-    distances.push_back({
-        sensor_data.getDistanceSensor2() * cos((SENSOR_2_ANGLE + pitch_value) * (M_PI / 180.0)),
-        sensor_data.getDistanceSensor2() * sin((SENSOR_2_ANGLE + pitch_value) * (M_PI / 180.0))
+    distances.push_back({ 
+        sensor_data.getDistanceSensor2() * cos((SENSOR_2_ANGLE + pitch_value) * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor2() * sin((SENSOR_2_ANGLE + pitch_value) * (M_PI / 180.0)) 
     });
 
-    distances.push_back({
-        sensor_data.getDistanceSensor3() * cos((SENSOR_3_ANGLE + pitch_value) * (M_PI / 180.0)),
-        sensor_data.getDistanceSensor3() * sin((SENSOR_3_ANGLE + pitch_value) * (M_PI / 180.0))
+    distances.push_back({ 
+        sensor_data.getDistanceSensor3() * cos((SENSOR_3_ANGLE + pitch_value) * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor3() * sin((SENSOR_3_ANGLE + pitch_value) * (M_PI / 180.0)) 
     });
 
-    distances.push_back({
-        sensor_data.getDistanceSensor4() * cos((SENSOR_4_ANGLE + pitch_value) * (M_PI / 180.0)),
-        sensor_data.getDistanceSensor4() * sin((SENSOR_4_ANGLE + pitch_value) * (M_PI / 180.0))
+    distances.push_back({ 
+        sensor_data.getDistanceSensor4() * cos((SENSOR_4_ANGLE + pitch_value) * (M_PI / 180.0)), 
+        sensor_data.getDistanceSensor4() * sin((SENSOR_4_ANGLE + pitch_value) * (M_PI / 180.0)) 
     });
 
     // Sort distances by X (ascending)
     std::sort(distances.begin(), distances.end());
-
-    // Flag to track if any valid obstacle is detected
-    bool found_valid_obstacle = false;
 
     // Process each distance
     for (const auto& distance : distances) {
@@ -188,15 +182,12 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
             Serial.print(x_distance);
             Serial.print(", Z_distance: ");
             Serial.println(z_distance);
-            Serial.print("User head height: ");
-            Serial.println(user_head_height);
-            String log_data = "Obstacle detected but ignored: X_distance=" + String(x_distance) + ", Z_distance=" + String(z_distance) + ", User head height=" + String(user_head_height);
+            String log_data = "Obstacle ignored (above user's head or at X=0). X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance);
             logData(log_data);
             continue;
         }
-
         // Check if we are walking toward the obstacle
-        if (previous_x_distance == -1 || (previous_x_distance - x_distance) > DISTANCE_CHANGE_THRESHOLD) {
+        if (previous_x_distance == -1 || x_distance < previous_x_distance) {
             if (*velocity <= 0) {
                 Serial.println("Velocity is zero or negative; cannot calculate impact time.");
             } else {
@@ -208,38 +199,34 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
                 Serial.print(" | Expected Impact time: ");
                 Serial.println(impact_time);
                 Serial.println();
-                String log_data = "Obstacle detected. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance) + ", Impact time: " + String(impact_time);
+                String log_data = "Obstacle detected. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance) + ", Expected Impact time: " + String(impact_time);
                 logData(log_data);
-                previous_x_distance = x_distance; // Update the previous distance
-                found_valid_obstacle = true;
+                // Update the previous x_distance
+                previous_x_distance = x_distance;
                 return impact_time;
             }
         } else {
             Serial.print("Obstacle detected, but user is not walking toward it. X_distance: ");
-            Serial.print(x_distance);
-            Serial.print(" | Previous X_distance: ");
-            Serial.println(previous_x_distance);
-            String log_data = "Obstacle detected but user not walking toward it. X_distance=" + String(x_distance) + ", Previous X_distance=" + String(previous_x_distance);
+            Serial.println(x_distance);
+            String log_data = "Obstacle detected, but user is not walking toward it. X_distance: " + String(x_distance);
             logData(log_data);
         }
     }
-
-    // Reset previous_x_distance only if no valid obstacles are detected
-    if (!found_valid_obstacle) {
-        previous_x_distance = -1;
+    // If no obstacles are detected or all are ignored, do not reset previous_x_distance
+    if (distances.empty()) {
+        previous_x_distance = -1; // Reset if no obstacles are valid
     }
 
-    return 0; // No valid obstacle detected
+    return 0;
 }
 
 double distanceToNearestObstacle(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity, bool mpu_degraded_flag) {
     // Static variable to track the previous x_distance
     static int previous_x_distance = -1; // Initialize with an invalid value
-    const int DISTANCE_CHANGE_THRESHOLD = 20; // Threshold in mm to consider significant movement
 
     // User and system heights
-    double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
-    double system_height_in_mm = system_settings.getSystemHeight() * 10; // Height of the system in mm
+    double user_height_in_mm = system_settings.getUserHeight()*10; // Height of user in mm
+    double system_height_in_mm = system_settings.getSystemHeight()*10; // Height of the system in mm
 
     // Calculate the height of the user's head
     double user_head_height = user_height_in_mm - system_height_in_mm;
@@ -247,8 +234,8 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
     // Store distances (X, Z) in a vector for sorting
     std::vector<std::pair<int, int>> distances;
     double pitch_value = 0;
-    if (!mpu_degraded_flag) {
-        pitch_value = sensor_data.getPitch();
+    if(!mpu_degraded_flag) {
+      double pitch_value = sensor_data.getPitch();
     }
 
     // Calculate and store distances for each sensor
@@ -283,23 +270,39 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
         // Ignore distances where Z is higher than the user's head or X is 0
         if (x_distance == 0 || z_distance > user_head_height) {
             Serial.println("Obstacle detected but will be ignored as it is above user's head or at X=0");
+            Serial.print("x distance: ");
+            Serial.println(x_distance);
+            Serial.print("z distance: ");
+            Serial.println(z_distance);
+            String log_data = "Obstacle detected but will be ignored as it is above user's head or at X=0. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance);
+            logData(log_data);
             continue;
         }
 
         // Check if the user is approaching the obstacle
-        if (previous_x_distance == -1 || (previous_x_distance - x_distance) > DISTANCE_CHANGE_THRESHOLD) {
+        if (previous_x_distance == -1 || x_distance < previous_x_distance) {
             if (mpu_degraded_flag) {
                 // Handle mpu degraded scenario
                 Serial.print("Obstacle detected in degraded mode. X_distance: ");
-                Serial.println(x_distance);
+                Serial.print(x_distance);
+                Serial.print(" | Z_distance: ");
+                Serial.print(z_distance);
+                Serial.println();
                 previous_x_distance = x_distance; // Update the previous distance
+                String log_data = "Obstacle detected in degraded mode. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance);
+                //logData(log_data);
                 return x_distance;
             } else {
                 // Handle normal scenario
                 if (*velocity > 0) {
                     Serial.print("Obstacle detected. X_distance: ");
-                    Serial.println(x_distance);
+                    Serial.print(x_distance);
+                    Serial.print(" | Z_distance: ");
+                    Serial.print(z_distance);
+                    Serial.println();
                     previous_x_distance = x_distance; // Update the previous distance
+                    String log_data = "Obstacle detected. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance);
+                    logData(log_data);
                     return x_distance;
                 } else {
                     Serial.println("Velocity is zero or negative; Ignoring obstacle.");
@@ -307,6 +310,8 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
             }
         } else {
             Serial.print("Obstacle detected, but user is not walking toward it. X_distance: ");
+            String log_data = "Obstacle detected, but user is not walking toward it. X_distance: " + String(x_distance);
+            logData(log_data);
             Serial.println(x_distance);
         }
     }
@@ -361,7 +366,6 @@ bool collisionTimeAlertHandler(double collision_time, systemSettings& system_set
 bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& system_settings, const MP3& mp3, vibrationMotor& motor1) {
     if (obstacle_distance > 0) {
       if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
-        Serial.println("Alert 1 is enabled");
         if (obstacle_distance <= system_settings.getAlertDistance1()*10){
           Serial.println("Alerted collision from alert 1");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
@@ -369,7 +373,6 @@ bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& syst
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
-        Serial.println("Alert 1 and 2 are enabled");
         if (obstacle_distance <= system_settings.getAlertDistance1()*10 && obstacle_distance > system_settings.getAlertDistance2()*10) {
           Serial.println("Alerted collision from alert 1");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
@@ -382,7 +385,6 @@ bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& syst
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
-        Serial.println("Alert 1, 2 and 3 are enabled");
         if (obstacle_distance <= system_settings.getAlertDistance1()*10 && obstacle_distance > system_settings.getAlertDistance2()*10) {
           Serial.println("Alerted collision from alert 1");
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());

@@ -11,7 +11,8 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <time.h>
-
+#include "systemSettings.h"
+#include "safestep_logs.h"
 
 bool setupCamera();
 bool CaptureAndUploadImage(FirebaseData &fbdo,FirebaseAuth &auth, FirebaseConfig &config);

@@ -86,6 +86,7 @@ void writeFile(fs::FS &fs, const char * path, const char * message){
     }
     else
     {
+        file.close();
         Serial.println("Write failed");
     }
 }
@@ -425,16 +426,21 @@ void writeFile(fs::FS &fs, const char * path, String message){
     else
     {
         Serial.println("Write failed");
+        file.close();
     }
 }
 
 void appendFile(fs::FS &fs, const char * path, String message){
-    Serial.printf("Appending to file: %s\n", path);
+    Serial.printf("Appending to file(S): %s\n", path);
 
     File file = fs.open(path, FILE_APPEND);
     if(!file){
         Serial.println("Failed to open file for appending");
         return;
+    }
+    else
+    {
+        Serial.println("File opened for appending");
     }
     String t1(message);
     String t2("\n");
@@ -446,6 +452,7 @@ void appendFile(fs::FS &fs, const char * path, String message){
     else
     {
         Serial.println("Append failed");
+        file.close();
     }
 }
 

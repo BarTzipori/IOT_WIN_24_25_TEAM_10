@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include "sd_read_write.h"
 #include "SD_MMC.h"
+#include "camera.h"
+#include "systemSettings.h"
 
 void logData(String data);
 

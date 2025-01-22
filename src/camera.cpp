@@ -1,9 +1,16 @@
 #include "camera.h"
 #include <Wire.h>
 
+//bool time_flag;
+extern Flags flags;
+
 // Database path to store the image
 String databaseImgPath = "/images/";
 const char *serverUrl = "http://192.168.1.87:5015/upload";
+
+unsigned long lastCaptureTime = 0;
+unsigned long captureInterval = 5000; // Capture an image every 5 seconds
+
 
 bool setupCamera()
 {
@@ -138,7 +145,7 @@ bool savePictureToSD(camera_fb_t *fb, bool wifi_flag)
 String FormatTime(unsigned long currentMillis, bool wifi_flag, bool sd_flag)
 {
   String formattedTime;
-  if (!wifi_flag)
+  if (!wifi_flag&& !flags.time_flag)
   {
     unsigned long hours = currentMillis / 3600000;             // 3600000 milliseconds in one hour
     unsigned long minutes = (currentMillis % 3600000) / 60000; // 60000 milliseconds in one minute
@@ -213,6 +220,14 @@ bool UploadImage(FirebaseData &fbdo, FirebaseAuth &auth, FirebaseConfig &config,
 
 bool CaptureObstacle(FirebaseData &fbdo, FirebaseAuth &auth, FirebaseConfig &config, bool wifi_flag)
 {
+  unsigned long currentTime = millis();
+  if (currentTime - lastCaptureTime < captureInterval)
+  {
+    logData("Image Not Taken - Capture too often");
+    Serial.println("Image Not Taken - Capture too often");
+    return false;
+  }
+  lastCaptureTime = currentTime;
   bool result = false;
   camera_fb_t *fb = capturePicture();
   if (!fb)
