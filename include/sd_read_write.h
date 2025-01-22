@@ -1,5 +1,5 @@
-#ifndef __SD_READ_WRITE_H
-#define __SD_READ_WRITE_H
+#ifndef _SD_READ_WRITE_H
+#define _SD_READ_WRITE_H
 
 #include "Arduino.h"
 #include "FS.h"
@@ -16,6 +16,7 @@ void renameFile(fs::FS &fs, const char * path1, const char * path2);
 void deleteFile(fs::FS &fs, const char * path);
 void testFileIO(fs::FS &fs, const char * path);
 bool isExist(fs::FS &fs, const char *dirname, const char *filename);
+bool isExistFolder(fs::FS &fs, const char *path);
 systemSettings readSettings(fs::FS &fs, const char *path);
 void endFile(fs::FS &fs,const char *path);
 std::vector<String> parseString(String str);

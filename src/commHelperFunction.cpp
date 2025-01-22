@@ -1,5 +1,8 @@
 #include "commHelperFunctions.h"
 
+//extern bool time_flag;
+extern Flags flags;
+
 void setupFirebase(FirebaseConfig &config , FirebaseAuth &auth) {
     config.api_key = API_KEY;
     config.database_url = FIREBASE_HOST;
@@ -69,44 +72,59 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s) {
 
     // Fetching settings
     GET_STRING("/System_Settings/settings/mode", mode);
+    s.setMode(mode);
     GET_STRING("/System_Settings/settings/method", alert_method);
+    s.setAlertMethod(alert_method);
     GET_STRING("/System_Settings/settings/alertSound1", sound_1);
+    s.setAlertSound1(sound_1);
     GET_STRING("/System_Settings/settings/alertSound2", sound_2);
+    s.setAlertSound2(sound_2);
     GET_STRING("/System_Settings/settings/alertSound3", sound_3);
+    s.setAlertSound3(sound_3);
     GET_STRING("/System_Settings/settings/alertVibration1", vibration_1);
+    s.setAlertVibration1(vibration_1);
     GET_STRING("/System_Settings/settings/alertVibration2", vibration_2);
+    s.setAlertVibration2(vibration_2);
     GET_STRING("/System_Settings/settings/alertVibration3", vibration_3);
+    s.setAlertVibration3(vibration_3);
     GET_STRING("/System_Settings/settings/voiceAlertsLanguage", voice_alerts_language);
+    s.setVoiceAlertsLanguage(voice_alerts_language);
 
     GET_DOUBLE("/System_Settings/settings/alertTiming1", timing_1);
+    s.setAlertTiming1(timing_1);
     GET_DOUBLE("/System_Settings/settings/alertTiming2", timing_2);
+    s.setAlertTiming2(timing_2);
     GET_DOUBLE("/System_Settings/settings/alertTiming3", timing_3);
+    s.setAlertTiming3(timing_3);
 
     GET_DOUBLE("/System_Settings/settings/alertDistance1", distance_1);
+    s.setAlertDistance1(distance_1);
     GET_DOUBLE("/System_Settings/settings/alertDistance2", distance_2);
+    s.setAlertDistance2(distance_2);
     GET_DOUBLE("/System_Settings/settings/alertDistance3", distance_3);
+    s.setAlertDistance3(distance_3);
 
     GET_INT("/System_Settings/settings/userHeight", userheight);
+    s.setUserHeight(userheight);
     GET_INT("/System_Settings/settings/systemHeight", systemheight);
+    s.setSystemHeight(systemheight);
     GET_INT("/System_Settings/settings/volume", volume);
+    s.setVolume(volume);
 
     GET_BOOL("/System_Settings/settings/enableAlert1", enable_alert_1);
+    s.setEnableAlert1(enable_alert_1);
     GET_BOOL("/System_Settings/settings/enableAlert2", enable_alert_2);
+    s.setEnableAlert2(enable_alert_2);
     GET_BOOL("/System_Settings/settings/enableAlert3", enable_alert_3);
+    s.setEnableAlert3(enable_alert_3);
     GET_BOOL("/System_Settings/settings/enableVoiceAlerts", enable_voice_alerts);
+    s.setEnableVoiceAlerts(enable_voice_alerts);
     GET_BOOL("/System_Settings/settings/enableCamera", enable_camera);
+    s.setEnableCamera(enable_camera);
 
-    // Construct the systemSettings object with the fetched values
-    systemSettings settings(mode, alert_method, enable_alert_1, enable_alert_2, enable_alert_3,
-                            sound_1, sound_2, sound_3,
-                            vibration_1, vibration_2, vibration_3,
-                            timing_1, timing_2, timing_3,
-                            distance_1, distance_2, distance_3,
-                            userheight, systemheight,
-                            enable_voice_alerts, voice_alerts_language, volume, enable_camera);
-
+    
     Serial.println("Settings retrieved successfully.");
-    s.updateSettings(settings);
+    
     return true;
 }
 
@@ -289,16 +307,19 @@ bool WifiSetup()
 
 void setupTime()
 {
+    //time_flag = false;
     // Set the timezone to Israel (UTC+2) and adjust for DST (+1 hour during DST)
-  const long gmtOffset_sec = 7200; // UTC+2 in seconds
-  const int daylightOffset_sec = 3600; // +1 hour for DST
-  configTime(gmtOffset_sec, daylightOffset_sec, "pool.ntp.org", "time.nist.gov");
+    const long gmtOffset_sec = 7200;     // UTC+2 in seconds
+    const int daylightOffset_sec = 3600; // +1 hour for DST
+    configTime(gmtOffset_sec, daylightOffset_sec, "pool.ntp.org", "time.nist.gov");
 
-  // Get and print the local time
-  struct tm timeinfo;
-  if (getLocalTime(&timeinfo)) {
-    Serial.println("Time synchronized:");
-    Serial.println(&timeinfo, "%Y-%m-%d %H:%M:%S"); // Print the formatted time
+    // Get and print the local time
+    struct tm timeinfo;
+    if (getLocalTime(&timeinfo))
+    {
+        flags.time_flag = true;
+        Serial.println("Time synchronized:");
+        Serial.println(&timeinfo, "%Y-%m-%d %H:%M:%S"); // Print the formatted time
   } else {
     Serial.println("Failed to obtain time");
   }

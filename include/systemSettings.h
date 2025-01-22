@@ -34,9 +34,9 @@ public:
         alert_timing_1(1.5), //in seconds
         alert_timing_2(0.8), // in seconds
         alert_timing_3(0.3), // in seconds
-        alert_distance_1(1000), //in mm
-        alert_distance_2(500), // in mm
-        alert_distance_3(250), // in mm
+        alert_distance_1(100), //in cm
+        alert_distance_2(50), // in cm
+        alert_distance_3(25), // in cm
         user_height(170), //in cm
         system_height(85), //in cm
         enable_voice_alerts(true),
@@ -129,6 +129,14 @@ public:
     vibrationPattern getVibration3AsPattern();
     void changeVolume(int volume, MP3* mp3);
 
+};
+
+
+struct Flags{
+    bool wifi_flag = false;
+    bool sd_flag = false;
+    bool camera_flag = false;
+    bool time_flag = false;
 };
 
 #endif

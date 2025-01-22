@@ -192,16 +192,14 @@ bool systemSettings::updateSettings(systemSettings s)
 
     if (volume != s.getVolume())
     {
-        Serial.println(volume);
-        Serial.println(s.getVolume());
+        
         volume = s.getVolume();
         changed = true;
         Serial.println("Volume changed");
     }
     if (enable_camera != s.getEnableCamera())
     {
-        Serial.println(enable_camera);
-        Serial.println(s.getEnableCamera());
+        
         enable_camera = s.getEnableCamera();
         changed = true;
         Serial.println("Enable Camera changed");

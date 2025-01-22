@@ -9,7 +9,7 @@
 #include "commHelperFunctions.h"
 #include "sdCardHelperFunctions.h"
 
-systemSettings system_settings;
+extern systemSettings system_settings;
 FirebaseData firebaseData;
 
 //MP3 mp3_forServer(MP3_RX, MP3_TX);
