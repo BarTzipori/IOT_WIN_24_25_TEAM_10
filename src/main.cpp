@@ -103,6 +103,7 @@ void sampleSensorsData(void *pvParameters) {
           distance = -1;
           if(distance_sensor_degraded_notification_flag){
             mp3.playWithFileName(VOICE_ALERTS_DIR, DISTANCE_SENSOR_DEGRADED);
+            String log_data = "ERROR: ONE OR MORE DISTANCE MEASURING SENSORS NOT CONNECTED - OPERATING IN DEGRADED MODE";
             vTaskDelay(3000);
             distance_sensor_degraded_notification_flag = false;
           }
@@ -279,7 +280,9 @@ void setup()
 
   // Initializes MPU
   if (!mpu.setup(MPU9250_ADDRESS, mpu_setting)){ 
-      Serial.println("MPU NOT DETECTED - SYSTEM WILL OPERATE IN DOWNGRADED MODE");
+      Serial.println("ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATE IN DOWNGRADED MODE");
+      String log_data = "ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATR IN DEGRADED MODE";
+      logData(log_data);
       mp3.playWithFileName(VOICE_ALERTS_DIR, MPU_SENSOR_DEGRADED);
       mpu_degraded_flag = true;
       delay(5000);
@@ -293,6 +296,8 @@ void setup()
   system_calibrated = true;
   systemInit();
   Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
+  String log_data = "SAFE STEP IS READY TO USE: STARTING OPERATIONS";
+  logData(log_data);
   mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_READY_TO_USE);
   delay(2000);
   is_system_on = true;
@@ -318,7 +323,6 @@ static unsigned long double_press_start_time = 0; // Tracks time of the first pr
 // Press detection
 if (onOffButton.isPressed())
 {
-    Serial.println("Press detected");
     pressed_time = millis();
     is_pressing = true;
     is_long_press = false;
@@ -334,8 +338,9 @@ if (onOffButton.isReleased())
     if (pressDuration >= LONG_PRESS_THRESHOLD)
     {
         // Long press detected
-        Serial.println("Long press detected");
         Serial.println("SAFESTEP MPU RECALIBRATION ROUTINE STARTING...");
+        String log_data = "SAFESTEP MPU RECALIBRATION ROUTINE STARTING...";
+        logData(log_data);
         is_long_press = true; // Set long press flag
         system_calibrated = false;
         calibration_needed = true;
@@ -354,10 +359,11 @@ if (onOffButton.isReleased())
         if (is_double_press_pending)
         {
             // Confirmed double press
-            Serial.println("Double press detected");
             mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_PAIRING_INITIATED);
             delay(100);
             Serial.println("SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...");
+            String log_data = "SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...";
+            logData(log_data);
             motor1.vibrate(vibrationPattern::pulseBuzz);
             if(!WifiManagerSetup()) {
               Serial.println("Failed to connect to a new network, using SD card settings instead...");
@@ -381,8 +387,9 @@ if (onOffButton.isReleased())
 if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRESS_THRESHOLD))
 {
     // No second press detected, treat as a short press
-    Serial.println("Short press detected");
     Serial.println("SAFESTEP SHORT PRESS ROUTINE STARTING...");
+    String log_data = "SAFESTEP SHORT PRESS ROUTINE STARTING...";
+    logData(log_data);
     motor1.vibrate(vibrationPattern::shortBuzz);
 
     // Toggle system mode
