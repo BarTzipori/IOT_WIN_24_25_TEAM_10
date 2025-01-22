@@ -128,8 +128,8 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     Serial.print(" | Step Count: ");
     Serial.println(*stepCount);
     Serial.println();
-    String log_data = "Delta AccX: " + String(deltaAccX) + ", Delta Gyro Magnitude: " + String(deltaGyroMagnitude) + ", Step Count: " + String(*stepCount);
-    logData(log_data);
+    //String log_data = "Delta AccX: " + String(deltaAccX) + ", Delta Gyro Magnitude: " + String(deltaGyroMagnitude) + ", Step Count: " + String(*stepCount);
+    //logData(log_data);
 }
 
 double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
@@ -209,7 +209,7 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
                 Serial.println(impact_time);
                 Serial.println();
                 String log_data = "Obstacle detected. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance) + ", Impact time: " + String(impact_time);
-                logData(log_data);
+                logData(log_data);          
                 previous_x_distance = x_distance; // Update the previous distance
                 found_valid_obstacle = true;
                 return impact_time;

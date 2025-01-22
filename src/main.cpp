@@ -241,8 +241,6 @@ void setup()
   Wire.begin(3, 14);
   Wire.setClock(100000); // Set I2C clock speed to 100 kHz
   delay(100);
-  Serial.println("Starting setup");
-  // nOffButton.setDebounceTime(50);
 
   while (!Serial)
     delay(10);
@@ -251,8 +249,6 @@ void setup()
   {
     pinMode(distance_sensors_xshut_pins[i], OUTPUT);
   }
-  // sets mp3 initial volume
-  //mp3.setVolume(0x15);
   // Initialize Distance measuring sensors
   initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &Wire);
   initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &Wire);
@@ -289,8 +285,8 @@ void setup()
   delay(2000);
   is_system_on = true;
   // Creates threaded tasks
-  //xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
-  xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &SpeedCalcDelay, 2, nullptr);
+  xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
+  xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &SpeedCalcDelay, 3, nullptr);
 }
 
 void loop()

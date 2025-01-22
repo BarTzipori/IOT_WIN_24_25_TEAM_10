@@ -90,8 +90,7 @@ bool init_logs(bool wifi_flag)
     Serial.print("created log file ");
     Serial.println(filename);
     log_filename = filename;
-       
-    
+
     return flag;
 }
 //updates system settings on the SD card
