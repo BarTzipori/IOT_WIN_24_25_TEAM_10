@@ -128,8 +128,8 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     Serial.print(" | Step Count: ");
     Serial.println(*stepCount);
     Serial.println();
-    //String log_data = "Delta AccX: " + String(deltaAccX) + ", Delta Gyro Magnitude: " + String(deltaGyroMagnitude) + ", Step Count: " + String(*stepCount);
-    //logData(log_data);
+    String log_data = "Delta AccX: " + String(deltaAccX) + ", Delta Gyro Magnitude: " + String(deltaGyroMagnitude) + ", Step Count: " + String(*stepCount);
+    logData(log_data);
 }
 
 double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {

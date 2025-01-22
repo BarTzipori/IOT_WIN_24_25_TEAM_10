@@ -6,7 +6,7 @@
 #define XSHUT_PIN_2 2
 #define XSHUT_PIN_3 41
 #define XSHUT_PIN_4 42
-#define STACK_SIZE 2048
+#define STACK_SIZE 4096
 #define MPU9250_ADDRESS 0x68
 #define VL53L1X_ADDRESS 0x54
 #define VL53L1X_ADDRESS_2 0x55
