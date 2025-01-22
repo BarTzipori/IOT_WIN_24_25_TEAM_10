@@ -277,7 +277,9 @@ void setup()
   mpu_setting.gyro_dlpf_cfg = GYRO_DLPF_CFG::DLPF_5HZ;
   mpu_setting.accel_fchoice = 0x01;
   mpu_setting.accel_dlpf_cfg = ACCEL_DLPF_CFG::DLPF_5HZ;
-
+  
+  systemInit();
+  
   // Initializes MPU
   if (!mpu.setup(MPU9250_ADDRESS, mpu_setting)){ 
       Serial.println("ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATE IN DOWNGRADED MODE");
@@ -294,7 +296,6 @@ void setup()
     delay(10000);
   }
   system_calibrated = true;
-  systemInit();
   Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
   String log_data = "SAFE STEP IS READY TO USE: STARTING OPERATIONS";
   logData(log_data);
