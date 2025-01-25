@@ -29,6 +29,24 @@ void playMP3AsTask(void *pvParameters) {
   vTaskDelete(NULL);
 }
 
+void calculateVelocityAsTask(void *pvParameters) {
+    VelocityTaskParams *params = (VelocityTaskParams *)pvParameters;
+    int delay_in_ms = params->delay_in_ms;
+    systemSettings *settings = params->settings;
+    double *velocity = params->velocity;
+    int *step_count = params->step_count;
+    const SensorData &sensor_data = *(params->sensor_data); // Use const reference
+    bool is_system_on = *(params->system_on_flag);
+    float user_height_in_meters = settings->getUserHeight() / 100;
+
+    while (true) {
+        if (is_system_on) {
+            calculateStepCountAndSpeed(sensor_data, step_count, velocity, user_height_in_meters);
+        }
+        vTaskDelay(delay_in_ms);
+    }
+}
+
 
 /* Calculate the velocity based on the acceleration data
     How does it work?

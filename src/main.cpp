@@ -29,13 +29,6 @@
 #include "camera.h"
 #include "webmsg.h"
 
-struct VelocityTaskParams
-{
-    int delay_in_ms;          // Delay in milliseconds
-    systemSettings *settings; // Pointer to systemSettings object
-    double *velocity;         // Pointer to the velocity variable
-    int *step_count;
-};
 
 // system sensor objects
 static Adafruit_VL53L1X vl53_1 = Adafruit_VL53L1X(XSHUT_PIN_1);
@@ -52,6 +45,7 @@ static std::vector<std::pair<Adafruit_VL53L1X *, int>> distance_sensors = {{&vl5
 static std::vector<std::pair<MPU9250 *, int>> mpu_sensors = {{&mpu, MPU9250_ADDRESS}};
 
 static SensorData sensor_data;
+systemSettings system_settings;
 
 extern FirebaseData firebaseData; // Firebase object
 FirebaseData fbdo;
@@ -59,10 +53,6 @@ FirebaseAuth auth;
 FirebaseConfig config;
 Flags flags;
 
-systemSettings system_settings;
-// bool save_flag = false;
-
-WiFiClientSecure client;
 
 static bool is_system_on = false;
 static unsigned long pressed_time = 0;
@@ -160,25 +150,6 @@ void sampleSensorsData(void *pvParameters)
     vTaskDelay(delay_in_ms);
 }
 
-void calculateVelocityAsTask(void *pvParameters)
-{
-    // Cast the void* parameter to VelocityTaskParams*
-    VelocityTaskParams *params = (VelocityTaskParams *)pvParameters;
-    int delay_in_ms = params->delay_in_ms;
-    systemSettings *settings = params->settings;
-    double *velocity = params->velocity;
-    int *step_count = params->step_count;
-    float user_height_in_meters = settings->getUserHeight() / 100;
-
-    while (true)
-    {
-        if (is_system_on)
-        {
-            calculateStepCountAndSpeed(sensor_data, step_count, velocity, user_height_in_meters);
-        }
-        vTaskDelay(delay_in_ms);
-    }
-}
 
 void systemInit()
 {
@@ -297,16 +268,14 @@ void setup()
     systemInit();
 
     // Initializes MPU
-    if (!mpu.setup(MPU9250_ADDRESS, mpu_setting))
-    {
+    if (!mpu.setup(MPU9250_ADDRESS, mpu_setting)) {
         Serial.println("ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATE IN DOWNGRADED MODE");
         String log_data = "ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATRE IN DEGRADED MODE";
         logData(log_data);
         mp3.playWithFileName(VOICE_ALERTS_DIR, MPU_SENSOR_DEGRADED);
         mpu_degraded_flag = true;
         delay(5000);
-    }
-    else {
+    } else {
         calibrateMPU(&mpu, calibration_needed, &mp3);
     } if (calibration_needed){
         delay(10000);
@@ -323,7 +292,7 @@ void setup()
     delay(2000);
     is_system_on = true;
     // Creates threaded tasks
-    VelocityTaskParams params = {SpeedCalcDelay, &system_settings, &velocity, &step_count};
+    VelocityTaskParams params = {SpeedCalcDelay, &system_settings, &velocity, &step_count, &sensor_data, &is_system_on};
 
     xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
     xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &params, 3, nullptr);
@@ -375,10 +344,8 @@ void loop()
             // Reset double press tracking
             is_double_press_pending = false;
         }
-        else
-        {
-            if (is_double_press_pending)
-            {
+        else {
+            if (is_double_press_pending) {
                 // Confirmed double press
                 mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_PAIRING_INITIATED);
                 delay(100);
@@ -386,20 +353,14 @@ void loop()
                 String log_data = "SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...";
                 logData(log_data);
                 motor1.vibrate(vibrationPattern::pulseBuzz);
-                if (!WifiManagerSetup())
-                {
+                if (!WifiManagerSetup()) {
                     Serial.println("Failed to connect to a new network, using SD card settings instead...");
-                }
-                else
-                {
+                } else {
                     flags.wifi_flag = true;
                     systemInit();
-                }; // Perform double press action
-                // Reset double press tracking
+                } 
                 is_double_press_pending = false;
-            }
-            else
-            {
+            } else {
                 // First press of a potential double press
                 is_double_press_pending = true;
                 double_press_start_time = currentTime;
@@ -408,8 +369,7 @@ void loop()
     }
 
     // Check for short press after double press timeout
-    if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRESS_THRESHOLD))
-    {
+    if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRESS_THRESHOLD)) {
         // No second press detected, treat as a short press
         Serial.println("SAFESTEP SHORT PRESS ROUTINE STARTING...");
         String log_data = "SAFESTEP SHORT PRESS ROUTINE STARTING...";
@@ -418,14 +378,11 @@ void loop()
 
         // Toggle system mode
         String curr_mode = system_settings.getMode();
-        if (curr_mode == "Both" || curr_mode == "Sound")
-        {
+        if (curr_mode == "Both" || curr_mode == "Sound") {
             system_settings.setMode("Vibration");
             mp3.playWithFileName(VOICE_ALERTS_DIR, SILENT_MODE_ACTIVATED);
             delay(100);
-        }
-        else
-        {
+        } else {
             system_settings.setMode("Both");
             mp3.playWithFileName(VOICE_ALERTS_DIR, SILENT_MODE_DEACTIVATED);
             delay(100);
@@ -434,34 +391,22 @@ void loop()
         // Reset double press tracking
         is_double_press_pending = false;
     }
-    if (is_system_on && !is_pressing && system_calibrated)
-    {
+    if (is_system_on && !is_pressing && system_calibrated) {
         // sensor data update routine
-        if (system_settings.getAlertMethod() == "TimeToImpact")
-        {
-            if (mpu.update() && system_calibrated && is_system_on && !is_pressing)
-            {
-                // sensor_data.printData();
+        if (system_settings.getAlertMethod() == "TimeToImpact") {
+            if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
                 double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
-                if (collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1))
-                {
-                    if (system_settings.getEnableCamera())
-                    {
+                if (collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
+                    if (system_settings.getEnableCamera()) {
                         CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
                     }
                 }
             }
-        }
-        else
-        {
-            if (is_system_on && !is_pressing)
-            {
-                // sensor_data.printData();
+        } else {
+            if (is_system_on && !is_pressing) {
                 double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity, mpu_degraded_flag);
-                if (obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1))
-                {
-                    if (system_settings.getEnableCamera())
-                    {
+                if (obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
+                    if (system_settings.getEnableCamera()) {
                         CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
                     }
                 }
@@ -469,8 +414,7 @@ void loop()
         }
     }
     system_settings.changeVolume(system_settings.getVolume(), &mp3);
-    if (mpu_degraded_flag)
-    {
+    if (mpu_degraded_flag) {
         system_settings.setAlertMethod("Distance");
     }
     vTaskDelay(50);
