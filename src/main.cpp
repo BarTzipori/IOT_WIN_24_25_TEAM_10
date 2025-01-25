@@ -45,7 +45,6 @@ Adafruit_VL53L1X vl53_4 = Adafruit_VL53L1X(XSHUT_PIN_4);
 MPU9250 mpu;
 extern MP3 mp3;
 static vibrationMotor motor1(MOTOR_1_PIN);
-static vibrationMotor motor2(MOTOR_2_PIN);
 static ezButton onOffButton(ON_OFF_BUTTON_PIN);
 
 std::vector<int> distance_sensors_xshut_pins = {XSHUT_PIN_1, XSHUT_PIN_2, XSHUT_PIN_3, XSHUT_PIN_4};
@@ -53,8 +52,6 @@ std::vector<std::pair<Adafruit_VL53L1X *, int>> distance_sensors = {{&vl53_1, VL
 static std::vector<std::pair<MPU9250 *, int>> mpu_sensors = {{&mpu, MPU9250_ADDRESS}};
 
 static SensorData sensor_data;
-
-TwoWire secondBus = TwoWire(1);
 
 extern FirebaseData firebaseData; // Firebase object
 FirebaseData fbdo;
@@ -69,18 +66,13 @@ WiFiClientSecure client;
 
 static bool is_system_on = false;
 static unsigned long pressed_time = 0;
-static unsigned long released_time = 0;
 static bool is_pressing = false;
 static bool is_long_press = false;
 static double velocity = 0.0;
 static int step_count = 0;
-static unsigned long startTime, currTime;
-static bool calibrate_flag = false;
 static bool system_calibrated = false;
 static bool calibration_needed = false;
 static bool mpu_degraded_flag = false;
-unsigned long pressStartTime = 0;
-unsigned long lastPressTime = 0;
 
 // Samples sensors data
 void sampleSensorsData(void *pvParameters)
@@ -314,12 +306,9 @@ void setup()
         mpu_degraded_flag = true;
         delay(5000);
     }
-    else
-    {
+    else {
         calibrateMPU(&mpu, calibration_needed, &mp3);
-    }
-    if (calibration_needed)
-    {
+    } if (calibration_needed){
         delay(10000);
     }
     system_calibrated = true;
