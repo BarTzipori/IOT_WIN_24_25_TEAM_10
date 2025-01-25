@@ -29,6 +29,7 @@ void playMP3AsTask(void *pvParameters) {
   vTaskDelete(NULL);
 }
 
+// This task calculates the user's velocity based on the step count
 void calculateVelocityAsTask(void *pvParameters) {
     VelocityTaskParams *params = (VelocityTaskParams *)pvParameters;
     int delay_in_ms = params->delay_in_ms;
