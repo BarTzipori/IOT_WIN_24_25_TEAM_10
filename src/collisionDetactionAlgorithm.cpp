@@ -135,6 +135,8 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
         // Reset for the next window
         stepsInWindow = 0;
         startTime = currentTime;
+        String log_data = "Steps in window: " + String(stepsInWindow) + ", Speed estimated: " + String(*speed) + " m/s";
+        logData(log_data);
     }
 
     // Update previous values
