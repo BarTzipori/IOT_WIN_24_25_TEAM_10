@@ -94,16 +94,16 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       double? distance3 = double.tryParse(_controllers['11. Alert 3 Distance']?.text ?? '');
 
       // Check range validation
-      if (distance1 != null && (distance1 < 0.25 || distance1 > 2.5)) {
-        errors.add('Alert 1 distance must be between [0.25m - 2.5m]');
+      if (distance1 != null && (distance1 < 20 || distance1 > 250)) {
+        errors.add('Alert 1 distance must be between [20cm - 250cm]');
       }
 
-      if (distance2 != null && (distance2 < 0.25 || distance2 > 2.5)) {
-        errors.add('Alert 2 distance must be between [0.25m - 2.5m]');
+      if (distance2 != null && (distance2 < 20 || distance2 > 250)) {
+        errors.add('Alert 2 distance must be between [20cm - 250cm]');
       }
 
-      if (distance3 != null && (distance3 < 0.25 || distance3 > 2.5)) {
-        errors.add('Alert 3 distance must be between [0.25m - 2.5m]');
+      if (distance3 != null && (distance3 < 20 || distance3 > 250)) {
+        errors.add('Alert 3 distance must be between [20cm - 250cm]');
       }
 
       if (distance1 != null && distance2 != null) {
@@ -180,31 +180,31 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       ),
       SettingsItem(
         headerValue: '9. Alert 1 Distance',
-        expandedValue: 'Enter distance for Alert 1 (0.25m - 2.5m)',
+        expandedValue: 'Enter distance for Alert 1 [20cm - 250cm]',
         options: [],
         isTextField: true,
         isNumericRange: true,
-        minValue: 0.25,
-        maxValue: 2.5,
+        minValue: 20,
+        maxValue: 250,
       ),
       SettingsItem(
         headerValue: '10. Alert 2 Distance',
-        expandedValue: 'Enter distance for Alert 2 (0.25m - 2.5m)',
+        expandedValue: 'Enter distance for Alert 2 (20cm - 250cm)',
         options: [],
         isTextField: true,
         isNumericRange: true,
-        minValue: 0.25,
-        maxValue: 2.5,
+        minValue: 20,
+        maxValue: 250,
         dependsOn: '4',
       ),
       SettingsItem(
         headerValue: '11. Alert 3 Distance',
-        expandedValue: 'Enter distance for Alert 3 (0.25m - 2.5m)',
+        expandedValue: 'Enter distance for Alert 2 (20cm - 250cm)',
         options: [],
         isTextField: true,
         isNumericRange: true,
-        minValue: 0.25,
-        maxValue: 2.5,
+        minValue: 20,
+        maxValue: 250,
         dependsOn: '5',
       ),
       SettingsItem(
@@ -542,12 +542,12 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                         controller: item.textController,
                         decoration: InputDecoration(
                           labelText: item.isNumericRange
-                              ? 'Enter value (${item.minValue}-${item.maxValue}m)'
+                              ? 'Enter value (${item.minValue}-${item.maxValue}cm)'
                               : 'Enter value',
                           border: const OutlineInputBorder(),
                           suffixText: item.headerValue.toLowerCase().contains('height')
                               ? 'cm'
-                              : (item.isNumericRange ? 'm' : null),
+                              : (item.isNumericRange ? 'cm' : null),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         onChanged: (value) {},
