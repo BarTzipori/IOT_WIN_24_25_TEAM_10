@@ -251,8 +251,8 @@ bool uploadLogToFirebaseStorage(fs::FS &fs, FirebaseData &fbdo, FirebaseAuth &au
 {
     config.host = FIREBASE_HOST_STORAGE;
     config.signer.tokens.legacy_token = FIREBASE_AUTH;
-    config.timeout.serverResponse = 10000;   // Set timeout to 10 seconds (10000 ms)
-    config.timeout.socketConnection = 15000; // 15 seconds
+    config.timeout.serverResponse = SERVER_RESPONE_TIMEOUT;   // Set timeout to 10 seconds (10000 ms)
+    config.timeout.socketConnection = SERVER_SOCKET_TIMEOUT; // 15 seconds
     Firebase.begin(&config, &auth);
 
     // Open file on SD card
@@ -333,8 +333,8 @@ bool uploadImagesToFirebaseStorage(fs::FS &fs, FirebaseData &fbdo, FirebaseAuth 
 {
     config.host = FIREBASE_HOST_STORAGE;
     config.signer.tokens.legacy_token = FIREBASE_AUTH;
-    config.timeout.serverResponse = 10000;   // Set timeout to 10 seconds (10000 ms)
-    config.timeout.socketConnection = 15000; // 15 seconds
+    config.timeout.serverResponse = SERVER_RESPONE_TIMEOUT;   // Set timeout to 10 seconds (10000 ms)
+    config.timeout.socketConnection = SERVER_SOCKET_TIMEOUT; // 15 seconds
     Firebase.begin(&config, &auth);
 
     // Open file on SD card
@@ -418,9 +418,9 @@ bool WifiManagerSetup()
     Preferences preferences;
     preferences.begin("wifi-data", false);
     // wm.setConnectTimeout(10);
-    wm.setConfigPortalTimeout(30);
+    wm.setConfigPortalTimeout(WIFI_MANAGER_TIMEOUT);
     // bool res = wm.autoConnect("SafeStepAP", "safestep2025");
-    bool res = wm.startConfigPortal("SafeStepAP", "safestep2025");
+    bool res = wm.startConfigPortal(WIFI_AP_SSID, WIFI_AP_PASSWORD);
     if (!res)
     {
         Serial.println("Failed to connect");
@@ -498,8 +498,8 @@ void setupTime()
 {
     // time_flag = false;
     //  Set the timezone to Israel (UTC+2) and adjust for DST (+1 hour during DST)
-    const long gmtOffset_sec = 7200;     // UTC+2 in seconds
-    const int daylightOffset_sec = 3600; // +1 hour for DST
+    const long gmtOffset_sec = GMT_OFFSET;     // UTC+2 in seconds
+    const int daylightOffset_sec = DAYLIGHT_OFFSET; // +1 hour for DST
     configTime(gmtOffset_sec, daylightOffset_sec, "pool.ntp.org", "time.nist.gov");
 
     // Get and print the local time

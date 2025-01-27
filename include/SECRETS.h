@@ -42,7 +42,7 @@ extern const char* root_ca =
 // see https://cloud.google.com/docs/authentication?hl=ja#getting_credentials_for_server-centric_flow
 // see https://qiita.com/basi/items/3623a576b754f738138e (Japanese)
 
-#define WIFI_TIMEOUT 15000
+
 // Replace with your network credentials
 #define WIFI_SSID "ilay"
 #define WIFI_PASSWORD "123456789"

@@ -6,6 +6,7 @@
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include "parameters.h"
 
 void onReceive(uint8_t *data, size_t len);
 void setupMsgServer();

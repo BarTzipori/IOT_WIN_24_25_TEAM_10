@@ -14,7 +14,7 @@ FirebaseData firebaseData;
 
 //MP3 mp3_forServer(MP3_RX, MP3_TX);
 MP3 mp3(MP3_RX, MP3_TX);
-WebServer server(80);
+WebServer server(APP_SERVER_PORT);
 
 vibrationMotor vibMotor(MOTOR_1_PIN);
 
@@ -149,6 +149,11 @@ void setupWifiServer()
   server.on("/play_sound=Sound%201", playSound1);
   server.on("/play_sound=Sound%202", playSound2);
   server.on("/play_sound=Sound%203", playSound3);
+  server.on("/play_sound=Sound%204", playSound4);
+  server.on("/play_sound=Sound%205", playSound5);
+  server.on("/play_sound=Sound%206", playSound6);
+  server.on("/play_sound=Sound%207", playSound7);
+  server.on("/play_sound=Sound%208", playSound8);
   server.on("/play_vibration=Short", playVibrationShort);
   server.on("/play_vibration=Long", playVibrationLong);
   server.on("/play_vibration=Double", playVibrationDouble);

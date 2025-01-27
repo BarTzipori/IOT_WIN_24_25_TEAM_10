@@ -4,12 +4,10 @@
 // bool time_flag;
 extern Flags flags;
 
-// Database path to store the image
-String databaseImgPath = "/images/";
-const char *serverUrl = "http://192.168.1.87:5015/upload";
+
 
 unsigned long lastCaptureTime = 0;
-unsigned long captureInterval = 5000; // Capture an image every 5 seconds
+
 
 bool setupCamera()
 {
@@ -221,7 +219,7 @@ bool UploadImage(FirebaseData &fbdo, FirebaseAuth &auth, FirebaseConfig &config,
 bool CaptureObstacle(FirebaseData &fbdo, FirebaseAuth &auth, FirebaseConfig &config, bool wifi_flag)
 {
   unsigned long currentTime = millis();
-  if (currentTime - lastCaptureTime < captureInterval)
+  if (currentTime - lastCaptureTime < CAMERA_CAPTURE_INTERVAL)
   {
     logData("Image Not Taken - Capture too often");
     Serial.println("Image Not Taken - Capture too often");

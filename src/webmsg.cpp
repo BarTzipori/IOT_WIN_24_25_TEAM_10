@@ -1,6 +1,6 @@
 #include "webmsg.h"
 
-AsyncWebServer msgserver(82);
+AsyncWebServer msgserver(WEBMSG_SERVER_PORT);
 
 void onReceive(uint8_t* data, size_t len) {
   // Handle received data from the WebSerial interface
@@ -23,7 +23,7 @@ void setupMsgServer(){
   // Log a message to WebSerial
   WebSerial.println("WebSerial started! Open the interface to interact.");
   Serial.println("WebSerial started! Open the interface to interact.");
-  Serial.println("WebSerial Available at: http://" + WiFi.localIP().toString() + ":82/webserial");
+  Serial.println("WebSerial Available at: http://" + WiFi.localIP().toString() + ":" + String(WEBMSG_SERVER_PORT) + "/webserial");
 }
 
 void msgServerLoop(){

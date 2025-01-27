@@ -5,6 +5,7 @@
 #include <WebServer.h>
 #include <SoftwareSerial.h>
 #include "RedMP3.h"
+#include "parameters.h"
 
 
 
