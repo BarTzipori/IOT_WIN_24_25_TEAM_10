@@ -23,10 +23,10 @@ void playMP3AsTask(void *pvParameters) {
   MP3* mp3 = (MP3*) params[0];
   uint8_t directory_name = (uint8_t)(uintptr_t)params[1];
   uint8_t file_name  = (uint8_t)(uintptr_t)params[2];
-  Serial.print("PLAYING SOUND: ");
-  Serial.print(file_name);
 
   mp3->playWithFileName(directory_name, file_name);
+  String log_data = "playing" + String(file_name);
+  logData(log_data);
   vTaskDelay(1000);
   vTaskDelete(NULL);
 }
@@ -387,6 +387,8 @@ bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& syst
         Serial.println("Alert 1 is enabled");
         if (obstacle_distance <= system_settings.getAlertDistance1()*10){
           Serial.println("Alerted collision from alert 1");
+          String logs_data = "Alerted collision from alert 1";
+          logData(logs_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
@@ -395,11 +397,15 @@ bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& syst
         Serial.println("Alert 1 and 2 are enabled");
         if (obstacle_distance <= system_settings.getAlertDistance1()*10 && obstacle_distance > system_settings.getAlertDistance2()*10) {
           Serial.println("Alerted collision from alert 1");
+          String logs_data = "Alerted collision from alert 1";
+          logData(logs_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
         if (obstacle_distance <= system_settings.getAlertDistance2()*10 && obstacle_distance > 0) {
           Serial.println("Alerted collision from alert 2");
+          String logs_data = "Alerted collision from alert 2";
+          logData(logs_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
@@ -408,16 +414,22 @@ bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& syst
         Serial.println("Alert 1, 2 and 3 are enabled");
         if (obstacle_distance <= system_settings.getAlertDistance1()*10 && obstacle_distance > system_settings.getAlertDistance2()*10) {
           Serial.println("Alerted collision from alert 1");
+          String logs_data = "Alerted collision from alert 1";
+          logData(logs_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
         if (obstacle_distance <= system_settings.getAlertDistance2()*10 && obstacle_distance > system_settings.getAlertDistance3()*10) {
           Serial.println("Alerted collision from alert 2");
+          String logs_data = "Alerted collision from alert 2";
+          logData(logs_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
         if (obstacle_distance > 0 && obstacle_distance <= system_settings.getAlertDistance3()*10) {
           Serial.println("Alerted collision from alert 3");
+          String logs_data = "Alerted collision from alert 3";
+          logData(logs_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3(), system_settings.getAlertSound3AsInt());
           return true;
         }
@@ -437,7 +449,6 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
     static void* vibration_params[2];
     vibration_params[0] = (void*)&vibration_motor;          
     vibration_params[1] = (void*)&vib_pattern; 
-
     if(system_settings.getMode() == "Vibration") {
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &vibration_params, 4, nullptr);
         vTaskDelay(1500);
