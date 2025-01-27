@@ -158,7 +158,7 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
 double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
     // Static variable to store the previous x_distance
     static int previous_x_distance = -1; // Initialize with an invalid value
-    const int DISTANCE_CHANGE_THRESHOLD = 20; // Threshold in mm to consider significant movement
+    const int DISTANCE_CHANGE_THRESHOLD = 100; // Threshold in mm to consider significant movement
 
     // User and system heights
     double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
@@ -251,14 +251,13 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
     if (!found_valid_obstacle) {
         previous_x_distance = -1;
     }
-
     return 0; // No valid obstacle detected
 }
 
 double distanceToNearestObstacle(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity, bool mpu_degraded_flag) {
     // Static variable to track the previous x_distance
     static int previous_x_distance = -1; // Initialize with an invalid value
-    const int DISTANCE_CHANGE_THRESHOLD = 20; // Threshold in mm to consider significant movement
+    const int DISTANCE_CHANGE_THRESHOLD = 100; // Threshold in mm to consider significant movement
 
     // User and system heights
     double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
@@ -298,6 +297,8 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
     // Sort distances by X (ascending)
     std::sort(distances.begin(), distances.end());
 
+    bool found_valid_obstacle = false;
+
     // Process each distance
     for (const auto& distance : distances) {
         int x_distance = distance.first;
@@ -316,6 +317,7 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
                 Serial.print("Obstacle detected in degraded mode. X_distance: ");
                 Serial.println(x_distance);
                 previous_x_distance = x_distance; // Update the previous distance
+                found_valid_obstacle = true;
                 return x_distance;
             } else {
                 // Handle normal scenario
@@ -323,6 +325,7 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
                     Serial.print("Obstacle detected. X_distance: ");
                     Serial.println(x_distance);
                     previous_x_distance = x_distance; // Update the previous distance
+                    found_valid_obstacle = true;
                     return x_distance;
                 } else {
                     Serial.println("Velocity is zero or negative; Ignoring obstacle.");
@@ -334,8 +337,10 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
         }
     }
 
-    // If no valid obstacles are found, reset previous_x_distance
-    previous_x_distance = -1;
+    // Reset previous_x_distance only if no valid obstacles are detected
+    if (!found_valid_obstacle) {
+        previous_x_distance = -1;
+    }    
     return 0;
 }
 
