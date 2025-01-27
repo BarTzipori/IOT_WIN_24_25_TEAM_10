@@ -438,6 +438,30 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       orElse: () => _data[0],
     ).selectedOption;
 
+    // Get selected alert method
+    String? alertMethod = _data.firstWhere(
+          (element) => element.headerValue == '2. Alert Method',
+      orElse: () => _data[0],
+    ).selectedOption;
+
+    // Hide timing panels when Distance is selected
+    if (alertMethod == 'Distance') {
+      if (item.headerValue == '6. Alert 1 Timing' ||
+          item.headerValue == '7. Alert 2 Timing' ||
+          item.headerValue == '8. Alert 3 Timing') {
+        return false;
+      }
+    }
+
+    // Hide distance panels when Time to Impact is selected
+    if (alertMethod == 'Time to Impact') {
+      if (item.headerValue == '9. Alert 1 Distance' ||
+          item.headerValue == '10. Alert 2 Distance' ||
+          item.headerValue == '11. Alert 3 Distance') {
+        return false;
+      }
+    }
+
     // Handle vibration panels visibility
     if (item.headerValue.contains('Vibration')) {
       if (selectedMode == 'Sound') {
