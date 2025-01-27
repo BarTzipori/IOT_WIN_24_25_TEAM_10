@@ -85,6 +85,13 @@
 #define NOTIFICATION_SOUND 0x07
 #define BEEP_BEEP_BEEP 0x08
 
+//sensor positions according to box (height from bottom of box)
+
+#define SENSOR_1_BOX_HEIGHT 0
+#define SENSOR_2_BOX_HEIGHT 0
+#define SENSOR_3_BOX_HEIGHT 0
+#define SENSOR_4_BOX_HEIGHT 0
+
 
 
 
