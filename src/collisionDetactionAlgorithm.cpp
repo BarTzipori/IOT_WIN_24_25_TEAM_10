@@ -25,7 +25,7 @@ void playMP3AsTask(void *pvParameters) {
   uint8_t file_name  = (uint8_t)(uintptr_t)params[2];
 
   mp3->playWithFileName(directory_name, file_name);
-  String log_data = "playing" + String(file_name);
+  String log_data = "playing sound number: " + String(file_name);
   logData(log_data);
   vTaskDelay(1000);
   vTaskDelete(NULL);

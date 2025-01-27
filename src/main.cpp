@@ -291,10 +291,9 @@ void setup()
     onOffButton.loop(); // Update button state
 
   if (flags.wifi_flag) {
-    mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOAD_LOGS);
-
     // Non-blocking delay for audio playback
     unsigned long audioStartTime = millis();
+    mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOAD_LOGS);
     while (millis() - audioStartTime < 8000) {
       onOffButton.loop(); // Ensure button state is updated during audio playback
     }
