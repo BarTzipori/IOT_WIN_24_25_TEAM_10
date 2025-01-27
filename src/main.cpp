@@ -284,17 +284,23 @@ void setup()
     Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
     String log_data = "SAFE STEP IS READY TO USE: STARTING OPERATIONS";
     logData(log_data);
+    
+    unsigned long startTime = millis();
+    bool buttonPressed = false;
 
     onOffButton.loop(); // Update button state
-    // Prompt the user to press the button
-    Serial.println("Press the button within 2 seconds to upload logs.");
 
-  unsigned long startTime = millis();
-  bool buttonPressed = false;
-  if(flags.wifi_flag){
+  if (flags.wifi_flag) {
     mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOAD_LOGS);
-    delay(8000);
-    // Wait for UPLOAD_TIMEOUT or until the button is pressed
+
+    // Non-blocking delay for audio playback
+    unsigned long audioStartTime = millis();
+    while (millis() - audioStartTime < 8000) {
+      onOffButton.loop(); // Ensure button state is updated during audio playback
+    }
+
+    // Prompt user to press the button within the timeout
+    Serial.println("Press the button within the timeout (4 seconds) to upload logs.");
     while (millis() - startTime < UPLOAD_TIMEOUT) {
       onOffButton.loop(); // Update button state
       if (onOffButton.isPressed()) {
@@ -302,16 +308,25 @@ void setup()
         break; // Exit the loop if the button is pressed
       }
     }
-    // If the button was pressed, upload the logs
+
+    // Check button press result
     if (buttonPressed) {
       Serial.println("Button pressed. Uploading logs...");
       mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOADING_FILES);
-      delay(5000);
-      uploadLogs(SD_MMC, fbdo, auth, config);   // new function to upload logs to firebase
-      uploadImages(SD_MMC, fbdo, auth, config); // new function to upload images to firebase
+
+      // Non-blocking delay for audio playback
+      audioStartTime = millis();
+      while (millis() - audioStartTime < 5000) {
+        onOffButton.loop(); // Update button state during audio playback
+      }
+
+      // Upload logs and images
+      uploadLogs(SD_MMC, fbdo, auth, config);   // Upload logs to Firebase
+      uploadImages(SD_MMC, fbdo, auth, config); // Upload images to Firebase
     } else {
       Serial.println("Button not pressed. Skipping log upload.");
     }
+
     // Continue with the rest of the setup routine
     Serial.println("Continuing with setup...");
   }
