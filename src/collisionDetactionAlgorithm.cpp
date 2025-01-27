@@ -312,8 +312,13 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
 
         // Check if the user is approaching the obstacle
         if (previous_x_distance == -1 || (previous_x_distance - x_distance) > DISTANCE_CHANGE_THRESHOLD) {
+            // Handle MPU degraded scenario
             if (mpu_degraded_flag) {
-                // Handle mpu degraded scenario
+                if (abs(previous_x_distance - x_distance) < DISTANCE_CHANGE_THRESHOLD) {
+                    Serial.println("Stationary obstacle detected; no alert triggered.");
+                    continue;
+                }
+
                 Serial.print("Obstacle detected in degraded mode. X_distance: ");
                 Serial.println(x_distance);
                 previous_x_distance = x_distance; // Update the previous distance
@@ -322,6 +327,10 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
             } else {
                 // Handle normal scenario
                 if (*velocity > 0) {
+                    if (abs(previous_x_distance - x_distance) < DISTANCE_CHANGE_THRESHOLD) {
+                        Serial.println("Stationary obstacle detected; no alert triggered.");
+                        continue;
+                    }
                     Serial.print("Obstacle detected. X_distance: ");
                     Serial.println(x_distance);
                     previous_x_distance = x_distance; // Update the previous distance
@@ -340,7 +349,8 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
     // Reset previous_x_distance only if no valid obstacles are detected
     if (!found_valid_obstacle) {
         previous_x_distance = -1;
-    }    
+    }
+
     return 0;
 }
 
