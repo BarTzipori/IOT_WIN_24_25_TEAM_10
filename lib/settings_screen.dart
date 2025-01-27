@@ -41,7 +41,7 @@ class SettingsQuestionnaire extends StatefulWidget {
 class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
   late List<SettingsItem> _data;
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
-  final String _esp32Url = "http://172.20.10.10";
+  final String _esp32Url = "http://172.20.10.3";
   String _connectionStatus = "Not Connected";
 
   final Map<String, TextEditingController> _controllers = {};
@@ -306,19 +306,64 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         '20. Volume Sound': 'volume'
       };
 
+      // Define which fields should be treated as numbers
+      final Set<String> numericFields = {
+        'alertTiming1',
+        'alertTiming2',
+        'alertTiming3',
+        'alertDistance1',
+        'alertDistance2',
+        'alertDistance3',
+        'userHeight',
+        'systemHeight',
+        'volume'
+      };
+
       for (var item in _data) {
         String? dbVarName = headerToVarName[item.headerValue];
         if (dbVarName != null) {
           if (item.isTextField) {
-            settingsData[dbVarName] = item.textController?.text.trim() ?? '';
+            String value = item.textController?.text.trim() ?? '';
+            if (numericFields.contains(dbVarName) && value.isNotEmpty) {
+              // Convert to double first for decimal numbers
+              double? numValue = double.tryParse(value);
+              if (numValue != null) {
+                if (dbVarName == 'volume' ||
+                    dbVarName == 'userHeight' ||
+                    dbVarName == 'systemHeight') {
+                  // Convert to integer for specific fields
+                  settingsData[dbVarName] = numValue.round();
+                } else {
+                  // Keep as double for distances and timings
+                  settingsData[dbVarName] = numValue;
+                }
+              }
+            } else {
+              settingsData[dbVarName] = value;
+            }
           } else {
-            settingsData[dbVarName] = item.selectedOption ?? '';
+            String value = item.selectedOption ?? '';
+            if (numericFields.contains(dbVarName) && value.isNotEmpty) {
+              // Convert to double first for decimal numbers
+              double? numValue = double.tryParse(value);
+              if (numValue != null) {
+                if (dbVarName == 'volume') {
+                  // Convert to integer for volume
+                  settingsData[dbVarName] = numValue.round();
+                } else {
+                  // Keep as double for distances and timings
+                  settingsData[dbVarName] = numValue;
+                }
+              }
+            } else {
+              settingsData[dbVarName] = value;
+            }
           }
         }
       }
 
       print('Settings Data to Save: $settingsData');
-      settingsData.removeWhere((key, value) => value.isEmpty);
+      settingsData.removeWhere((key, value) => value.toString().isEmpty);
 
       await _databaseRef.child('System_Settings/settings').update(settingsData);
 
