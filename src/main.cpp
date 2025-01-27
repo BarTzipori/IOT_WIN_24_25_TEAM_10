@@ -291,28 +291,28 @@ void setup()
 
   unsigned long startTime = millis();
   bool buttonPressed = false;
-  
-  mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOAD_LOGS);
-  delay(2000);
-  // Wait for UPLOAD_TIMEOUT or until the button is pressed
-  while (millis() - startTime < UPLOAD_TIMEOUT) {
-    onOffButton.loop(); // Update button state
-    if (onOffButton.isPressed()) {
-      buttonPressed = true;
-      break; // Exit the loop if the button is pressed
+  if(flags.wifi_flag){
+    mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOAD_LOGS);
+    delay(4000);
+    // Wait for UPLOAD_TIMEOUT or until the button is pressed
+    while (millis() - startTime < UPLOAD_TIMEOUT) {
+      onOffButton.loop(); // Update button state
+      if (onOffButton.isPressed()) {
+        buttonPressed = true;
+        break; // Exit the loop if the button is pressed
+      }
     }
+    // If the button was pressed, upload the logs
+    if (buttonPressed) {
+      Serial.println("Button pressed. Uploading logs...");
+      uploadLogs(SD_MMC, fbdo, auth, config);   // new function to upload logs to firebase
+      uploadImages(SD_MMC, fbdo, auth, config); // new function to upload images to firebase
+    } else {
+      Serial.println("Button not pressed. Skipping log upload.");
+    }
+    // Continue with the rest of the setup routine
+    Serial.println("Continuing with setup...");
   }
-  // If the button was pressed, upload the logs
-  if (buttonPressed) {
-    Serial.println("Button pressed. Uploading logs...");
-    uploadLogs(SD_MMC, fbdo, auth, config);   // new function to upload logs to firebase
-    uploadImages(SD_MMC, fbdo, auth, config); // new function to upload images to firebase
-  } else {
-    Serial.println("Button not pressed. Skipping log upload.");
-  }
-  // Continue with the rest of the setup routine
-  Serial.println("Continuing with setup...");
-
   mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_READY_TO_USE);
   delay(2000);
   is_system_on = true;
