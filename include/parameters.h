@@ -19,7 +19,7 @@
 #define ALERTS_DIR 0x07
 #define LONG_PRESS_THRESHOLD 10000  // 10 second for long press
 #define DOUBLE_PRESS_THRESHOLD 500 // 500 ms for double press
-#define UPLOAD_TIMEOUT 2000
+#define UPLOAD_TIMEOUT 3000
 
 #define SD_MMC_CMD 38 //Please do not modify it.
 #define SD_MMC_CLK 39 //Please do not modify it. 
@@ -75,6 +75,7 @@
 #define MPU_SENSOR_DEGRADED 0x0F
 #define DISTANCE_SENSOR_DEGRADED 0x10
 #define UPLOAD_LOGS 0x11
+#define UPLOADING_FILES 0x12
 
 //notification sounds indexes
 

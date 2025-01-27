@@ -293,7 +293,7 @@ void setup()
   bool buttonPressed = false;
   if(flags.wifi_flag){
     mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOAD_LOGS);
-    delay(4000);
+    delay(8000);
     // Wait for UPLOAD_TIMEOUT or until the button is pressed
     while (millis() - startTime < UPLOAD_TIMEOUT) {
       onOffButton.loop(); // Update button state
@@ -305,6 +305,8 @@ void setup()
     // If the button was pressed, upload the logs
     if (buttonPressed) {
       Serial.println("Button pressed. Uploading logs...");
+      mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOADING_FILES);
+      delay(5000);
       uploadLogs(SD_MMC, fbdo, auth, config);   // new function to upload logs to firebase
       uploadImages(SD_MMC, fbdo, auth, config); // new function to upload images to firebase
     } else {
