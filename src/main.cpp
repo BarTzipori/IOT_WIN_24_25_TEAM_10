@@ -389,12 +389,16 @@ void loop()
 
             // Reset double press tracking
             is_double_press_pending = false;
-        }
-        else {
+        } else if (pressDuration >= MEDIUM_PRESS_TRESHOLD && pressDuration < LONG_PRESS_THRESHOLD) {
+            Serial.println("SAFESTEP MEDIUM PRESS ROUTINE STARTING...");
+            // Reset double press tracking
+            is_double_press_pending = false;
+        } else {
             if (is_double_press_pending) {
                 // Confirmed double press
                 mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_PAIRING_INITIATED);
                 delay(100);
+                is_system_on = false;
                 Serial.println("SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...");
                 String log_data = "SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...";
                 logData(log_data);
@@ -406,6 +410,7 @@ void loop()
                     systemInit();
                 } 
                 is_double_press_pending = false;
+                is_system_on = true;
             } else {
                 // First press of a potential double press
                 is_double_press_pending = true;

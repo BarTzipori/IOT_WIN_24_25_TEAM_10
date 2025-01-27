@@ -18,6 +18,7 @@
 #define VOICE_ALERTS_DIR 0x06
 #define ALERTS_DIR 0x07
 #define LONG_PRESS_THRESHOLD 10000  // 10 second for long press
+#define MEDIUM_PRESS_TRESHOLD 3000  // 2 second for medium press
 #define DOUBLE_PRESS_THRESHOLD 500 // 500 ms for double press
 #define UPLOAD_TIMEOUT 10000
 
