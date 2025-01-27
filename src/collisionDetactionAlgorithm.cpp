@@ -23,6 +23,8 @@ void playMP3AsTask(void *pvParameters) {
   MP3* mp3 = (MP3*) params[0];
   uint8_t directory_name = (uint8_t)(uintptr_t)params[1];
   uint8_t file_name  = (uint8_t)(uintptr_t)params[2];
+  Serial.print("PLAYING SOUND: ");
+  Serial.print(file_name);
 
   mp3->playWithFileName(directory_name, file_name);
   vTaskDelay(1000);
