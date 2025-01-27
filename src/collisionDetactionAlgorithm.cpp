@@ -322,6 +322,8 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
             }
 
             Serial.println("Condition: Alert - User approaching obstacle.");
+            Serial.print("Previous x_distance: ");
+            Serial.println(previous_x_distance);
             Serial.print("x_distance: ");
             Serial.println(x_distance);
 
@@ -390,7 +392,6 @@ bool collisionTimeAlertHandler(double collision_time, systemSettings& system_set
 bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& system_settings, const MP3& mp3, vibrationMotor& motor1) {
     if (obstacle_distance > 0) {
       if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
-        Serial.println("Alert 1 is enabled");
         if (obstacle_distance <= system_settings.getAlertDistance1()*10){
           Serial.println("Alerted collision from alert 1");
           String logs_data = "Alerted collision from alert 1";
@@ -400,7 +401,6 @@ bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& syst
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
-        Serial.println("Alert 1 and 2 are enabled");
         if (obstacle_distance <= system_settings.getAlertDistance1()*10 && obstacle_distance > system_settings.getAlertDistance2()*10) {
           Serial.println("Alerted collision from alert 1");
           String logs_data = "Alerted collision from alert 1";
@@ -409,7 +409,6 @@ bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& syst
           return true;
         }
         if (obstacle_distance <= system_settings.getAlertDistance2()*10 && obstacle_distance > 0) {
-          Serial.println("Alerted collision from alert 2");
           String logs_data = "Alerted collision from alert 2";
           logData(logs_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
@@ -417,7 +416,6 @@ bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& syst
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
-        Serial.println("Alert 1, 2 and 3 are enabled");
         if (obstacle_distance <= system_settings.getAlertDistance1()*10 && obstacle_distance > system_settings.getAlertDistance2()*10) {
           Serial.println("Alerted collision from alert 1");
           String logs_data = "Alerted collision from alert 1";

@@ -462,5 +462,5 @@ void loop()
     if (mpu_degraded_flag) {
         system_settings.setAlertMethod("Distance");
     }
-    vTaskDelay(50);
+    vTaskDelay(100);
 }
