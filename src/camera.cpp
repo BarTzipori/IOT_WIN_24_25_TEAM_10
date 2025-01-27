@@ -1,7 +1,7 @@
 #include "camera.h"
 #include <Wire.h>
 
-//bool time_flag;
+// bool time_flag;
 extern Flags flags;
 
 // Database path to store the image
@@ -10,7 +10,6 @@ const char *serverUrl = "http://192.168.1.87:5015/upload";
 
 unsigned long lastCaptureTime = 0;
 unsigned long captureInterval = 5000; // Capture an image every 5 seconds
-
 
 bool setupCamera()
 {
@@ -35,7 +34,7 @@ bool setupCamera()
   config.pin_pwdn = PWDN_GPIO_NUM;
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
-  //config.frame_size = FRAMESIZE_UXGA;
+  // config.frame_size = FRAMESIZE_UXGA;
   config.frame_size = FRAMESIZE_QVGA; // Lower resolution (e.g., QVGA or CIF) is recommended for faster processing
   config.pixel_format = PIXFORMAT_JPEG;
   config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
@@ -145,7 +144,7 @@ bool savePictureToSD(camera_fb_t *fb, bool wifi_flag)
 String FormatTime(unsigned long currentMillis, bool wifi_flag, bool sd_flag)
 {
   String formattedTime;
-  if (!wifi_flag&& !flags.time_flag)
+  if (!wifi_flag && !flags.time_flag)
   {
     unsigned long hours = currentMillis / 3600000;             // 3600000 milliseconds in one hour
     unsigned long minutes = (currentMillis % 3600000) / 60000; // 60000 milliseconds in one minute
@@ -198,6 +197,7 @@ bool UploadImage(FirebaseData &fbdo, FirebaseAuth &auth, FirebaseConfig &config,
 
   config.host = FIREBASE_HOST_STORAGE;
   config.signer.tokens.legacy_token = FIREBASE_AUTH;
+  config.timeout.serverResponse = 10000; // Set timeout to 10 seconds (10000 ms)
   Firebase.begin(&config, &auth);
 
   // Upload to Firebase Storage
@@ -234,227 +234,16 @@ bool CaptureObstacle(FirebaseData &fbdo, FirebaseAuth &auth, FirebaseConfig &con
   {
     return false;
   }
-  if (savePictureToSD(fb, wifi_flag))
-    result = true;
-  if (UploadImage(fbdo, auth, config, fb))
-    result = true;
-
+  if (!flags.wifi_flag)
+  {
+    if (savePictureToSD(fb, wifi_flag))
+      result = true;
+  }
+  else
+  {
+    if (UploadImage(fbdo, auth, config, fb))
+      result = true;
+  }
   esp_camera_fb_return(fb);
   return result;
 }
-
-/*
-void captureAndUploadImage(FirebaseData &fbdo) {
-  // Capture image
-  camera_fb_t* fb = esp_camera_fb_get();
-  if (!fb) {
-    Serial.println("Camera capture failed");
-    return;
-  }
-
-  // Convert image to Base64
-  String base64Image = base64::encode((uint8_t*)fb->buf, fb->len);
-
-  // Firebase path with unique ID
-  String path = databaseImgPath + String(millis());
-
-  // Upload Base64 image to Firebase Realtime Database
-  Serial.println("Uploading image...");
-  if (Firebase.setString(fbdo, path, base64Image)) {
-    Serial.println("Image uploaded successfully!");
-  } else {
-    Serial.printf("Image upload failed: %s\n", fbdo.errorReason().c_str());
-  }
-
-  // Return the framebuffer to free memory
-  esp_camera_fb_return(fb);
-}
-
-
-void savePictureToSD(camera_fb_t *fb) {
-  if (!SD_MMC.begin("/sdcard", true)) {
-    Serial.println("SD card initialization failed");
-    return;
-  }
-
-  File file = SD_MMC.open("/picture.jpg", FILE_WRITE);
-  if (!file) {
-    Serial.println("Failed to open file on SD card");
-    return;
-  }
-
-  file.write(fb->buf, fb->len);
-  file.close();
-  esp_camera_fb_return(fb);
-  Serial.println("Image saved to SD card successfully");
-}
-
-
-camera_fb_t *capturePicture() {
-  camera_fb_t *fb = esp_camera_fb_get();
-  if (!fb) {
-    Serial.println("Failed to capture image");
-    return nullptr;
-  }
-
-  // Ensure the image is in JPEG format
-  if (fb->format != PIXFORMAT_JPEG) {
-    Serial.println("Image format is not JPEG");
-    esp_camera_fb_return(fb);
-    return nullptr;
-  }
-
-  Serial.println("Image captured successfully");
-  return fb;
-}
-/*
-void uploadImageToFirebase(const char *filePath, FirebaseData &fbdo) {
-  File file = SD_MMC.open(filePath, FILE_READ);
-
-  if (!file) {
-    Serial.println("Failed to open file for reading");
-    return;
-  }
-
-  size_t fileSize = file.size();
-  uint8_t *fileBuffer = (uint8_t *)malloc(fileSize);
-  if (!fileBuffer) {
-    Serial.println("Failed to allocate memory for file buffer");
-    file.close();
-    return;
-  }
-
-  file.read(fileBuffer, fileSize);
-  file.close();
-
-  String firebaseStoragePath = "/images/picture.jpg";
-
-  Serial.println("Uploading image to Firebase...");
-  if (Firebase.storage().upload(&fbdo, FIREBASE_HOST, FIREBASE_AUTH, firebaseStoragePath.c_str(), "image/jpeg", fileBuffer, fileSize)) {
-    Serial.println("Image uploaded successfully!");
-  } else {
-    Serial.printf("Image upload failed: %s\n", fbdo.errorReason().c_str());
-  }
-
-  free(fileBuffer);
-}
-*/
-/*
-void uploadImageToRealtimeDB(const char *filePath, FirebaseData &fbdo) {
-  File file = SD_MMC.open(filePath, FILE_READ);
-
-  if (!file) {
-    Serial.println("Failed to open file for reading");
-    return;
-  } else {
-    Serial.println("File opened successfully");
-  }
-
-  size_t fileSize = file.size();
-  uint8_t *fileBuffer = (uint8_t *)malloc(fileSize);
-  if (!fileBuffer) {
-    Serial.println("Failed to allocate memory for file buffer");
-    file.close();
-    return;
-  } else {
-    Serial.println("Memory allocated successfully");
-  }
-
-  file.read(fileBuffer, fileSize);
-  file.close();
-
-  // Convert image to Base64
-  String base64Image = base64::encode(fileBuffer, fileSize);
-  free(fileBuffer);
-  Serial.println("Image converted to Base64 successfully");
-  // Upload Base64 string to Firebase Realtime Database
-  if (Firebase.setString(fbdo, "/images/picture", base64Image)) {
-    Serial.println("Image uploaded to Realtime Database successfully!");
-  } else {
-    Serial.printf("Image upload failed: %s\n", fbdo.errorReason().c_str());
-  }
-}
-
-void uploadImageToRealtimeDBInChunks(const char *filePath, FirebaseData &fbdo) {
-  File file = SD_MMC.open(filePath, FILE_READ);
-
-  if (!file) {
-    Serial.println("Failed to open file for reading");
-    return;
-  } else {
-    Serial.println("File opened successfully");
-  }
-
-  size_t fileSize = file.size();
-  uint8_t *fileBuffer = (uint8_t *)malloc(fileSize);
-  if (!fileBuffer) {
-    Serial.println("Failed to allocate memory for file buffer");
-    file.close();
-    return;
-  } else {
-    Serial.println("Memory allocated successfully");
-  }
-
-  file.read(fileBuffer, fileSize);
-  file.close();
-
-  String base64Image = base64::encode(fileBuffer, fileSize);
-  free(fileBuffer);
-  Serial.println("Image converted to Base64 successfully");
-  // Split Base64 string into smaller chunks
-  const size_t chunkSize = 512; // Adjust chunk size if needed
-  size_t offset = 0;
-
-  while (offset < base64Image.length()) {
-    String chunk = base64Image.substring(offset, offset + chunkSize);
-    Serial.printf("Uploading chunk %d...\n", offset / chunkSize);
-    // Write each chunk to a different path in Firebase
-    String path = "/images/picture_chunks/" + String(offset / chunkSize);
-    if (!Firebase.setString(fbdo, path, chunk)) {
-      Serial.printf("Failed to upload chunk: %s\n", fbdo.errorReason().c_str());
-      return;
-    } else {
-      Serial.printf("Uploaded chunk %d successfully\n", offset );
-    }
-
-    offset += chunkSize;
-  }
-
-  Serial.println("Image uploaded in chunks successfully!");
-}
-
-
-void sendImageToServer() {
-  WiFiClient client;
-  HTTPClient http;
-
-  camera_fb_t* fb = esp_camera_fb_get();
-  if (!fb) {
-    Serial.println("Camera capture failed");
-    return;
-  } else {
-    Serial.println("Image captured successfully");
-  }
-
-  client.setTimeout(90000); // Set timeout to 60 seconds
-  //http.setMaxContentLength(1000000); // Increase buffer size to handle large images (1MB)
-http.setTimeout(70000);  // Set timeout to 90 seconds
-
-  http.begin(client, serverUrl);
-  http.addHeader("Content-Type", "image/jpeg");
-  Serial.println("Uploading image to server...");
-  int httpResponseCode = http.POST(fb->buf, fb->len);
-
-  if (httpResponseCode > 0) {
-    Serial.printf("HTTP Response code: %d\n", httpResponseCode);
-    String response = http.getString();
-    Serial.println(response);
-  } else {
-    Serial.printf("Error: %s\n", http.errorToString(httpResponseCode).c_str());
-  }
-
-  http.end();
-  esp_camera_fb_return(fb);
-}
-
-*/

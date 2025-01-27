@@ -1,9 +1,10 @@
 #include "commHelperFunctions.h"
 
-//extern bool time_flag;
+// extern bool time_flag;
 extern Flags flags;
 
-void setupFirebase(FirebaseConfig &config , FirebaseAuth &auth) {
+void setupFirebase(FirebaseConfig &config, FirebaseAuth &auth)
+{
     config.api_key = API_KEY;
     config.database_url = FIREBASE_HOST;
     auth.user.email = USER_EMAIL;
@@ -11,15 +12,15 @@ void setupFirebase(FirebaseConfig &config , FirebaseAuth &auth) {
     Firebase.begin(&config, &auth);
     // Ensure the network is reconnected
     Firebase.reconnectNetwork(true);
-
 }
 
-bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s) {
+bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s)
+{
     Serial.println("Getting settings from Firebase...");
 
-    String mode= "Both", alert_method= "timeToImpact" ,sound_1 = "Sound1", sound_2 = "Sound1", sound_3 = "Sound1", vibration_1 = "vibration1", vibration_2 = "vibration1", vibration_3 = "vibration1", voice_alerts_language = "English";
+    String mode = "Both", alert_method = "timeToImpact", sound_1 = "Sound1", sound_2 = "Sound1", sound_3 = "Sound1", vibration_1 = "vibration1", vibration_2 = "vibration1", vibration_3 = "vibration1", voice_alerts_language = "English";
     int userheight = 170, systemheight = 85, volume = 5, distance_1 = 1000, distance_2 = 500, distance_3 = 250;
-    bool enable_alert_1 = true, enable_alert_2 = true, enable_alert_3 = true, enable_voice_alerts = true,enable_camera = true;
+    bool enable_alert_1 = true, enable_alert_2 = true, enable_alert_3 = true, enable_voice_alerts = true, enable_camera = true;
     double timing_1 = 1.5, timing_2 = 0.8, timing_3 = 0.3;
 
     // Helper macro for fetching data from Firebase
@@ -35,40 +36,49 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s) {
         Serial.print(": ");                          \
         Serial.println(firebaseData->errorReason()); \
         return false;                                \
-}
+    }
 
-#define GET_INT(path, target) \
-        if (Firebase.RTDB.getInt(firebaseData, path)) { \
-            target = firebaseData->to<int>(); \
-        } else { \
-            Serial.print("Failed to get "); \
-            Serial.print(path); \
-            Serial.print(": "); \
-            Serial.println(firebaseData->errorReason()); \
-            return false; \
-        }
+#define GET_INT(path, target)                        \
+    if (Firebase.RTDB.getInt(firebaseData, path))    \
+    {                                                \
+        target = firebaseData->to<int>();            \
+    }                                                \
+    else                                             \
+    {                                                \
+        Serial.print("Failed to get ");              \
+        Serial.print(path);                          \
+        Serial.print(": ");                          \
+        Serial.println(firebaseData->errorReason()); \
+        return false;                                \
+    }
 
-    #define GET_DOUBLE(path, target) \
-        if (Firebase.RTDB.getDouble(firebaseData, path)) { \
-            target = firebaseData->to<double>(); \
-        } else { \
-            Serial.print("Failed to get "); \
-            Serial.print(path); \
-            Serial.print(": "); \
-            Serial.println(firebaseData->errorReason()); \
-            return false; \
-        }
+#define GET_DOUBLE(path, target)                     \
+    if (Firebase.RTDB.getDouble(firebaseData, path)) \
+    {                                                \
+        target = firebaseData->to<double>();         \
+    }                                                \
+    else                                             \
+    {                                                \
+        Serial.print("Failed to get ");              \
+        Serial.print(path);                          \
+        Serial.print(": ");                          \
+        Serial.println(firebaseData->errorReason()); \
+        return false;                                \
+    }
 
-    #define GET_BOOL(path, target) \
-        if (Firebase.RTDB.getBool(firebaseData, path)) { \
-            target = firebaseData->to<bool>(); \
-        } else { \
-            Serial.print("Failed to get "); \
-            Serial.print(path); \
-            Serial.print(": "); \
-            Serial.println(firebaseData->errorReason()); \
-            return false; \
-        }
+#define GET_BOOL(path, target)                       \
+    if (Firebase.RTDB.getBool(firebaseData, path))   \
+    {                                                \
+        target = firebaseData->to<bool>();           \
+    }                                                \
+    else                                             \
+    {                                                \
+        Serial.print("Failed to get ");              \
+        Serial.print(path);                          \
+        Serial.print(": ");                          \
+        Serial.println(firebaseData->errorReason()); \
+        return false;                                \
+    }
 
     // Fetching settings
     GET_STRING("/System_Settings/settings/mode", mode);
@@ -122,60 +132,71 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s) {
     GET_BOOL("/System_Settings/settings/enableCamera", enable_camera);
     s.setEnableCamera(enable_camera);
 
-    
     Serial.println("Settings retrieved successfully.");
-    
+
     return true;
 }
 
-
-void storeFirebaseSetting(FirebaseData *firebaseData, systemSettings &s) {
+void storeFirebaseSetting(FirebaseData *firebaseData, systemSettings &s)
+{
     Serial.println("Storing settings to Firebase...");
 
-    // Helper macro for setting data to Firebase
-    #define SET_STRING(path, value) \
-        if (Firebase.RTDB.setString(firebaseData, path, value)) { \
-            Serial.print(path); \
-            Serial.println(" stored successfully."); \
-        } else { \
-            Serial.print("Error storing "); \
-            Serial.print(path); \
-            Serial.print(": "); \
-            Serial.println(firebaseData->errorReason()); \
-        }
+// Helper macro for setting data to Firebase
+#define SET_STRING(path, value)                             \
+    if (Firebase.RTDB.setString(firebaseData, path, value)) \
+    {                                                       \
+        Serial.print(path);                                 \
+        Serial.println(" stored successfully.");            \
+    }                                                       \
+    else                                                    \
+    {                                                       \
+        Serial.print("Error storing ");                     \
+        Serial.print(path);                                 \
+        Serial.print(": ");                                 \
+        Serial.println(firebaseData->errorReason());        \
+    }
 
-    #define SET_DOUBLE(path, value) \
-        if (Firebase.RTDB.setDouble(firebaseData, path, value)) { \
-            Serial.print(path); \
-            Serial.println(" stored successfully."); \
-        } else { \
-            Serial.print("Error storing "); \
-            Serial.print(path); \
-            Serial.print(": "); \
-            Serial.println(firebaseData->errorReason()); \
-        }
+#define SET_DOUBLE(path, value)                             \
+    if (Firebase.RTDB.setDouble(firebaseData, path, value)) \
+    {                                                       \
+        Serial.print(path);                                 \
+        Serial.println(" stored successfully.");            \
+    }                                                       \
+    else                                                    \
+    {                                                       \
+        Serial.print("Error storing ");                     \
+        Serial.print(path);                                 \
+        Serial.print(": ");                                 \
+        Serial.println(firebaseData->errorReason());        \
+    }
 
-    #define SET_INT(path, value) \
-        if (Firebase.RTDB.setInt(firebaseData, path, value)) { \
-            Serial.print(path); \
-            Serial.println(" stored successfully."); \
-        } else { \
-            Serial.print("Error storing "); \
-            Serial.print(path); \
-            Serial.print(": "); \
-            Serial.println(firebaseData->errorReason()); \
-        }
+#define SET_INT(path, value)                             \
+    if (Firebase.RTDB.setInt(firebaseData, path, value)) \
+    {                                                    \
+        Serial.print(path);                              \
+        Serial.println(" stored successfully.");         \
+    }                                                    \
+    else                                                 \
+    {                                                    \
+        Serial.print("Error storing ");                  \
+        Serial.print(path);                              \
+        Serial.print(": ");                              \
+        Serial.println(firebaseData->errorReason());     \
+    }
 
-    #define SET_BOOL(path, value) \
-        if (Firebase.RTDB.setBool(firebaseData, path, value)) { \
-            Serial.print(path); \
-            Serial.println(" stored successfully."); \
-        } else { \
-            Serial.print("Error storing "); \
-            Serial.print(path); \
-            Serial.print(": "); \
-            Serial.println(firebaseData->errorReason()); \
-        }
+#define SET_BOOL(path, value)                             \
+    if (Firebase.RTDB.setBool(firebaseData, path, value)) \
+    {                                                     \
+        Serial.print(path);                               \
+        Serial.println(" stored successfully.");          \
+    }                                                     \
+    else                                                  \
+    {                                                     \
+        Serial.print("Error storing ");                   \
+        Serial.print(path);                               \
+        Serial.print(": ");                               \
+        Serial.println(firebaseData->errorReason());      \
+    }
 
     // Store settings to Firebase
     SET_STRING("/System_Settings/settings/mode", s.getMode());
@@ -209,20 +230,186 @@ void storeFirebaseSetting(FirebaseData *firebaseData, systemSettings &s) {
     Serial.println("Settings stored successfully.");
 }
 
-
-bool updateFirebaseLocalIP(FirebaseData *firebaseData, String localIP) {
+bool updateFirebaseLocalIP(FirebaseData *firebaseData, String localIP)
+{
     Serial.println("Updating local IP to Firebase...");
 
-    if (Firebase.RTDB.setString(firebaseData, "/System_Settings/localIP", localIP)) {
+    if (Firebase.RTDB.setString(firebaseData, "/System_Settings/localIP", localIP))
+    {
         Serial.println("Local IP stored successfully.");
         return true;
-    } else {
+    }
+    else
+    {
         Serial.print("Error storing local IP: ");
         Serial.println(firebaseData->errorReason());
         return false;
     }
 }
 
+bool uploadLogToFirebaseStorage(fs::FS &fs, FirebaseData &fbdo, FirebaseAuth &auth, FirebaseConfig &config, String &localFilePath, String &remoteFilePath)
+{
+    config.host = FIREBASE_HOST_STORAGE;
+    config.signer.tokens.legacy_token = FIREBASE_AUTH;
+    config.timeout.serverResponse = 10000;   // Set timeout to 10 seconds (10000 ms)
+    config.timeout.socketConnection = 15000; // 15 seconds
+    Firebase.begin(&config, &auth);
+
+    // Open file on SD card
+    File file = fs.open(localFilePath, FILE_READ);
+    if (!file)
+    {
+        Serial.println("Failed to open file for reading");
+        return false;
+    }
+
+    // Get file size
+    size_t fileSize = file.size();
+
+    // Allocate buffer
+    uint8_t *buffer = new uint8_t[fileSize];
+    if (!buffer)
+    {
+        Serial.println("Failed to allocate memory for file buffer");
+        file.close();
+        return false;
+    }
+
+    // Read file into buffer
+    file.read(buffer, fileSize);
+
+    // Upload to Firebase Storage
+    if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID, buffer, fileSize, remoteFilePath.c_str(), "text/plain"))
+    {
+        Serial.printf("Upload successful: %s\n", fbdo.stringData().c_str());
+        file.close();
+        delete[] buffer;
+        return true;
+    }
+    else
+    {
+        Serial.printf("Upload failed: %s\n", fbdo.errorReason().c_str());
+        file.close();
+        delete[] buffer;
+        return false;
+    }
+}
+
+bool uploadLogs(fs::FS &fs, FirebaseData &fbdo, FirebaseAuth &auth, FirebaseConfig &config)
+{
+    File root = fs.open("/logs");
+    if (!root)
+    {
+        Serial.println("Failed to open logs directory");
+        return false;
+    }
+
+    File file = root.openNextFile();
+    while (file)
+    {
+        if (file.isDirectory())
+            continue;
+
+        String filename = file.name();
+        Serial.println("Uploading log: " + filename);
+        String remotePath = "/logs/" + filename;
+        if (uploadLogToFirebaseStorage(fs, fbdo, auth, config, remotePath, remotePath))
+        {
+            Serial.println("Log uploaded successfully");
+            deleteFile(fs, remotePath.c_str());
+        }
+        else
+        {
+            Serial.println("Failed to upload log");
+            return false;
+        }
+        file = root.openNextFile();
+    }
+    Serial.println("All logs uploaded successfully");
+    return true;
+}
+
+bool uploadImagesToFirebaseStorage(fs::FS &fs, FirebaseData &fbdo, FirebaseAuth &auth, FirebaseConfig &config, String &localFilePath, String &remoteFilePath)
+{
+    config.host = FIREBASE_HOST_STORAGE;
+    config.signer.tokens.legacy_token = FIREBASE_AUTH;
+    config.timeout.serverResponse = 10000;   // Set timeout to 10 seconds (10000 ms)
+    config.timeout.socketConnection = 15000; // 15 seconds
+    Firebase.begin(&config, &auth);
+
+    // Open file on SD card
+    File file = fs.open(localFilePath, FILE_READ);
+    if (!file)
+    {
+        Serial.println("Failed to open file for reading");
+        return false;
+    }
+
+    // Get file size
+    size_t fileSize = file.size();
+
+    // Allocate buffer
+    uint8_t *buffer = new uint8_t[fileSize];
+    if (!buffer)
+    {
+        Serial.println("Failed to allocate memory for file buffer");
+        file.close();
+        return false;
+    }
+
+    // Read file into buffer
+    file.read(buffer, fileSize);
+
+
+    // Upload to Firebase Storage
+    if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID, buffer, fileSize, remoteFilePath.c_str(), "image/jpeg"))
+    {
+        Serial.printf("Upload successful: %s\n", fbdo.stringData().c_str());
+        Serial.println("Image uploaded to: " + remoteFilePath);
+
+        return true;
+    }
+    else
+    {
+        Serial.printf("Upload failed: %s\n", fbdo.errorReason().c_str());
+
+        return false;
+    }
+}
+
+bool uploadImages(fs::FS &fs, FirebaseData &fbdo, FirebaseAuth &auth, FirebaseConfig &config)
+{
+    File root = fs.open("/images");
+    if (!root)
+    {
+        Serial.println("Failed to open images directory");
+        return false;
+    }
+
+    File file = root.openNextFile();
+    while (file)
+    {
+        if (file.isDirectory())
+            continue;
+
+        String filename = file.name();
+        Serial.println("Uploading image: " + filename);
+        String remotePath = "/images/" + filename;
+        if (uploadImagesToFirebaseStorage(fs, fbdo, auth, config, remotePath, remotePath))
+        {
+            Serial.println("Image uploaded successfully");
+            deleteFile(fs, remotePath.c_str());
+        }
+        else
+        {
+            Serial.println("Failed to upload image");
+            return false;
+        }
+        file = root.openNextFile();
+    }
+    Serial.println("All images uploaded successfully");
+    return true;
+}
 
 bool WifiManagerSetup()
 {
@@ -268,7 +455,10 @@ bool WifiSetup()
     // Connect to Wi-Fi
     // WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     WiFi.mode(WIFI_STA);
+
     WiFi.begin();
+    WiFi.setAutoReconnect(true);
+    WiFi.persistent(true);
 
     Serial.println("Connecting to Wi-Fi");
     String ssid = preferences.getString("savedSSID", "No SSID saved");
@@ -304,11 +494,10 @@ bool WifiSetup()
     }
 }
 
-
 void setupTime()
 {
-    //time_flag = false;
-    // Set the timezone to Israel (UTC+2) and adjust for DST (+1 hour during DST)
+    // time_flag = false;
+    //  Set the timezone to Israel (UTC+2) and adjust for DST (+1 hour during DST)
     const long gmtOffset_sec = 7200;     // UTC+2 in seconds
     const int daylightOffset_sec = 3600; // +1 hour for DST
     configTime(gmtOffset_sec, daylightOffset_sec, "pool.ntp.org", "time.nist.gov");
@@ -320,7 +509,9 @@ void setupTime()
         flags.time_flag = true;
         Serial.println("Time synchronized:");
         Serial.println(&timeinfo, "%Y-%m-%d %H:%M:%S"); // Print the formatted time
-  } else {
-    Serial.println("Failed to obtain time");
-  }
+    }
+    else
+    {
+        Serial.println("Failed to obtain time");
+    }
 }

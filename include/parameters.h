@@ -1,7 +1,6 @@
 
 //SAFESTEP system defines
 
-#define IRQ_PIN 2
 #define XSHUT_PIN_1 1
 #define XSHUT_PIN_2 2
 #define XSHUT_PIN_3 41
@@ -13,7 +12,6 @@
 #define VL53L1X_ADDRESS_3 0x52
 #define VL53L1X_ADDRESS_4 0x53
 #define MOTOR_1_PIN 19
-#define MOTOR_2_PIN 19
 #define MP3_RX 45
 #define MP3_TX 48
 #define ON_OFF_BUTTON_PIN 46

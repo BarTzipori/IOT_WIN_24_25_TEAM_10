@@ -23,10 +23,31 @@ void playMP3AsTask(void *pvParameters) {
   MP3* mp3 = (MP3*) params[0];
   uint8_t directory_name = (uint8_t)(uintptr_t)params[1];
   uint8_t file_name  = (uint8_t)(uintptr_t)params[2];
+  Serial.print("PLAYING SOUND: ");
+  Serial.print(file_name);
 
   mp3->playWithFileName(directory_name, file_name);
   vTaskDelay(1000);
   vTaskDelete(NULL);
+}
+
+// This task calculates the user's velocity based on the step count
+void calculateVelocityAsTask(void *pvParameters) {
+    VelocityTaskParams *params = (VelocityTaskParams *)pvParameters;
+    int delay_in_ms = params->delay_in_ms;
+    systemSettings *settings = params->settings;
+    double *velocity = params->velocity;
+    int *step_count = params->step_count;
+    const SensorData &sensor_data = *(params->sensor_data); // Use const reference
+    bool is_system_on = *(params->system_on_flag);
+    float user_height_in_meters = settings->getUserHeight() / 100;
+
+    while (true) {
+        if (is_system_on) {
+            calculateStepCountAndSpeed(sensor_data, step_count, velocity, user_height_in_meters);
+        }
+        vTaskDelay(delay_in_ms);
+    }
 }
 
 
@@ -114,6 +135,8 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
         // Reset for the next window
         stepsInWindow = 0;
         startTime = currentTime;
+        String log_data = "Steps in window: " + String(stepsInWindow) + ", Speed estimated: " + String(*speed) + " m/s";
+        logData(log_data);
     }
 
     // Update previous values
