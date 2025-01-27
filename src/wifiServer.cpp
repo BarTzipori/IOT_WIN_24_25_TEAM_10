@@ -132,6 +132,7 @@ void onSave(){
     
   system_settings.updateSettings(s);
   updateSDSettings(system_settings);
+  system_settings.changeVolume(system_settings.getVolume(), &mp3);
   Serial.println("Settings updated");
   system_settings.print();
   server.send(200, "text/plain", "Settings saved");

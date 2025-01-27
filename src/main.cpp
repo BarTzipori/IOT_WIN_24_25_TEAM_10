@@ -284,18 +284,64 @@ void setup()
     Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
     String log_data = "SAFE STEP IS READY TO USE: STARTING OPERATIONS";
     logData(log_data);
+    
+    bool buttonPressed = false;
 
-    uploadLogs(SD_MMC, fbdo, auth, config);   // new function to upload logs to firebase
-    uploadImages(SD_MMC, fbdo, auth, config); // new function to upload images to firebase
+    onOffButton.loop(); // Update button state
 
-    mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_READY_TO_USE);
-    delay(2000);
-    is_system_on = true;
-    // Creates threaded tasks
-    VelocityTaskParams params = {SpeedCalcDelay, &system_settings, &velocity, &step_count, &sensor_data, &is_system_on};
+  if (flags.wifi_flag) {
+    // Non-blocking delay for audio playback
+    unsigned long audioStartTime = millis();
+    mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOAD_LOGS);
+    while (millis() - audioStartTime < 8000) {
+      onOffButton.loop(); // Ensure button state is updated during audio playback
+      if (onOffButton.isPressed()) {
+        buttonPressed = true;
+        break;
+      } 
+    }
+    unsigned long startTime = millis();
+    if(!buttonPressed) {
+      // Prompt user to press the button within the timeout
+      Serial.println("Press the button within the timeout (4 seconds) to upload logs.");
+      while (millis() - startTime < UPLOAD_TIMEOUT) {
+        onOffButton.loop(); // Update button state
+        if (onOffButton.isPressed()) {
+          buttonPressed = true;
+          break; // Exit the loop if the button is pressed
+        }
+      }
+    }
 
-    xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
-    xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &params, 3, nullptr);
+    // Check button press result
+    if (buttonPressed) {
+      Serial.println("Button pressed. Uploading logs...");
+      mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOADING_FILES);
+
+      // Non-blocking delay for audio playback
+      audioStartTime = millis();
+      while (millis() - audioStartTime < 5000) {
+        onOffButton.loop(); // Update button state during audio playback
+      }
+
+      // Upload logs and images
+      uploadLogs(SD_MMC, fbdo, auth, config);   // Upload logs to Firebase
+      uploadImages(SD_MMC, fbdo, auth, config); // Upload images to Firebase
+    } else {
+      Serial.println("Button not pressed. Skipping log upload.");
+    }
+
+    // Continue with the rest of the setup routine
+    Serial.println("Continuing with setup...");
+  }
+  mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_READY_TO_USE);
+  delay(2000);
+  is_system_on = true;
+  // Creates threaded tasks
+  VelocityTaskParams params = {SpeedCalcDelay, &system_settings, &velocity, &step_count, &sensor_data, &is_system_on};
+
+  xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
+  xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &params, 3, nullptr);
 }
 
 void loop()
@@ -413,7 +459,6 @@ void loop()
             }
         }
     }
-    system_settings.changeVolume(system_settings.getVolume(), &mp3);
     if (mpu_degraded_flag) {
         system_settings.setAlertMethod("Distance");
     }

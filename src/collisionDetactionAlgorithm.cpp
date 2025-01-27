@@ -23,10 +23,10 @@ void playMP3AsTask(void *pvParameters) {
   MP3* mp3 = (MP3*) params[0];
   uint8_t directory_name = (uint8_t)(uintptr_t)params[1];
   uint8_t file_name  = (uint8_t)(uintptr_t)params[2];
-  Serial.print("PLAYING SOUND: ");
-  Serial.print(file_name);
 
   mp3->playWithFileName(directory_name, file_name);
+  String log_data = "playing sound number: " + String(file_name);
+  logData(log_data);
   vTaskDelay(1000);
   vTaskDelete(NULL);
 }
@@ -158,7 +158,7 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
 double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
     // Static variable to store the previous x_distance
     static int previous_x_distance = -1; // Initialize with an invalid value
-    const int DISTANCE_CHANGE_THRESHOLD = 20; // Threshold in mm to consider significant movement
+    const int DISTANCE_CHANGE_THRESHOLD = 100; // Threshold in mm to consider significant movement
 
     // User and system heights
     double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
@@ -251,14 +251,13 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
     if (!found_valid_obstacle) {
         previous_x_distance = -1;
     }
-
     return 0; // No valid obstacle detected
 }
 
 double distanceToNearestObstacle(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity, bool mpu_degraded_flag) {
     // Static variable to track the previous x_distance
     static int previous_x_distance = -1; // Initialize with an invalid value
-    const int DISTANCE_CHANGE_THRESHOLD = 20; // Threshold in mm to consider significant movement
+    const int DISTANCE_CHANGE_THRESHOLD = 100; // Threshold in mm to consider significant movement
 
     // User and system heights
     double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
@@ -298,6 +297,8 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
     // Sort distances by X (ascending)
     std::sort(distances.begin(), distances.end());
 
+    bool found_valid_obstacle = false;
+
     // Process each distance
     for (const auto& distance : distances) {
         int x_distance = distance.first;
@@ -316,6 +317,7 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
                 Serial.print("Obstacle detected in degraded mode. X_distance: ");
                 Serial.println(x_distance);
                 previous_x_distance = x_distance; // Update the previous distance
+                found_valid_obstacle = true;
                 return x_distance;
             } else {
                 // Handle normal scenario
@@ -323,6 +325,7 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
                     Serial.print("Obstacle detected. X_distance: ");
                     Serial.println(x_distance);
                     previous_x_distance = x_distance; // Update the previous distance
+                    found_valid_obstacle = true;
                     return x_distance;
                 } else {
                     Serial.println("Velocity is zero or negative; Ignoring obstacle.");
@@ -334,8 +337,10 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
         }
     }
 
-    // If no valid obstacles are found, reset previous_x_distance
-    previous_x_distance = -1;
+    // Reset previous_x_distance only if no valid obstacles are detected
+    if (!found_valid_obstacle) {
+        previous_x_distance = -1;
+    }    
     return 0;
 }
 
@@ -387,6 +392,8 @@ bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& syst
         Serial.println("Alert 1 is enabled");
         if (obstacle_distance <= system_settings.getAlertDistance1()*10){
           Serial.println("Alerted collision from alert 1");
+          String logs_data = "Alerted collision from alert 1";
+          logData(logs_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
@@ -395,11 +402,15 @@ bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& syst
         Serial.println("Alert 1 and 2 are enabled");
         if (obstacle_distance <= system_settings.getAlertDistance1()*10 && obstacle_distance > system_settings.getAlertDistance2()*10) {
           Serial.println("Alerted collision from alert 1");
+          String logs_data = "Alerted collision from alert 1";
+          logData(logs_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
         if (obstacle_distance <= system_settings.getAlertDistance2()*10 && obstacle_distance > 0) {
           Serial.println("Alerted collision from alert 2");
+          String logs_data = "Alerted collision from alert 2";
+          logData(logs_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
@@ -408,16 +419,22 @@ bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& syst
         Serial.println("Alert 1, 2 and 3 are enabled");
         if (obstacle_distance <= system_settings.getAlertDistance1()*10 && obstacle_distance > system_settings.getAlertDistance2()*10) {
           Serial.println("Alerted collision from alert 1");
+          String logs_data = "Alerted collision from alert 1";
+          logData(logs_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
         if (obstacle_distance <= system_settings.getAlertDistance2()*10 && obstacle_distance > system_settings.getAlertDistance3()*10) {
           Serial.println("Alerted collision from alert 2");
+          String logs_data = "Alerted collision from alert 2";
+          logData(logs_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
         if (obstacle_distance > 0 && obstacle_distance <= system_settings.getAlertDistance3()*10) {
           Serial.println("Alerted collision from alert 3");
+          String logs_data = "Alerted collision from alert 3";
+          logData(logs_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3(), system_settings.getAlertSound3AsInt());
           return true;
         }
@@ -437,7 +454,6 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
     static void* vibration_params[2];
     vibration_params[0] = (void*)&vibration_motor;          
     vibration_params[1] = (void*)&vib_pattern; 
-
     if(system_settings.getMode() == "Vibration") {
         xTaskCreate(vibrateMotorsAsTask, "vibrateMotor1", STACK_SIZE, &vibration_params, 4, nullptr);
         vTaskDelay(1500);
