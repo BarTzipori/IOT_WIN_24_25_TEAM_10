@@ -285,7 +285,6 @@ void setup()
     String log_data = "SAFE STEP IS READY TO USE: STARTING OPERATIONS";
     logData(log_data);
     
-    unsigned long startTime = millis();
     bool buttonPressed = false;
 
     onOffButton.loop(); // Update button state
@@ -296,15 +295,21 @@ void setup()
     mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOAD_LOGS);
     while (millis() - audioStartTime < 8000) {
       onOffButton.loop(); // Ensure button state is updated during audio playback
-    }
-
-    // Prompt user to press the button within the timeout
-    Serial.println("Press the button within the timeout (4 seconds) to upload logs.");
-    while (millis() - startTime < UPLOAD_TIMEOUT) {
-      onOffButton.loop(); // Update button state
       if (onOffButton.isPressed()) {
         buttonPressed = true;
-        break; // Exit the loop if the button is pressed
+        break;
+      } 
+    }
+    unsigned long startTime = millis();
+    if(!buttonPressed) {
+      // Prompt user to press the button within the timeout
+      Serial.println("Press the button within the timeout (4 seconds) to upload logs.");
+      while (millis() - startTime < UPLOAD_TIMEOUT) {
+        onOffButton.loop(); // Update button state
+        if (onOffButton.isPressed()) {
+          buttonPressed = true;
+          break; // Exit the loop if the button is pressed
+        }
       }
     }
 
@@ -454,7 +459,6 @@ void loop()
             }
         }
     }
-    system_settings.changeVolume(system_settings.getVolume(), &mp3);
     if (mpu_degraded_flag) {
         system_settings.setAlertMethod("Distance");
     }
