@@ -183,6 +183,8 @@ void systemInit()
         else
         {
             Serial.println("Failed to initialize SD card");
+            String log_data = "ERROR: FAILED TO INITIALIZE SD CARD - SYSTEM WILL OPERATE IN DEGRADED MODE";
+            logData(log_data);
             mp3.playWithFileName(VOICE_ALERTS_DIR, NO_SD_DETECTED);
             delay(4000);
             flags.sd_flag = false;
@@ -281,9 +283,7 @@ void setup()
         delay(10000);
     }
     system_calibrated = true;
-    Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
-    String log_data = "SAFE STEP IS READY TO USE: STARTING OPERATIONS";
-    logData(log_data);
+
     
     bool buttonPressed = false;
 
@@ -330,13 +330,16 @@ void setup()
     } else {
       Serial.println("Button not pressed. Skipping log upload.");
     }
-
     // Continue with the rest of the setup routine
     Serial.println("Continuing with setup...");
   }
   mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_READY_TO_USE);
   delay(2000);
   is_system_on = true;
+  Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
+  String log_data = "SAFE STEP IS READY TO USE: STARTING OPERATIONS";
+  logData(log_data);
+  
   // Creates threaded tasks
   VelocityTaskParams params = {SpeedCalcDelay, &system_settings, &velocity, &step_count, &sensor_data, &is_system_on};
 
@@ -375,7 +378,7 @@ void loop()
         {
             // Long press detected
             Serial.println("SAFESTEP MPU RECALIBRATION ROUTINE STARTING...");
-            String log_data = "SAFESTEP MPU RECALIBRATION ROUTINE STARTING...";
+            String log_data = "INFO: SAFESTEP MPU RECALIBRATION ROUTINE STARTING...";
             logData(log_data);
             is_long_press = true; // Set long press flag
             system_calibrated = false;
@@ -391,6 +394,8 @@ void loop()
             is_double_press_pending = false;
         } else if (pressDuration >= MEDIUM_PRESS_TRESHOLD && pressDuration < LONG_PRESS_THRESHOLD) {
             Serial.println("SAFESTEP MEDIUM PRESS ROUTINE STARTING...");
+            String log_data = "INFO: SAFESTEP MEDIUM PRESS ROUTINE STARTING...";
+            logData(log_data);
             // Reset double press tracking
             is_double_press_pending = false;
             is_system_on = false;
@@ -407,11 +412,13 @@ void loop()
                 mp3.playWithFileName(VOICE_ALERTS_DIR, PLEASE_CONNECT_TO_SAFESTEP_WIFI);
                 delay(1000);
                 Serial.println("SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...");
-                String log_data = "SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...";
+                String log_data = "INFO: SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...";
                 logData(log_data);
                 motor1.vibrate(vibrationPattern::pulseBuzz);
                 if (!WifiManagerSetup()) {
                     Serial.println("Failed to connect to a new network, using SD card settings instead...");
+                    String log_data = "ERROR: Failed to connect to a new network, using SD card settings instead...";
+                    logData(log_data);
                     mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_NOT_PAIRED);
                     delay(500);
                 } else {
@@ -419,6 +426,9 @@ void loop()
                     systemInit();
                     mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_PAIRED);
                     delay(500);
+                    Serial.println("system paired to a new network");
+                    String log_data = "INFO: system paired to a new network";
+                    logData(log_data);
                 } 
                 is_double_press_pending = false;
                 is_system_on = true;
@@ -434,7 +444,7 @@ void loop()
     if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRESS_THRESHOLD)) {
         // No second press detected, treat as a short press
         Serial.println("SAFESTEP SHORT PRESS ROUTINE STARTING...");
-        String log_data = "SAFESTEP SHORT PRESS ROUTINE STARTING...";
+        String log_data = "INFO: SAFESTEP SHORT PRESS ROUTINE STARTING...";
         logData(log_data);
         motor1.vibrate(vibrationPattern::shortBuzz);
 

@@ -100,6 +100,8 @@
 #define SENSOR_3_BOX_HEIGHT 0
 #define SENSOR_4_BOX_HEIGHT 0
 
+//additional system settings (comms, wifi, camera)
+
 #define WIFI_MANAGER_TIMEOUT 30
 #define WIFI_TIMEOUT 15000
 #define CAMERA_CAPTURE_INTERVAL 5000
