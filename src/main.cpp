@@ -237,7 +237,7 @@ void setup()
     static int DistanceSensorDelay = 50;
     static int SpeedCalcDelay = 100;
     delay(500);
-    playPoweringOnSystemAsTask(&mp3);
+    xTaskCreate(playPoweringOnSystemAsTask, "playPoweringOnSystemAsTask", STACK_SIZE, &mp3, 2, nullptr);
     Serial.begin(115200);
     delay(100);
     Wire.begin(3, 14);
@@ -284,9 +284,7 @@ void setup()
     }
     system_calibrated = true;
 
-    
     bool buttonPressed = false;
-
     onOffButton.loop(); // Update button state
 
   if (flags.wifi_flag) {
@@ -312,7 +310,6 @@ void setup()
         }
       }
     }
-
     // Check button press result
     if (buttonPressed) {
       Serial.println("Button pressed. Uploading logs...");
@@ -323,7 +320,6 @@ void setup()
       while (millis() - audioStartTime < 5000) {
         onOffButton.loop(); // Update button state during audio playback
       }
-
       // Upload logs and images
       uploadLogs(SD_MMC, fbdo, auth, config);   // Upload logs to Firebase
       uploadImages(SD_MMC, fbdo, auth, config); // Upload images to Firebase
@@ -333,7 +329,7 @@ void setup()
     // Continue with the rest of the setup routine
     Serial.println("Continuing with setup...");
   }
-  playSystemReadytoUseAsTask(&mp3);
+  xTaskCreate(playSystemReadytoUseAsTask, "playSystemReadytoUseAsTask", STACK_SIZE, &mp3, 2, nullptr);
   is_system_on = true;
   Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
   String log_data = "SAFE STEP IS READY TO USE: STARTING OPERATIONS";
@@ -407,9 +403,9 @@ void loop()
                 // Confirmed double press
                 //mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_PAIRING_INITIATED);
                 //delay(5000);
-                playWifiPairingInitiatedAsTask(&mp3);
+                xTaskCreate(playWifiPairingInitiatedAsTask, "playWifiPairingInitiatedAsTask", STACK_SIZE, &mp3, 2, nullptr);
                 vTaskDelay(5000);
-                playPleaseConnectToSafestepWifiAsTask(&mp3);
+                xTaskCreate(playPleaseConnectToSafestepWifiAsTask, "playPleaseConnectToSafestepWifiAsTask", STACK_SIZE, &mp3, 2, nullptr);
                 //mp3.playWithFileName(VOICE_ALERTS_DIR, PLEASE_CONNECT_TO_SAFESTEP_WIFI);
                 Serial.println("SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...");
                 String log_data = "INFO: SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...";
@@ -419,14 +415,15 @@ void loop()
                     Serial.println("Failed to connect to a new network, using SD card settings instead...");
                     String log_data = "ERROR: Failed to connect to a new network, using SD card settings instead...";
                     logData(log_data);
-                    mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_NOT_PAIRED);
-                    playSystemNotPairedAsTask(&mp3); 
+                    //mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_NOT_PAIRED);
+                    xTaskCreate(playSystemNotPairedAsTask, "playSystemNotPairedAsTask", STACK_SIZE, &mp3, 2, nullptr);
                     vTaskDelay(500);
                 } else {
                     flags.wifi_flag = true;
                     systemInit();
                     //mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_PAIRED);
-                    playSystemPairedAsTask(&mp3);
+                    xTaskCreate(playSystemPairedAsTask, "playSystemPairedAsTask", STACK_SIZE, &mp3, 2, nullptr);
+                    //playSystemPairedAsTask(&mp3);
                     vTaskDelay(500);
                     Serial.println("system paired to a new network");
                     String log_data = "INFO: system paired to a new network";
