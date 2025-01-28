@@ -155,20 +155,14 @@ void sampleSensorsData(void *pvParameters)
 void systemInit()
 {
     Serial.println("--------- System Init ---------");
-    if (!flags.wifi_flag)
-    {
+    if (!flags.wifi_flag) {
         flags.wifi_flag = WifiSetup();
     }
-    if (flags.wifi_flag)
-    {
+    if (flags.wifi_flag) {
         setupTime();
-        mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_CONNECTED);
-        delay(1000);
-    }
-    else
-    {
-        mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_NOT_CONNECTED);
-        delay(2000);
+        xTaskCreate(playWifiConnectedAsTask, "playWifiConnectedAsTask", STACK_SIZE, &mp3, 2, nullptr);
+    } else {
+        xTaskCreate(playWifiNotConnectedAsTask, "playWifiNotConnectedAsTask", STACK_SIZE, &mp3, 2, nullptr);
     }
     if (!flags.sd_flag)
     {
@@ -186,8 +180,7 @@ void systemInit()
             Serial.println("Failed to initialize SD card");
             String log_data = "ERROR: FAILED TO INITIALIZE SD CARD - SYSTEM WILL OPERATE IN DEGRADED MODE";
             logData(log_data);
-            mp3.playWithFileName(VOICE_ALERTS_DIR, NO_SD_DETECTED);
-            delay(4000);
+            xTaskCreate(playNoSDDetectedAsTask, "playNoSDDetectedAsTask", STACK_SIZE, &mp3, 2, nullptr);
             flags.sd_flag = false;
         }
     }
@@ -215,29 +208,23 @@ void systemInit()
     if (!flags.camera_flag)
     {
         flags.camera_flag = setupCamera();
-        if (!flags.camera_flag)
-        {
-            mp3.playWithFileName(VOICE_ALERTS_DIR, NO_CAMERA_DETECTED);
-            delay(3000);
+        if (!flags.camera_flag) {
+            xTaskCreate(playNoCameraDetectedAsTask, "playNoCameraDetectedAsTask", STACK_SIZE, &mp3, 2, nullptr);
         }
     }
 
-    if (!flags.wifi_flag && !flags.sd_flag)
-    {
-        mp3.playWithFileName(VOICE_ALERTS_DIR, NO_SD_AND_WIFI);
-        delay(7000);
+    if (!flags.wifi_flag && !flags.sd_flag) {
+        xTaskCreate(playNoSDAndWifiAsTask, "playNoSDAndWifiAsTask", STACK_SIZE, &mp3, 2, nullptr);
     }
-
     Serial.printf("--------- System Init Done ---------\n");
 }
 
 void setup()
 {
-
     static int DistanceSensorDelay = 50;
     static int SpeedCalcDelay = 100;
     delay(500);
-    playPoweringOnSystemAsTask(&mp3);
+    xTaskCreate(playPoweringOnSystemAsTask, "playPoweringOnSystemAsTask", STACK_SIZE, &mp3, 2, nullptr);
     Serial.begin(115200);
     delay(100);
     Wire.begin(3, 14);
@@ -274,9 +261,8 @@ void setup()
         Serial.println("ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATE IN DOWNGRADED MODE");
         String log_data = "ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATRE IN DEGRADED MODE";
         logData(log_data);
-        mp3.playWithFileName(VOICE_ALERTS_DIR, MPU_SENSOR_DEGRADED);
+        xTaskCreate(playMPUSensorDegradedAsTask, "playMPUSensorDegradedAsTask", STACK_SIZE, &mp3, 2, nullptr);
         mpu_degraded_flag = true;
-        delay(5000);
     } else {
         calibrateMPU(&mpu, calibration_needed, &mp3);
     } if (calibration_needed){
@@ -284,15 +270,13 @@ void setup()
     }
     system_calibrated = true;
 
-    
     bool buttonPressed = false;
-
     onOffButton.loop(); // Update button state
 
   if (flags.wifi_flag) {
     // Non-blocking delay for audio playback
     unsigned long audioStartTime = millis();
-    mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOAD_LOGS);
+    xTaskCreate(playUploadLogsAsTask, "playUploadLogsAsTask", STACK_SIZE, &mp3, 2, nullptr);
     while (millis() - audioStartTime < 8000) {
       onOffButton.loop(); // Ensure button state is updated during audio playback
       if (onOffButton.isPressed()) {
@@ -312,18 +296,16 @@ void setup()
         }
       }
     }
-
     // Check button press result
     if (buttonPressed) {
       Serial.println("Button pressed. Uploading logs...");
-      mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOADING_FILES);
+      xTaskCreate(playUploadingFilesAsTask, "playUploadingFilesAsTask", STACK_SIZE, &mp3, 2, nullptr);
 
       // Non-blocking delay for audio playback
       audioStartTime = millis();
       while (millis() - audioStartTime < 5000) {
         onOffButton.loop(); // Update button state during audio playback
       }
-
       // Upload logs and images
       uploadLogs(SD_MMC, fbdo, auth, config);   // Upload logs to Firebase
       uploadImages(SD_MMC, fbdo, auth, config); // Upload images to Firebase
@@ -333,7 +315,7 @@ void setup()
     // Continue with the rest of the setup routine
     Serial.println("Continuing with setup...");
   }
-  playSystemReadytoUseAsTask(&mp3);
+  xTaskCreate(playSystemReadytoUseAsTask, "playSystemReadytoUseAsTask", STACK_SIZE, &mp3, 2, nullptr);
   is_system_on = true;
   Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
   String log_data = "SAFE STEP IS READY TO USE: STARTING OPERATIONS";
@@ -398,16 +380,19 @@ void loop()
             // Reset double press tracking
             is_double_press_pending = false;
             is_system_on = false;
-            mp3.playWithFileName(VOICE_ALERTS_DIR, ERROR_REPORTED);
+            xTaskCreate(playErrorReportedAsTask, "playErrorReportedAsTask", STACK_SIZE, &mp3, 2, nullptr);
             String log_Data = "ERROR: System Malfunction reported by the user";
             logData(log_Data);
             is_system_on = true;
         } else {
             if (is_double_press_pending) {
                 // Confirmed double press
-                mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_PAIRING_INITIATED);
-                delay(5000);
-                mp3.playWithFileName(VOICE_ALERTS_DIR, PLEASE_CONNECT_TO_SAFESTEP_WIFI);
+                //mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_PAIRING_INITIATED);
+                //delay(5000);
+                xTaskCreate(playWifiPairingInitiatedAsTask, "playWifiPairingInitiatedAsTask", STACK_SIZE, &mp3, 2, nullptr);
+                vTaskDelay(5000);
+                xTaskCreate(playPleaseConnectToSafestepWifiAsTask, "playPleaseConnectToSafestepWifiAsTask", STACK_SIZE, &mp3, 2, nullptr);
+                //mp3.playWithFileName(VOICE_ALERTS_DIR, PLEASE_CONNECT_TO_SAFESTEP_WIFI);
                 Serial.println("SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...");
                 String log_data = "INFO: SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...";
                 logData(log_data);
@@ -416,13 +401,16 @@ void loop()
                     Serial.println("Failed to connect to a new network, using SD card settings instead...");
                     String log_data = "ERROR: Failed to connect to a new network, using SD card settings instead...";
                     logData(log_data);
-                    mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_NOT_PAIRED);
-                    delay(500);
+                    //mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_NOT_PAIRED);
+                    xTaskCreate(playSystemNotPairedAsTask, "playSystemNotPairedAsTask", STACK_SIZE, &mp3, 2, nullptr);
+                    vTaskDelay(500);
                 } else {
                     flags.wifi_flag = true;
                     systemInit();
-                    mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_PAIRED);
-                    delay(500);
+                    //mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_PAIRED);
+                    xTaskCreate(playSystemPairedAsTask, "playSystemPairedAsTask", STACK_SIZE, &mp3, 2, nullptr);
+                    //playSystemPairedAsTask(&mp3);
+                    vTaskDelay(500);
                     Serial.println("system paired to a new network");
                     String log_data = "INFO: system paired to a new network";
                     logData(log_data);
@@ -448,10 +436,10 @@ void loop()
         String curr_mode = system_settings.getMode();
         if (curr_mode == "Both" || curr_mode == "Sound") {
             system_settings.setMode("Vibration");
-            playSilentModeEnabledAsTask(&mp3);
+            xTaskCreate(playSilentModeEnabledAsTask, "playSilentModeEnabledAsTask", STACK_SIZE, &mp3, 2, nullptr);
         } else {
             system_settings.setMode("Both");
-            playSilentModeDisabledAsTask(&mp3);
+            xTaskCreate(playSilentModeDisabledAsTask, "playSilentModeDisabledAsTask", STACK_SIZE, &mp3, 2, nullptr);
         }
         // Reset double press tracking
         is_double_press_pending = false;
