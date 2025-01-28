@@ -19,7 +19,7 @@ void playMPUCalibrationStartAsTask(void *pvParameters);
 void playGyroCalibrationStartAsTask(void *pvParameters);
 void playMagCalibrationStartAsTask(void *pvParameters);
 void playMPUCalibrationDoneAsTask(void *pvParameters);
-void playMpUDeGradedAsTask(void *pvParameters);
+void playMPUSensorDegradedAsTask(void *pvParameters);
 void playDistanceSensorDegradedAsTask(void *pvParameters);
 void playUploadLogsAsTask(void *pvParameters);
 void playUploadingFilesAsTask(void *pvParameters);

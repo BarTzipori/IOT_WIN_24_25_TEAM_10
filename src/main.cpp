@@ -155,20 +155,14 @@ void sampleSensorsData(void *pvParameters)
 void systemInit()
 {
     Serial.println("--------- System Init ---------");
-    if (!flags.wifi_flag)
-    {
+    if (!flags.wifi_flag) {
         flags.wifi_flag = WifiSetup();
     }
-    if (flags.wifi_flag)
-    {
+    if (flags.wifi_flag) {
         setupTime();
-        mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_CONNECTED);
-        delay(1000);
-    }
-    else
-    {
-        mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_NOT_CONNECTED);
-        delay(2000);
+        xTaskCreate(playWifiConnectedAsTask, "playWifiConnectedAsTask", STACK_SIZE, &mp3, 2, nullptr);
+    } else {
+        xTaskCreate(playWifiNotConnectedAsTask, "playWifiNotConnectedAsTask", STACK_SIZE, &mp3, 2, nullptr);
     }
     if (!flags.sd_flag)
     {
@@ -186,8 +180,7 @@ void systemInit()
             Serial.println("Failed to initialize SD card");
             String log_data = "ERROR: FAILED TO INITIALIZE SD CARD - SYSTEM WILL OPERATE IN DEGRADED MODE";
             logData(log_data);
-            mp3.playWithFileName(VOICE_ALERTS_DIR, NO_SD_DETECTED);
-            delay(4000);
+            xTaskCreate(playNoSDDetectedAsTask, "playNoSDDetectedAsTask", STACK_SIZE, &mp3, 2, nullptr);
             flags.sd_flag = false;
         }
     }
@@ -215,25 +208,19 @@ void systemInit()
     if (!flags.camera_flag)
     {
         flags.camera_flag = setupCamera();
-        if (!flags.camera_flag)
-        {
-            mp3.playWithFileName(VOICE_ALERTS_DIR, NO_CAMERA_DETECTED);
-            delay(3000);
+        if (!flags.camera_flag) {
+            xTaskCreate(playNoCameraDetectedAsTask, "playNoCameraDetectedAsTask", STACK_SIZE, &mp3, 2, nullptr);
         }
     }
 
-    if (!flags.wifi_flag && !flags.sd_flag)
-    {
-        mp3.playWithFileName(VOICE_ALERTS_DIR, NO_SD_AND_WIFI);
-        delay(7000);
+    if (!flags.wifi_flag && !flags.sd_flag) {
+        xTaskCreate(playNoSDAndWifiAsTask, "playNoSDAndWifiAsTask", STACK_SIZE, &mp3, 2, nullptr);
     }
-
     Serial.printf("--------- System Init Done ---------\n");
 }
 
 void setup()
 {
-
     static int DistanceSensorDelay = 50;
     static int SpeedCalcDelay = 100;
     delay(500);
@@ -274,9 +261,8 @@ void setup()
         Serial.println("ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATE IN DOWNGRADED MODE");
         String log_data = "ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATRE IN DEGRADED MODE";
         logData(log_data);
-        mp3.playWithFileName(VOICE_ALERTS_DIR, MPU_SENSOR_DEGRADED);
+        xTaskCreate(playMPUSensorDegradedAsTask, "playMPUSensorDegradedAsTask", STACK_SIZE, &mp3, 2, nullptr);
         mpu_degraded_flag = true;
-        delay(5000);
     } else {
         calibrateMPU(&mpu, calibration_needed, &mp3);
     } if (calibration_needed){
@@ -290,7 +276,7 @@ void setup()
   if (flags.wifi_flag) {
     // Non-blocking delay for audio playback
     unsigned long audioStartTime = millis();
-    mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOAD_LOGS);
+    xTaskCreate(playUploadLogsAsTask, "playUploadLogsAsTask", STACK_SIZE, &mp3, 2, nullptr);
     while (millis() - audioStartTime < 8000) {
       onOffButton.loop(); // Ensure button state is updated during audio playback
       if (onOffButton.isPressed()) {
@@ -313,7 +299,7 @@ void setup()
     // Check button press result
     if (buttonPressed) {
       Serial.println("Button pressed. Uploading logs...");
-      mp3.playWithFileName(VOICE_ALERTS_DIR, UPLOADING_FILES);
+      xTaskCreate(playUploadingFilesAsTask, "playUploadingFilesAsTask", STACK_SIZE, &mp3, 2, nullptr);
 
       // Non-blocking delay for audio playback
       audioStartTime = millis();
@@ -394,7 +380,7 @@ void loop()
             // Reset double press tracking
             is_double_press_pending = false;
             is_system_on = false;
-            mp3.playWithFileName(VOICE_ALERTS_DIR, ERROR_REPORTED);
+            xTaskCreate(playErrorReportedAsTask, "playErrorReportedAsTask", STACK_SIZE, &mp3, 2, nullptr);
             String log_Data = "ERROR: System Malfunction reported by the user";
             logData(log_Data);
             is_system_on = true;
@@ -450,10 +436,10 @@ void loop()
         String curr_mode = system_settings.getMode();
         if (curr_mode == "Both" || curr_mode == "Sound") {
             system_settings.setMode("Vibration");
-            playSilentModeEnabledAsTask(&mp3);
+            xTaskCreate(playSilentModeEnabledAsTask, "playSilentModeEnabledAsTask", STACK_SIZE, &mp3, 2, nullptr);
         } else {
             system_settings.setMode("Both");
-            playSilentModeDisabledAsTask(&mp3);
+            xTaskCreate(playSilentModeDisabledAsTask, "playSilentModeDisabledAsTask", STACK_SIZE, &mp3, 2, nullptr);
         }
         // Reset double press tracking
         is_double_press_pending = false;
