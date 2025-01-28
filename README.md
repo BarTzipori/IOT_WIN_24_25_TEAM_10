@@ -1,4 +1,9 @@
-## Team 10's Project by :  
+## SafeStep: 
+
+## Team 10's Project by:
+* Name 1
+* Name 2
+* Name 3  
   
 ## Details about the project
  

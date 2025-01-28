@@ -91,33 +91,24 @@ void sampleSensorsData(void *pvParameters)
                         vTaskDelay(3000);
                         distance_sensor_degraded_notification_flag = false;
                     }
-                }
-                else
-                {
+                } else {
                     vTaskDelay(50);
-                    if (distance_sensors[i].first->dataReady())
-                    {
+                    if (distance_sensors[i].first->dataReady()) {
                         distance = distance_sensors[i].first->distance();
-                    }
-                    else
-                    {
+                    } else {
                         Serial.println(F("Data not ready"));
                     }
                 }
-                if (i == 0)
-                {
+                if (i == 0) {
                     sensor_data.setSensor1Distance(distance);
                 }
-                if (i == 1)
-                {
+                if (i == 1) {
                     sensor_data.setSensor2Distance(distance);
                 }
-                if (i == 2)
-                {
+                if (i == 2) {
                     sensor_data.setSensor3Distance(distance);
                 }
-                if (i == 3)
-                {
+                if (i == 3) {
                     sensor_data.setSensor4Distance(distance);
                 }
                 distance_sensors[i].first->clearInterrupt();
