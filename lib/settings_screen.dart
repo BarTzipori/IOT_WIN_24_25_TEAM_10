@@ -498,6 +498,9 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
 
   @override
   Widget build(BuildContext context) {
+    // Filter visible items first
+    final visibleItems = _data.where((item) => _shouldShowItem(item)).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('System Settings'),
@@ -511,20 +514,12 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
               ExpansionPanelList(
                 expandedHeaderPadding: const EdgeInsets.all(0),
                 expansionCallback: (int index, bool isExpanded) {
+                  final originalIndex = _data.indexOf(visibleItems[index]);
                   setState(() {
-                    _data[index].isExpanded = !_data[index].isExpanded;
+                    _data[originalIndex].isExpanded = !_data[originalIndex].isExpanded;
                   });
                 },
-                children: _data.map<ExpansionPanel>((SettingsItem item) {
-                  if (!_shouldShowItem(item)) {
-                    return ExpansionPanel(
-                      headerBuilder: (_, __) => const SizedBox(),
-                      body: const SizedBox(),
-                      isExpanded: false,
-                      canTapOnHeader: false,
-                    );
-                  }
-
+                children: visibleItems.map<ExpansionPanel>((SettingsItem item) {
                   return ExpansionPanel(
                     headerBuilder: (BuildContext context, bool isExpanded) {
                       return ListTile(
