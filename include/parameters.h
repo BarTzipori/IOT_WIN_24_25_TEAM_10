@@ -18,7 +18,7 @@
 #define VOICE_ALERTS_DIR 0x06
 #define ALERTS_DIR 0x07
 #define LONG_PRESS_THRESHOLD 10000  // 10 second for long press
-#define MEDIUM_PRESS_TRESHOLD 3000  // 2 second for medium press
+#define MEDIUM_PRESS_TRESHOLD 800  // 2 second for medium press
 #define DOUBLE_PRESS_THRESHOLD 500 // 500 ms for double press
 #define UPLOAD_TIMEOUT 10000
 
@@ -77,6 +77,8 @@
 #define DISTANCE_SENSOR_DEGRADED 0x10
 #define UPLOAD_LOGS 0x11
 #define UPLOADING_FILES 0x12
+#define ERROR_REPORTED 0x13
+#define PLEASE_CONNECT_TO_SAFESTEP_WIFI 0x14
 
 //notification sounds indexes
 

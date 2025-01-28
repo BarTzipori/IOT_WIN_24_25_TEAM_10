@@ -393,6 +393,11 @@ void loop()
             Serial.println("SAFESTEP MEDIUM PRESS ROUTINE STARTING...");
             // Reset double press tracking
             is_double_press_pending = false;
+            is_system_on = false;
+            mp3.playWithFileName(VOICE_ALERTS_DIR, ERROR_REPORTED);
+            String log_Data = "ERROR: System Malfunction reported by the user";
+            logData(log_Data);
+            is_system_on = true;
         } else {
             if (is_double_press_pending) {
                 // Confirmed double press
