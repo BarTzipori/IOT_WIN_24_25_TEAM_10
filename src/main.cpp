@@ -412,9 +412,13 @@ void loop()
                 motor1.vibrate(vibrationPattern::pulseBuzz);
                 if (!WifiManagerSetup()) {
                     Serial.println("Failed to connect to a new network, using SD card settings instead...");
+                    mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_NOT_PAIRED);
+                    delay(500);
                 } else {
                     flags.wifi_flag = true;
                     systemInit();
+                    mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_PAIRED);
+                    delay(500);
                 } 
                 is_double_press_pending = false;
                 is_system_on = true;

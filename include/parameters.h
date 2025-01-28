@@ -79,6 +79,8 @@
 #define UPLOADING_FILES 0x12
 #define ERROR_REPORTED 0x13
 #define PLEASE_CONNECT_TO_SAFESTEP_WIFI 0x14
+#define SYSTEM_PAIRED 0x15
+#define SYSTEM_NOT_PAIRED 0x16
 
 //notification sounds indexes
 
