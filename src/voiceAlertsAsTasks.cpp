@@ -1,12 +1,30 @@
+#include "RedMP3.h"
+#include "parameters.h"
 #include "voiceAlertsAsTasks.h"
 
-void playVoiceAlertAstask(MP3 *mp3, uint alert_sound_type) {
+void playPoweringOnsystemAsTask(void *pvParameters) {
+  MP3 *mp3 = (MP3 *)pvParameters; // Cast the incoming parameter to an array of void pointers
+  mp3->playWithFileName(VOICE_ALERTS_DIR, POWERING_ON_SYSTEM);
+  vTaskDelay(1000);
+  vTaskDelete(NULL);
+}
+void playSystemReadytoUseAsTask(void *pvParameters) {
+  MP3 *mp3 = (MP3 *)pvParameters; // Cast the incoming parameter to an array of void pointers
+  mp3->playWithFileName(VOICE_ALERTS_DIR, SYSTEM_READY_TO_USE);
+  vTaskDelay(1000);
+  vTaskDelete(NULL);
+}
 
-    //static void* audio_params_for_voice_alerts[3];
-    //audio_params_for_voice_alerts[0] = (void*)mp3; //pointer to mp3 object                  
-    //audio_params_for_voice_alerts[1] = (void*)(uintptr_t)ALERTS_DIR; //dir name
-    //audio_params_for_voice_alerts[2] = (void*)(uintptr_t)alert_sound_type; //file name
+void playSilentModeEnabledAsTask(void *pvParameters) {
+  MP3 *mp3 = (MP3 *)pvParameters; // Cast the incoming parameter to an array of void pointers
+  mp3->playWithFileName(VOICE_ALERTS_DIR, SILENT_MODE_ACTIVATED);
+  vTaskDelay(1000);
+  vTaskDelete(NULL);
+}
 
-    //xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 3, nullptr);
-
+void playSilentModeDisabledAsTask(void *pvParameters) {
+  MP3 *mp3 = (MP3 *)pvParameters; // Cast the incoming parameter to an array of void pointers
+  mp3->playWithFileName(VOICE_ALERTS_DIR, SILENT_MODE_DEACTIVATED);
+  vTaskDelay(1000);
+  vTaskDelete(NULL);
 }

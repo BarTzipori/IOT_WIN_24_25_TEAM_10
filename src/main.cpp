@@ -237,8 +237,7 @@ void setup()
     static int DistanceSensorDelay = 50;
     static int SpeedCalcDelay = 100;
     delay(500);
-    mp3.playWithFileName(VOICE_ALERTS_DIR, POWERING_ON_SYSTEM);
-    delay(200);
+    playPoweringOnsystemAsTask(&mp3);
     Serial.begin(115200);
     delay(100);
     Wire.begin(3, 14);
@@ -334,8 +333,7 @@ void setup()
     // Continue with the rest of the setup routine
     Serial.println("Continuing with setup...");
   }
-  mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_READY_TO_USE);
-  delay(2000);
+  playSystemReadytoUseAsTask(&mp3);
   is_system_on = true;
   Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
   String log_data = "SAFE STEP IS READY TO USE: STARTING OPERATIONS";
@@ -450,16 +448,11 @@ void loop()
         String curr_mode = system_settings.getMode();
         if (curr_mode == "Both" || curr_mode == "Sound") {
             system_settings.setMode("Vibration");
-            mp3.playWithFileName(VOICE_ALERTS_DIR, SILENT_MODE_ACTIVATED);
-            delay(100);
-            //playVoiceAlertAstask(&mp3, SILENT_MODE_ACTIVATED);
+            playSilentModeEnabledAsTask(&mp3);
         } else {
             system_settings.setMode("Both");
-            mp3.playWithFileName(VOICE_ALERTS_DIR, SILENT_MODE_DEACTIVATED);
-            delay(100);
-            //playVoiceAlertAstask(&mp3, SILENT_MODE_DEACTIVATED);
+            playSilentModeDisabledAsTask(&mp3);
         }
-
         // Reset double press tracking
         is_double_press_pending = false;
     }

@@ -4,8 +4,10 @@
 
 #include "RedMP3.h"
 #include "parameters.h"
-#include "collisionDetectionAlgorithm.h"
 
-void playVoiceAlertAstask(MP3 *mp3, uint alert_sound_type);
+void playPoweringOnsystemAsTask(void *pvParameters);
+void playSystemReadytoUseAsTask(void *pvParameters);
+void playSilentModeEnabledAsTask(void *pvParameters);
+void playSilentModeDisabledAsTask(void *pvParameters);
 
 #endif
