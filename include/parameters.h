@@ -18,6 +18,7 @@
 #define VOICE_ALERTS_DIR 0x06
 #define ALERTS_DIR 0x07
 #define LONG_PRESS_THRESHOLD 10000  // 10 second for long press
+#define MEDIUM_PRESS_TRESHOLD 800  // 2 second for medium press
 #define DOUBLE_PRESS_THRESHOLD 500 // 500 ms for double press
 #define UPLOAD_TIMEOUT 10000
 
@@ -76,6 +77,10 @@
 #define DISTANCE_SENSOR_DEGRADED 0x10
 #define UPLOAD_LOGS 0x11
 #define UPLOADING_FILES 0x12
+#define ERROR_REPORTED 0x13
+#define PLEASE_CONNECT_TO_SAFESTEP_WIFI 0x14
+#define SYSTEM_PAIRED 0x15
+#define SYSTEM_NOT_PAIRED 0x16
 
 //notification sounds indexes
 
@@ -95,6 +100,8 @@
 #define SENSOR_3_BOX_HEIGHT 0
 #define SENSOR_4_BOX_HEIGHT 0
 
+//additional system settings (comms, wifi, camera)
+
 #define WIFI_MANAGER_TIMEOUT 30
 #define WIFI_TIMEOUT 15000
 #define CAMERA_CAPTURE_INTERVAL 5000
@@ -106,5 +113,14 @@
 #define SERVER_SOCKET_TIMEOUT 15000
 #define APP_SERVER_PORT 80
 #define WEBMSG_SERVER_PORT 82
+
+//collision detection algorithm settings 
+#define STEP_TIME_THRESHOLD 300 // Minimum time between steps in milliseconds
+#define SPEED_WINDOW_MS 1000 // Speed calculation window in milliseconds
+// Thresholds for step detection
+#define STEP_HIGH_THRESHOLD 0.07f  // Threshold for detecting a step's peak in AccX
+#define STEP_LOW_THRESHOLD 0.02f   // Threshold for resetting the step state
+#define GYRO_THRESHOLD 0.08f       // Minimum gyroscope change to indicate a step
+#define DISTANCE_CHANGE_THRESHOLD 200 // Threshold in mm to consider significant movement
 
 

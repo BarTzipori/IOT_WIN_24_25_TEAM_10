@@ -28,6 +28,7 @@
 #include "wifiServer.h"
 #include "camera.h"
 #include "webmsg.h"
+#include "voiceAlertsAsTasks.h"
 
 
 // system sensor objects
@@ -183,6 +184,8 @@ void systemInit()
         else
         {
             Serial.println("Failed to initialize SD card");
+            String log_data = "ERROR: FAILED TO INITIALIZE SD CARD - SYSTEM WILL OPERATE IN DEGRADED MODE";
+            logData(log_data);
             mp3.playWithFileName(VOICE_ALERTS_DIR, NO_SD_DETECTED);
             delay(4000);
             flags.sd_flag = false;
@@ -234,8 +237,7 @@ void setup()
     static int DistanceSensorDelay = 50;
     static int SpeedCalcDelay = 100;
     delay(500);
-    mp3.playWithFileName(VOICE_ALERTS_DIR, POWERING_ON_SYSTEM);
-    delay(200);
+    playPoweringOnSystemAsTask(&mp3);
     Serial.begin(115200);
     delay(100);
     Wire.begin(3, 14);
@@ -281,9 +283,7 @@ void setup()
         delay(10000);
     }
     system_calibrated = true;
-    Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
-    String log_data = "SAFE STEP IS READY TO USE: STARTING OPERATIONS";
-    logData(log_data);
+
     
     bool buttonPressed = false;
 
@@ -330,13 +330,15 @@ void setup()
     } else {
       Serial.println("Button not pressed. Skipping log upload.");
     }
-
     // Continue with the rest of the setup routine
     Serial.println("Continuing with setup...");
   }
-  mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_READY_TO_USE);
-  delay(2000);
+  playSystemReadytoUseAsTask(&mp3);
   is_system_on = true;
+  Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
+  String log_data = "SAFE STEP IS READY TO USE: STARTING OPERATIONS";
+  logData(log_data);
+
   // Creates threaded tasks
   VelocityTaskParams params = {SpeedCalcDelay, &system_settings, &velocity, &step_count, &sensor_data, &is_system_on};
 
@@ -375,7 +377,7 @@ void loop()
         {
             // Long press detected
             Serial.println("SAFESTEP MPU RECALIBRATION ROUTINE STARTING...");
-            String log_data = "SAFESTEP MPU RECALIBRATION ROUTINE STARTING...";
+            String log_data = "INFO: SAFESTEP MPU RECALIBRATION ROUTINE STARTING...";
             logData(log_data);
             is_long_press = true; // Set long press flag
             system_calibrated = false;
@@ -389,21 +391,41 @@ void loop()
 
             // Reset double press tracking
             is_double_press_pending = false;
-        }
-        else {
+        } else if (pressDuration >= MEDIUM_PRESS_TRESHOLD && pressDuration < LONG_PRESS_THRESHOLD) {
+            Serial.println("SAFESTEP MEDIUM PRESS ROUTINE STARTING...");
+            String log_data = "INFO: SAFESTEP MEDIUM PRESS ROUTINE STARTING...";
+            logData(log_data);
+            // Reset double press tracking
+            is_double_press_pending = false;
+            is_system_on = false;
+            mp3.playWithFileName(VOICE_ALERTS_DIR, ERROR_REPORTED);
+            String log_Data = "ERROR: System Malfunction reported by the user";
+            logData(log_Data);
+            is_system_on = true;
+        } else {
             if (is_double_press_pending) {
                 // Confirmed double press
                 mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_PAIRING_INITIATED);
-                delay(100);
+                delay(5000);
+                mp3.playWithFileName(VOICE_ALERTS_DIR, PLEASE_CONNECT_TO_SAFESTEP_WIFI);
                 Serial.println("SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...");
-                String log_data = "SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...";
+                String log_data = "INFO: SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...";
                 logData(log_data);
                 motor1.vibrate(vibrationPattern::pulseBuzz);
                 if (!WifiManagerSetup()) {
                     Serial.println("Failed to connect to a new network, using SD card settings instead...");
+                    String log_data = "ERROR: Failed to connect to a new network, using SD card settings instead...";
+                    logData(log_data);
+                    mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_NOT_PAIRED);
+                    delay(500);
                 } else {
                     flags.wifi_flag = true;
                     systemInit();
+                    mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_PAIRED);
+                    delay(500);
+                    Serial.println("system paired to a new network");
+                    String log_data = "INFO: system paired to a new network";
+                    logData(log_data);
                 } 
                 is_double_press_pending = false;
             } else {
@@ -418,7 +440,7 @@ void loop()
     if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRESS_THRESHOLD)) {
         // No second press detected, treat as a short press
         Serial.println("SAFESTEP SHORT PRESS ROUTINE STARTING...");
-        String log_data = "SAFESTEP SHORT PRESS ROUTINE STARTING...";
+        String log_data = "INFO: SAFESTEP SHORT PRESS ROUTINE STARTING...";
         logData(log_data);
         motor1.vibrate(vibrationPattern::shortBuzz);
 
@@ -426,14 +448,11 @@ void loop()
         String curr_mode = system_settings.getMode();
         if (curr_mode == "Both" || curr_mode == "Sound") {
             system_settings.setMode("Vibration");
-            mp3.playWithFileName(VOICE_ALERTS_DIR, SILENT_MODE_ACTIVATED);
-            delay(100);
+            playSilentModeEnabledAsTask(&mp3);
         } else {
             system_settings.setMode("Both");
-            mp3.playWithFileName(VOICE_ALERTS_DIR, SILENT_MODE_DEACTIVATED);
-            delay(100);
+            playSilentModeDisabledAsTask(&mp3);
         }
-
         // Reset double press tracking
         is_double_press_pending = false;
     }
@@ -462,5 +481,5 @@ void loop()
     if (mpu_degraded_flag) {
         system_settings.setAlertMethod("Distance");
     }
-    vTaskDelay(50);
+    vTaskDelay(100);
 }
