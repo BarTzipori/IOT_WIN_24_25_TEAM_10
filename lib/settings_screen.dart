@@ -41,7 +41,7 @@ class SettingsQuestionnaire extends StatefulWidget {
 class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
   late List<SettingsItem> _data;
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
-  final String _esp32Url = "http://172.20.10.3";
+  String _esp32Url = "http://172.20.10.10";
   String _connectionStatus = "Not Connected";
 
   final Map<String, TextEditingController> _controllers = {};
@@ -50,14 +50,32 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
   void initState() {
     super.initState();
     _data = generateItems();
-    // Initialize controllers for text fields
     for (var item in _data) {
       if (item.isTextField) {
         _controllers[item.headerValue] = TextEditingController();
         item.textController = _controllers[item.headerValue];
       }
     }
+    _fetchLocalIP(); // Fetch localIP during initialization
   }
+
+  void _fetchLocalIP() async {
+    try {
+      DataSnapshot snapshot = await _databaseRef.child('System_Settings/localIP').get();
+      if (snapshot.value != null) {
+        setState(() {
+          _esp32Url = "http://${snapshot.value}";
+        });
+        _connectionStatus = "Connected to $_esp32Url";
+      }
+    } catch (e) {
+      setState(() {
+        _connectionStatus = "Failed to fetch local IP";
+      });
+      print('Error fetching local IP: $e');
+    }
+  }
+
 
   @override
   void dispose() {
