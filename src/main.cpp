@@ -237,7 +237,7 @@ void setup()
     static int DistanceSensorDelay = 50;
     static int SpeedCalcDelay = 100;
     delay(500);
-    playPoweringOnsystemAsTask(&mp3);
+    playPoweringOnSystemAsTask(&mp3);
     Serial.begin(115200);
     delay(100);
     Wire.begin(3, 14);
