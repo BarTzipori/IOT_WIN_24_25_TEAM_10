@@ -4,7 +4,6 @@
 #include <algorithm>
 #include "collisionDetectionAlgorithm.h"
 
-
 // Vibration pattern for collision alert
 void vibrateMotorsAsTask(void *pvParameters) {
     // Extract parameters
@@ -72,9 +71,7 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     static unsigned long lastStepTime = 0; // Time of the last detected step
     static unsigned long startTime = 0;    // Start time of the step frequency measurement window
     static int stepsInWindow = 0;          // Steps counted in the current window
-    const unsigned long STEP_TIME_THRESHOLD = 300; // Minimum time between steps in milliseconds
-    const unsigned long SPEED_WINDOW_MS = 1000;    // Speed calculation window in milliseconds
-
+ 
     // Get the current smoothed acceleration along the X-axis
     float currentAccX = sensorData.getLinearAccelX();
 
@@ -91,11 +88,6 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
 
     // Calculate the delta (change) in gyroscope magnitude
     float deltaGyroMagnitude = fabs(currentGyroMagnitude - prevGyroMagnitude);
-
-    // Thresholds for step detection
-    const float STEP_HIGH_THRESHOLD = 0.07f;  // Threshold for detecting a step's peak in AccX
-    const float STEP_LOW_THRESHOLD = 0.02f;   // Threshold for resetting the step state
-    const float GYRO_THRESHOLD = 0.08f;       // Minimum gyroscope change to indicate a step
 
     // Get current time
     unsigned long currentTime = millis();
@@ -158,7 +150,6 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
 double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
     // Static variable to store the previous x_distance
     static int previous_x_distance = -1; // Initialize with an invalid value
-    const int DISTANCE_CHANGE_THRESHOLD = 200; // Threshold in mm to consider significant movement
 
     // User and system heights
     double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
@@ -256,7 +247,6 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
 
 double distanceToNearestObstacle(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity, bool mpu_degraded_flag) {
     static int previous_x_distance = -1; // Initialize with an invalid value
-    const int DISTANCE_CHANGE_THRESHOLD = 200; // Threshold in mm to consider significant movement
 
     double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
     double system_height_in_mm = system_settings.getSystemHeight() * 10; // Height of the system in mm

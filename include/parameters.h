@@ -114,4 +114,13 @@
 #define APP_SERVER_PORT 80
 #define WEBMSG_SERVER_PORT 82
 
+//collision detection algorithm settings 
+#define STEP_TIME_THRESHOLD 300 // Minimum time between steps in milliseconds
+#define SPEED_WINDOW_MS 1000 // Speed calculation window in milliseconds
+// Thresholds for step detection
+#define STEP_HIGH_THRESHOLD 0.07f  // Threshold for detecting a step's peak in AccX
+#define STEP_LOW_THRESHOLD 0.02f   // Threshold for resetting the step state
+#define GYRO_THRESHOLD 0.08f       // Minimum gyroscope change to indicate a step
+#define DISTANCE_CHANGE_THRESHOLD 200 // Threshold in mm to consider significant movement
+
 
