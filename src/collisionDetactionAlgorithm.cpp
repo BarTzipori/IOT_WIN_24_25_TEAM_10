@@ -110,7 +110,7 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     // Calculate speed every SPEED_WINDOW_MS
     if (currentTime - startTime >= SPEED_WINDOW_MS) {
         // Estimate stride length (roughly 0.415 times the user's height in meters for walking)
-        float strideLength = userHeight * 0.415; // Adjust factor for running if needed
+        float strideLength = userHeight * ESTIMATED_STRIDE_LENGTH; 
 
         // Calculate step frequency (steps per second)
         float stepFrequency = stepsInWindow / (SPEED_WINDOW_MS / 1000.0);

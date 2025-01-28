@@ -122,5 +122,6 @@
 #define STEP_LOW_THRESHOLD 0.02f   // Threshold for resetting the step state
 #define GYRO_THRESHOLD 0.08f       // Minimum gyroscope change to indicate a step
 #define DISTANCE_CHANGE_THRESHOLD 200 // Threshold in mm to consider significant movement
+#define ESTIMATED_STRIDE_LENGTH 0.415 // Estimated stride length in meters
 
 
