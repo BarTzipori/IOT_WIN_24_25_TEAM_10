@@ -405,9 +405,12 @@ void loop()
         } else {
             if (is_double_press_pending) {
                 // Confirmed double press
-                mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_PAIRING_INITIATED);
-                delay(5000);
-                mp3.playWithFileName(VOICE_ALERTS_DIR, PLEASE_CONNECT_TO_SAFESTEP_WIFI);
+                //mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_PAIRING_INITIATED);
+                //delay(5000);
+                playWifiPairingInitiatedAsTask(&mp3);
+                vTaskDelay(5000);
+                playPleaseConnectToSafestepWifiAsTask(&mp3);
+                //mp3.playWithFileName(VOICE_ALERTS_DIR, PLEASE_CONNECT_TO_SAFESTEP_WIFI);
                 Serial.println("SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...");
                 String log_data = "INFO: SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...";
                 logData(log_data);
@@ -417,12 +420,14 @@ void loop()
                     String log_data = "ERROR: Failed to connect to a new network, using SD card settings instead...";
                     logData(log_data);
                     mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_NOT_PAIRED);
-                    delay(500);
+                    playSystemNotPairedAsTask(&mp3); 
+                    vTaskDelay(500);
                 } else {
                     flags.wifi_flag = true;
                     systemInit();
-                    mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_PAIRED);
-                    delay(500);
+                    //mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_PAIRED);
+                    playSystemPairedAsTask(&mp3);
+                    vTaskDelay(500);
                     Serial.println("system paired to a new network");
                     String log_data = "INFO: system paired to a new network";
                     logData(log_data);
