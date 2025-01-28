@@ -1,11 +1,13 @@
-## SafeStep: 
+## SafeStep - impaired vision device: 
 
-## Team 10's Project by:
+## Submitted by Team 10, IOT winter 24-25:
 * Name 1
 * Name 2
 * Name 3  
   
-## Details about the project
+## Details about the project:
+
+
  
 ## Folder description :
 * ESP32: source code for the esp side (firmware).
