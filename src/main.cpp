@@ -400,10 +400,12 @@ void loop()
             is_system_on = true;
         } else {
             if (is_double_press_pending) {
+                is_system_on = false;
                 // Confirmed double press
                 mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_PAIRING_INITIATED);
-                delay(100);
-                is_system_on = false;
+                delay(500);
+                mp3.playWithFileName(VOICE_ALERTS_DIR, PLEASE_CONNECT_TO_SAFESTEP_WIFI);
+                delay(1000);
                 Serial.println("SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...");
                 String log_data = "SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...";
                 logData(log_data);
