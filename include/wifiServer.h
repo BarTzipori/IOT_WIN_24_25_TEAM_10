@@ -7,8 +7,6 @@
 #include "RedMP3.h"
 #include "parameters.h"
 
-
-
 void setupWifiServer();
 void handleRoot();
 void playSound1();

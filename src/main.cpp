@@ -28,6 +28,7 @@
 #include "wifiServer.h"
 #include "camera.h"
 #include "webmsg.h"
+#include "voiceAlertsAsTasks.h"
 
 
 // system sensor objects
@@ -451,10 +452,12 @@ void loop()
             system_settings.setMode("Vibration");
             mp3.playWithFileName(VOICE_ALERTS_DIR, SILENT_MODE_ACTIVATED);
             delay(100);
+            //playVoiceAlertAstask(&mp3, SILENT_MODE_ACTIVATED);
         } else {
             system_settings.setMode("Both");
             mp3.playWithFileName(VOICE_ALERTS_DIR, SILENT_MODE_DEACTIVATED);
             delay(100);
+            //playVoiceAlertAstask(&mp3, SILENT_MODE_DEACTIVATED);
         }
 
         // Reset double press tracking
