@@ -339,7 +339,7 @@ void setup()
   Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
   String log_data = "SAFE STEP IS READY TO USE: STARTING OPERATIONS";
   logData(log_data);
-  
+
   // Creates threaded tasks
   VelocityTaskParams params = {SpeedCalcDelay, &system_settings, &velocity, &step_count, &sensor_data, &is_system_on};
 
@@ -405,12 +405,10 @@ void loop()
             is_system_on = true;
         } else {
             if (is_double_press_pending) {
-                is_system_on = false;
                 // Confirmed double press
                 mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_PAIRING_INITIATED);
-                delay(500);
+                delay(5000);
                 mp3.playWithFileName(VOICE_ALERTS_DIR, PLEASE_CONNECT_TO_SAFESTEP_WIFI);
-                delay(1000);
                 Serial.println("SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...");
                 String log_data = "INFO: SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...";
                 logData(log_data);
@@ -431,7 +429,6 @@ void loop()
                     logData(log_data);
                 } 
                 is_double_press_pending = false;
-                is_system_on = true;
             } else {
                 // First press of a potential double press
                 is_double_press_pending = true;
