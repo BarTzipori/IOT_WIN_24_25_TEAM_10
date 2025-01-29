@@ -128,7 +128,7 @@ void systemInit()
 void setup() {
 
     static int DistanceSensorDelay = 50;
-    static int SpeedCalcDelay = 50;
+    static int SpeedCalcDelay = 100;
     delay(5000);
     xTaskCreate(playPoweringOnSystemAsTask, "playPoweringOnSystemAsTask", STACK_SIZE, &mp3, 2, nullptr);
     Serial.begin(115200);
@@ -348,25 +348,32 @@ void loop()
         is_double_press_pending = false;
     }
     if (is_system_on && !is_pressing && system_calibrated) {
-        // sensor data update routine
+        // Declare static variable to track last call time
+        static unsigned long lastCollisionAlertTime = 0;
         //sensor_data.printData();
         if (system_settings.getAlertMethod() == "TimeToImpact") {
             if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
                 double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
-                if (collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
-                    if (system_settings.getEnableCamera()) {
-                        CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
+                if (millis() - lastCollisionAlertTime >= 200) {
+                    if (collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
+                        if (system_settings.getEnableCamera()) {
+                            CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
+                        }
                     }
                 }
+                lastCollisionAlertTime = millis();
             }
         } else {
             if (is_system_on && !is_pressing) {
                 double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity, mpu_degraded_flag);
-                if (obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
-                    if (system_settings.getEnableCamera()) {
-                        CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
+                if (millis() - lastCollisionAlertTime >= 200) {
+                    if (obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
+                        if (system_settings.getEnableCamera()) {
+                            CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
+                        }
                     }
                 }
+                lastCollisionAlertTime = millis();
             }
         }
     }

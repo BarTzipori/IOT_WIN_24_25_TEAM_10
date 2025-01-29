@@ -39,8 +39,7 @@ void calculateVelocityAsTask(void *pvParameters) {
     int *step_count = params->step_count;
     const SensorData &sensor_data = *(params->sensor_data); // Use const reference
     bool is_system_on = *(params->system_on_flag);
-    float user_height_in_meters = settings->getUserHeight() / 100;
-
+    float user_height_in_meters = settings->getUserHeight() / 100.0f;
     while (true) {
         if (is_system_on) {
             calculateStepCountAndSpeed(sensor_data, step_count, velocity, user_height_in_meters);
@@ -48,7 +47,6 @@ void calculateVelocityAsTask(void *pvParameters) {
         vTaskDelay(delay_in_ms);
     }
 }
-
 
 /* Calculate the velocity based on the acceleration data
     How does it work?
@@ -117,12 +115,14 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
 
         // Estimate speed (meters per second)
         *speed = stepFrequency * strideLength;
-
-        Serial.print("Steps in window: ");
+        Serial.print("User height: ");
+        Serial.print(userHeight);
+        Serial.print("| Steps in window: ");
         Serial.print(stepsInWindow);
         Serial.print("| Speed estimated: ");
         Serial.print(*speed);
         Serial.println(" m/s");
+        Serial.println("Stride length: " + String(strideLength) + " m");
 
         // Reset for the next window
         stepsInWindow = 0;
@@ -162,27 +162,27 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
     // Store distances (X, Z) in a vector for sorting
     std::vector<std::pair<int, int>> distances;
 
-    double pitch_value = sensor_data.getPitch();
+    double pitch_value = 0; //sensor_data.getPitch();
 
     // Calculate and store distances for each sensor
     distances.push_back({
-        sensor_data.getDistanceSensor1() * cos((SENSOR_1_ANGLE + pitch_value) * (M_PI / 180.0)),
-        (sensor_data.getDistanceSensor1() * sin((SENSOR_1_ANGLE + pitch_value) * (M_PI / 180.0)) + SENSOR_1_BOX_HEIGHT)
+        sensor_data.getDistanceSensor1() * cos((abs(SENSOR_1_ANGLE + pitch_value)) * (M_PI / 180.0)),
+        (sensor_data.getDistanceSensor1() * sin((abs(SENSOR_1_ANGLE + pitch_value)) * (M_PI / 180.0)) + SENSOR_1_BOX_HEIGHT)
     });
 
     distances.push_back({
-        sensor_data.getDistanceSensor2() * cos((SENSOR_2_ANGLE + pitch_value) * (M_PI / 180.0)),
-        (sensor_data.getDistanceSensor2() * sin((SENSOR_2_ANGLE + pitch_value) * (M_PI / 180.0)) + SENSOR_2_BOX_HEIGHT)
+        sensor_data.getDistanceSensor2() * cos((abs(SENSOR_2_ANGLE + pitch_value)) * (M_PI / 180.0)),
+        (sensor_data.getDistanceSensor2() * sin((abs(SENSOR_2_ANGLE + pitch_value)) * (M_PI / 180.0)) + SENSOR_2_BOX_HEIGHT)
     });
 
     distances.push_back({
-        sensor_data.getDistanceSensor3() * cos((SENSOR_3_ANGLE + pitch_value) * (M_PI / 180.0)),
-        (sensor_data.getDistanceSensor3() * sin((SENSOR_3_ANGLE + pitch_value) * (M_PI / 180.0)) + SENSOR_3_BOX_HEIGHT)
+        sensor_data.getDistanceSensor3() * cos((abs(SENSOR_3_ANGLE + pitch_value)) * (M_PI / 180.0)),
+        (sensor_data.getDistanceSensor3() * sin((abs(SENSOR_3_ANGLE + pitch_value)) * (M_PI / 180.0)) + SENSOR_3_BOX_HEIGHT)
     });
 
     distances.push_back({
-        sensor_data.getDistanceSensor4() * cos((SENSOR_4_ANGLE + pitch_value) * (M_PI / 180.0)),
-        (sensor_data.getDistanceSensor4() * sin((SENSOR_4_ANGLE + pitch_value) * (M_PI / 180.0))) + SENSOR_4_BOX_HEIGHT
+        sensor_data.getDistanceSensor4() * cos((abs(SENSOR_4_ANGLE + pitch_value)) * (M_PI / 180.0)),
+        (sensor_data.getDistanceSensor4() * sin((abs(SENSOR_4_ANGLE + pitch_value)) * (M_PI / 180.0))) + SENSOR_4_BOX_HEIGHT
     });
 
     // Sort distances by X (ascending)
@@ -197,7 +197,7 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
         int z_distance = distance.second;
 
         // Ignore distances where Z is higher than the user's head or X is 0
-        if (x_distance == 0 || z_distance > user_head_height) {
+        if (x_distance <= 0 || z_distance > user_head_height) {
             Serial.print("Obstacle ignored (above user's head or at X=0). X_distance: ");
             Serial.print(x_distance);
             Serial.print(", Z_distance: ");
@@ -212,7 +212,7 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
         // Check if we are walking toward the obstacle
         if (previous_x_distance == -1 || (previous_x_distance - x_distance) > DISTANCE_CHANGE_THRESHOLD) {
             if (*velocity <= 0) {
-                Serial.println("Velocity is zero or negative; cannot calculate impact time.");
+                //Serial.println("Velocity is zero or negative; cannot calculate impact time.");
             } else {
                 impact_time = (x_distance / 1000.0) / *velocity;
                 Serial.print("Obstacle detected. X_distance: ");
@@ -254,7 +254,7 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
     double user_head_height = user_height_in_mm - system_height_in_mm;
 
     std::vector<std::pair<int, int>> distances;
-    double pitch_value = mpu_degraded_flag ? 0 : sensor_data.getPitch();
+    double pitch_value = 0; // mpu_degraded_flag ? 0 : sensor_data.getPitch();
 
     // Calculate and store distances for each sensor
     distances.push_back({
