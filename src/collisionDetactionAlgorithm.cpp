@@ -136,13 +136,13 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     prevGyroMagnitude = currentGyroMagnitude;
 
     // Debug output
-    Serial.print("Delta AccX: ");
-    Serial.print(deltaAccX);
-    Serial.print(" | Delta Gyro Magnitude: ");
-    Serial.print(deltaGyroMagnitude);
-    Serial.print(" | Step Count: ");
-    Serial.println(*stepCount);
-    Serial.println();
+    //Serial.print("Delta AccX: ");
+    //Serial.print(deltaAccX);
+    //Serial.print(" | Delta Gyro Magnitude: ");
+    //Serial.print(deltaGyroMagnitude);
+    //Serial.print(" | Step Count: ");
+    //Serial.println(*stepCount);
+    //Serial.println();
     String log_data = "Delta AccX: " + String(deltaAccX) + ", Delta Gyro Magnitude: " + String(deltaGyroMagnitude) + ", Step Count: " + String(*stepCount);
     logData(log_data);
 }
@@ -330,10 +330,10 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
     }
 
     // Reset previous_x_distance only if no valid obstacles are detected
-    if (!found_valid_obstacle) {
+    /*if (!found_valid_obstacle) {
         Serial.println("Condition: No valid obstacle found. Resetting previous_x_distance.");
         previous_x_distance = -1;
-    }
+    }*/
     return 0;
 }
 

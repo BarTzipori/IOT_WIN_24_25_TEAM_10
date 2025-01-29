@@ -128,8 +128,8 @@ void systemInit()
 void setup() {
 
     static int DistanceSensorDelay = 50;
-    static int SpeedCalcDelay = 100;
-    delay(500);
+    static int SpeedCalcDelay = 50;
+    delay(5000);
     xTaskCreate(playPoweringOnSystemAsTask, "playPoweringOnSystemAsTask", STACK_SIZE, &mp3, 2, nullptr);
     Serial.begin(115200);
     delay(100);
@@ -349,7 +349,7 @@ void loop()
     }
     if (is_system_on && !is_pressing && system_calibrated) {
         // sensor data update routine
-        sensor_data.printData();
+        //sensor_data.printData();
         if (system_settings.getAlertMethod() == "TimeToImpact") {
             if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
                 double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
