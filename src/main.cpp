@@ -71,6 +71,7 @@ void sampleSensorsData(void *pvParameters)
     int delay_in_ms = *(int *)pvParameters;
     int distance = 0;
     bool distance_sensor_degraded_notification_flag = true;
+    std::vector<int> unplugged_sensors;
     while (true)
     {
         if (is_system_on)

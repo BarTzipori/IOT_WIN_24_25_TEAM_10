@@ -44,12 +44,6 @@
 #define HREF_GPIO_NUM     7
 #define PCLK_GPIO_NUM     13
 
-#define SENSOR_1_ANGLE 15
-#define SENSOR_2_ANGLE 30
-#define SENSOR_3_ANGLE 15
-#define SENSOR_4_ANGLE 30
-
-
 //MP3 volume levels
 #define VOLUME_1 0x10
 #define VOLUME_2 0x20
@@ -94,6 +88,11 @@
 #define BEEP_BEEP_BEEP 0x08
 
 //sensor positions according to box (height from bottom of box)
+
+#define SENSOR_1_ANGLE 60
+#define SENSOR_2_ANGLE 45
+#define SENSOR_3_ANGLE 30
+#define SENSOR_4_ANGLE 15
 
 #define SENSOR_1_BOX_HEIGHT 0
 #define SENSOR_2_BOX_HEIGHT 0
