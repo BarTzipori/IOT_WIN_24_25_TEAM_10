@@ -457,3 +457,104 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
         vTaskDelay(1500);
     }
 }
+
+// Samples sensors data
+void sampleSensorsData(void *pvParameters) {
+    SampleSensorDataParams *params = (SampleSensorDataParams *)pvParameters;
+    int delay_in_ms = params->delay_in_ms;
+    bool is_system_on = *(params->system_on_flag);
+    bool mpu_degraded_flag = *(params->mpu_deg_flag);
+    std::vector<std::pair<Adafruit_VL53L1X *, int>> distance_sensors = params->distance_sensors_vector;
+    std::vector<std::pair<MPU9250 *, int>> mpu_sensors = params->mpu_sensors_vector;
+    SensorData &sensor_data = *(params->sensor_data);
+    MP3* mp3 = params->mp3_pointer;
+
+    int distance = 0;
+    bool distance_sensor_degraded_notification_flag = true;
+    bool all_distance_sensors_degraded_notification_flag = true;
+    bool sensor_1_unplugged, sensor_2_unplugged, sensor_3_unplugged, sensor_4_unplugged;
+    while (true)
+    {
+        if (is_system_on)
+        {
+            // samples distance sensors data
+            for (int i = 0; i < distance_sensors.size(); i++)
+            {
+                if (!isVL53L1XSensorConnected(distance_sensors[i].second, &Wire))
+                {
+                    Serial.print("Sensor: ");
+                    Serial.print(i + 1);
+                    Serial.println(" not connected");
+                    distance = -1;
+                    if(i == 0) {
+                        sensor_1_unplugged = true;
+                    }
+                    if(i == 1) {
+                        sensor_2_unplugged = true;
+                    }
+                    if(i == 2) {
+                        sensor_3_unplugged = true;
+                    }
+                    if(i == 3) {
+                        sensor_4_unplugged = true;
+                    }
+                    if (distance_sensor_degraded_notification_flag) {
+                        xTaskCreate(playDistanceSensorDegradedAsTask, "playDistanceSensorDegradedAsTask", STACK_SIZE, &mp3, 2, nullptr);
+                        String log_data = "ERROR: ONE OR MORE DISTANCE MEASURING SENSORS NOT CONNECTED - OPERATING IN DEGRADED MODE";
+                        distance_sensor_degraded_notification_flag = false;
+                    }
+                    if(sensor_1_unplugged && sensor_2_unplugged && sensor_3_unplugged && sensor_4_unplugged && all_distance_sensors_degraded_notification_flag) {
+                        xTaskCreate(playAllDistanceSensorDegradedAsTask, "playAllDistanceSensorDegradedAsTask", STACK_SIZE, &mp3, 2, nullptr);
+                        String log_data = "ERROR: ALL DISTANCE MEASURING SENSORS NOT CONNECTED - OPERATING IN DEGRADED MODE";
+                        all_distance_sensors_degraded_notification_flag = false;
+                    }
+                } else {
+                    vTaskDelay(50);
+                    if (distance_sensors[i].first->dataReady()) {
+                        distance = distance_sensors[i].first->distance();
+                    } else {
+                        Serial.println(F("Data not ready"));
+                    }
+                }
+                if (i == 0) {
+                    sensor_data.setSensor1Distance(distance);
+                }
+                if (i == 1) {
+                    sensor_data.setSensor2Distance(distance);
+                }
+                if (i == 2) {
+                    sensor_data.setSensor3Distance(distance);
+                }
+                if (i == 3) {
+                    sensor_data.setSensor4Distance(distance);
+                }
+                distance_sensors[i].first->clearInterrupt();
+            }
+        }
+        // samples MPU data
+        if (!mpu_degraded_flag && mpu_sensors[0].first->update())
+        {
+            vTaskDelay(delay_in_ms);
+            sensor_data.setPitch(mpu_sensors[0].first->getPitch());
+            int yaw = mpu_sensors[0].first->getYaw();
+            if (yaw < 0)
+            {
+                yaw = 360 + yaw;
+            }
+            sensor_data.setYaw(yaw);
+            sensor_data.setRoll(mpu_sensors[0].first->getRoll());
+            sensor_data.setAccelX(mpu_sensors[0].first->getAccX());
+            sensor_data.setAccelY(mpu_sensors[0].first->getAccY());
+            sensor_data.setAccelZ(mpu_sensors[0].first->getAccZ());
+            sensor_data.setLinearAccelX(mpu_sensors[0].first->getLinearAccX());
+            sensor_data.setLinearAccelY(mpu_sensors[0].first->getLinearAccY());
+            sensor_data.setLinearAccelZ(mpu_sensors[0].first->getLinearAccZ());
+            sensor_data.setGyroX(mpu_sensors[0].first->getGyroX());
+            sensor_data.setGyroY(mpu_sensors[0].first->getGyroY());
+            sensor_data.setGyroZ(mpu_sensors[0].first->getGyroZ());
+            sensor_data.updateLinearAccelX();
+        }
+        sensor_data.setlastUpdateTime(millis());
+    }
+    vTaskDelay(delay_in_ms);
+}

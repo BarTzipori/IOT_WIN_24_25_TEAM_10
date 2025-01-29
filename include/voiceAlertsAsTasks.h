@@ -27,5 +27,6 @@ void playErrorReportedAsTask(void *pvParameters);
 void playPleaseConnectToSafestepWifiAsTask(void *pvParameters);
 void playSystemPairedAsTask(void *pvParameters);
 void playSystemNotPairedAsTask(void *pvParameters);
+void playAllDistanceSensorDegradedAsTask(void *pvParameters);
 
 #endif

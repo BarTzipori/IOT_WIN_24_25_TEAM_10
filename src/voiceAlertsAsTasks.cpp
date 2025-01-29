@@ -135,6 +135,13 @@ void playDistanceSensorDegradedAsTask(void *pvParameters) {
   vTaskDelete(NULL);
 }
 
+void playAllDistanceSensorDegradedAsTask(void *pvParameters) {
+  MP3 *mp3 = (MP3 *)pvParameters; // Cast the incoming parameter to an array of void pointers
+  mp3->playWithFileName(VOICE_ALERTS_DIR, ALL_DISTANCE_MEARUSING_SENSORS_NOT_CONNECTED);
+  vTaskDelay(pdMS_TO_TICKS(6000)); // 1000 ms = 1 second
+  vTaskDelete(NULL);
+}
+
 void playUploadLogsAsTask(void *pvParameters) {
   MP3 *mp3 = (MP3 *)pvParameters; // Cast the incoming parameter to an array of void pointers
   mp3->playWithFileName(VOICE_ALERTS_DIR, UPLOAD_LOGS);
