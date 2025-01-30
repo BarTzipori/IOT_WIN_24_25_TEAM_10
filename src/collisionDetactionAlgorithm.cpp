@@ -472,7 +472,11 @@ void sampleSensorsData(void *pvParameters) {
     int distance = 0;
     bool distance_sensor_degraded_notification_flag = true;
     bool all_distance_sensors_degraded_notification_flag = true;
-    bool sensor_1_unplugged, sensor_2_unplugged, sensor_3_unplugged, sensor_4_unplugged;
+    bool sensor_1_unplugged = false;
+    bool sensor_2_unplugged = false;
+    bool sensor_3_unplugged = false; 
+    bool sensor_4_unplugged = false;
+    
     while (true)
     {
         if (is_system_on)
