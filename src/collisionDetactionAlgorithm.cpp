@@ -39,8 +39,7 @@ void calculateVelocityAsTask(void *pvParameters) {
     int *step_count = params->step_count;
     const SensorData &sensor_data = *(params->sensor_data); // Use const reference
     bool is_system_on = *(params->system_on_flag);
-    float user_height_in_meters = settings->getUserHeight() / 100;
-
+    float user_height_in_meters = settings->getUserHeight() / 100.0f;
     while (true) {
         if (is_system_on) {
             calculateStepCountAndSpeed(sensor_data, step_count, velocity, user_height_in_meters);
@@ -48,7 +47,6 @@ void calculateVelocityAsTask(void *pvParameters) {
         vTaskDelay(delay_in_ms);
     }
 }
-
 
 /* Calculate the velocity based on the acceleration data
     How does it work?
@@ -117,12 +115,14 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
 
         // Estimate speed (meters per second)
         *speed = stepFrequency * strideLength;
-
-        Serial.print("Steps in window: ");
+        Serial.print("User height: ");
+        Serial.print(userHeight);
+        Serial.print("| Steps in window: ");
         Serial.print(stepsInWindow);
         Serial.print("| Speed estimated: ");
         Serial.print(*speed);
         Serial.println(" m/s");
+        Serial.println("Stride length: " + String(strideLength) + " m");
 
         // Reset for the next window
         stepsInWindow = 0;
@@ -136,13 +136,13 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     prevGyroMagnitude = currentGyroMagnitude;
 
     // Debug output
-    Serial.print("Delta AccX: ");
-    Serial.print(deltaAccX);
-    Serial.print(" | Delta Gyro Magnitude: ");
-    Serial.print(deltaGyroMagnitude);
-    Serial.print(" | Step Count: ");
-    Serial.println(*stepCount);
-    Serial.println();
+    //Serial.print("Delta AccX: ");
+    //Serial.print(deltaAccX);
+    //Serial.print(" | Delta Gyro Magnitude: ");
+    //Serial.print(deltaGyroMagnitude);
+    //Serial.print(" | Step Count: ");
+    //Serial.println(*stepCount);
+    //Serial.println();
     String log_data = "Delta AccX: " + String(deltaAccX) + ", Delta Gyro Magnitude: " + String(deltaGyroMagnitude) + ", Step Count: " + String(*stepCount);
     logData(log_data);
 }
@@ -162,27 +162,27 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
     // Store distances (X, Z) in a vector for sorting
     std::vector<std::pair<int, int>> distances;
 
-    double pitch_value = sensor_data.getPitch();
+    double pitch_value = 0; //sensor_data.getPitch();
 
     // Calculate and store distances for each sensor
     distances.push_back({
-        sensor_data.getDistanceSensor1() * cos((SENSOR_1_ANGLE + pitch_value) * (M_PI / 180.0)),
-        (sensor_data.getDistanceSensor1() * sin((SENSOR_1_ANGLE + pitch_value) * (M_PI / 180.0)) + SENSOR_1_BOX_HEIGHT)
+        sensor_data.getDistanceSensor1() * cos((abs(SENSOR_1_ANGLE + pitch_value)) * (M_PI / 180.0)),
+        (sensor_data.getDistanceSensor1() * sin((abs(SENSOR_1_ANGLE + pitch_value)) * (M_PI / 180.0)) + SENSOR_1_BOX_HEIGHT)
     });
 
     distances.push_back({
-        sensor_data.getDistanceSensor2() * cos((SENSOR_2_ANGLE + pitch_value) * (M_PI / 180.0)),
-        (sensor_data.getDistanceSensor2() * sin((SENSOR_2_ANGLE + pitch_value) * (M_PI / 180.0)) + SENSOR_2_BOX_HEIGHT)
+        sensor_data.getDistanceSensor2() * cos((abs(SENSOR_2_ANGLE + pitch_value)) * (M_PI / 180.0)),
+        (sensor_data.getDistanceSensor2() * sin((abs(SENSOR_2_ANGLE + pitch_value)) * (M_PI / 180.0)) + SENSOR_2_BOX_HEIGHT)
     });
 
     distances.push_back({
-        sensor_data.getDistanceSensor3() * cos((SENSOR_3_ANGLE + pitch_value) * (M_PI / 180.0)),
-        (sensor_data.getDistanceSensor3() * sin((SENSOR_3_ANGLE + pitch_value) * (M_PI / 180.0)) + SENSOR_3_BOX_HEIGHT)
+        sensor_data.getDistanceSensor3() * cos((abs(SENSOR_3_ANGLE + pitch_value)) * (M_PI / 180.0)),
+        (sensor_data.getDistanceSensor3() * sin((abs(SENSOR_3_ANGLE + pitch_value)) * (M_PI / 180.0)) + SENSOR_3_BOX_HEIGHT)
     });
 
     distances.push_back({
-        sensor_data.getDistanceSensor4() * cos((SENSOR_4_ANGLE + pitch_value) * (M_PI / 180.0)),
-        (sensor_data.getDistanceSensor4() * sin((SENSOR_4_ANGLE + pitch_value) * (M_PI / 180.0))) + SENSOR_4_BOX_HEIGHT
+        sensor_data.getDistanceSensor4() * cos((abs(SENSOR_4_ANGLE + pitch_value)) * (M_PI / 180.0)),
+        (sensor_data.getDistanceSensor4() * sin((abs(SENSOR_4_ANGLE + pitch_value)) * (M_PI / 180.0))) + SENSOR_4_BOX_HEIGHT
     });
 
     // Sort distances by X (ascending)
@@ -197,7 +197,7 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
         int z_distance = distance.second;
 
         // Ignore distances where Z is higher than the user's head or X is 0
-        if (x_distance == 0 || z_distance > user_head_height) {
+        if (x_distance <= 0 || z_distance > user_head_height) {
             Serial.print("Obstacle ignored (above user's head or at X=0). X_distance: ");
             Serial.print(x_distance);
             Serial.print(", Z_distance: ");
@@ -212,7 +212,7 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
         // Check if we are walking toward the obstacle
         if (previous_x_distance == -1 || (previous_x_distance - x_distance) > DISTANCE_CHANGE_THRESHOLD) {
             if (*velocity <= 0) {
-                Serial.println("Velocity is zero or negative; cannot calculate impact time.");
+                //Serial.println("Velocity is zero or negative; cannot calculate impact time.");
             } else {
                 impact_time = (x_distance / 1000.0) / *velocity;
                 Serial.print("Obstacle detected. X_distance: ");
@@ -254,7 +254,7 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
     double user_head_height = user_height_in_mm - system_height_in_mm;
 
     std::vector<std::pair<int, int>> distances;
-    double pitch_value = mpu_degraded_flag ? 0 : sensor_data.getPitch();
+    double pitch_value = 0; // mpu_degraded_flag ? 0 : sensor_data.getPitch();
 
     // Calculate and store distances for each sensor
     distances.push_back({
@@ -330,10 +330,10 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
     }
 
     // Reset previous_x_distance only if no valid obstacles are detected
-    if (!found_valid_obstacle) {
+    /*if (!found_valid_obstacle) {
         Serial.println("Condition: No valid obstacle found. Resetting previous_x_distance.");
         previous_x_distance = -1;
-    }
+    }*/
     return 0;
 }
 
@@ -456,4 +456,111 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1500);
     }
+}
+
+// Samples sensors data
+void sampleSensorsData(void *pvParameters) {
+    SampleSensorDataParams *params = (SampleSensorDataParams *)pvParameters;
+    int delay_in_ms = params->delay_in_ms;
+    bool is_system_on = *(params->system_on_flag);
+    bool mpu_degraded_flag = *(params->mpu_deg_flag);
+    std::vector<std::pair<Adafruit_VL53L1X *, int>> distance_sensors = params->distance_sensors_vector;
+    std::vector<std::pair<MPU9250 *, int>> mpu_sensors = params->mpu_sensors_vector;
+    SensorData &sensor_data = *(params->sensor_data);
+    MP3& mp3 = *(params->mp3_pointer);
+
+    int distance = 0;
+    bool distance_sensor_degraded_notification_flag = true;
+    bool all_distance_sensors_degraded_notification_flag = true;
+    bool sensor_1_unplugged = false;
+    bool sensor_2_unplugged = false;
+    bool sensor_3_unplugged = false; 
+    bool sensor_4_unplugged = false;
+    
+    while (true)
+    {
+        if (is_system_on)
+        {
+            // samples distance sensors data
+            for (int i = 0; i < distance_sensors.size(); i++)
+            {
+                if (!isVL53L1XSensorConnected(distance_sensors[i].second, &Wire)) {
+                    Serial.print("Sensor: ");
+                    Serial.print(i + 1);
+                    Serial.println(" not connected");
+                    distance = -1;
+                    if(i == 0) {
+                        sensor_1_unplugged = true;
+                    }
+                    if(i == 1) {
+                        sensor_2_unplugged = true;
+                    }
+                    if(i == 2) {
+                        sensor_3_unplugged = true;
+                    }
+                    if(i == 3) {
+                        sensor_4_unplugged = true;
+                    }
+                    if (distance_sensor_degraded_notification_flag) {
+                        mp3.playWithFileName(VOICE_ALERTS_DIR, DISTANCE_SENSOR_DEGRADED);
+                        vTaskDelay(4000);
+                        String log_data = "ERROR: ONE OR MORE DISTANCE MEASURING SENSORS NOT CONNECTED - OPERATING IN DEGRADED MODE";
+                        logData(log_data);
+                        distance_sensor_degraded_notification_flag = false;
+                    }
+                    if(sensor_1_unplugged && sensor_2_unplugged && sensor_3_unplugged && sensor_4_unplugged && all_distance_sensors_degraded_notification_flag) {
+                        mp3.playWithFileName(VOICE_ALERTS_DIR, ALL_DISTANCE_MEARUSING_SENSORS_NOT_CONNECTED);
+                        vTaskDelay(7000);                        
+                        String log_data = "ERROR: ALL DISTANCE MEASURING SENSORS NOT CONNECTED - OPERATING IN DEGRADED MODE";
+                        logData(log_data);
+                        all_distance_sensors_degraded_notification_flag = false;
+                    }
+                } else {
+                    vTaskDelay(50);
+                    if (distance_sensors[i].first->dataReady()) {
+                        distance = distance_sensors[i].first->distance();
+                    } else {
+                        Serial.println(F("Data not ready"));
+                    }
+                }
+                if (i == 0) {
+                    sensor_data.setSensor1Distance(distance);
+                }
+                if (i == 1) {
+                    sensor_data.setSensor2Distance(distance);
+                }
+                if (i == 2) {
+                    sensor_data.setSensor3Distance(distance);
+                }
+                if (i == 3) {
+                    sensor_data.setSensor4Distance(distance);
+                }
+                distance_sensors[i].first->clearInterrupt();
+            }
+            // samples MPU data
+            if (!mpu_degraded_flag && mpu_sensors[0].first->update()) {
+                vTaskDelay(delay_in_ms);
+                sensor_data.setPitch(mpu_sensors[0].first->getPitch());
+                int yaw = mpu_sensors[0].first->getYaw();
+                if (yaw < 0)
+                {
+                    yaw = 360 + yaw;
+                }
+                sensor_data.setYaw(yaw);
+                sensor_data.setRoll(mpu_sensors[0].first->getRoll());
+                sensor_data.setAccelX(mpu_sensors[0].first->getAccX());
+                sensor_data.setAccelY(mpu_sensors[0].first->getAccY());
+                sensor_data.setAccelZ(mpu_sensors[0].first->getAccZ());
+                sensor_data.setLinearAccelX(mpu_sensors[0].first->getLinearAccX());
+                sensor_data.setLinearAccelY(mpu_sensors[0].first->getLinearAccY());
+                sensor_data.setLinearAccelZ(mpu_sensors[0].first->getLinearAccZ());
+                sensor_data.setGyroX(mpu_sensors[0].first->getGyroX());
+                sensor_data.setGyroY(mpu_sensors[0].first->getGyroY());
+                sensor_data.setGyroZ(mpu_sensors[0].first->getGyroZ());
+                sensor_data.updateLinearAccelX();
+            }
+            sensor_data.setlastUpdateTime(millis());
+        }
+    }
+    vTaskDelay(delay_in_ms);
 }

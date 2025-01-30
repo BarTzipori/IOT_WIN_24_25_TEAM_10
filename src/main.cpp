@@ -65,85 +65,6 @@ static bool system_calibrated = false;
 static bool calibration_needed = false;
 static bool mpu_degraded_flag = false;
 
-// Samples sensors data
-void sampleSensorsData(void *pvParameters)
-{
-    int delay_in_ms = *(int *)pvParameters;
-    int distance = 0;
-    bool distance_sensor_degraded_notification_flag = true;
-    std::vector<int> unplugged_sensors;
-    while (true)
-    {
-        if (is_system_on)
-        {
-            // samples distance sensors data
-            for (int i = 0; i < distance_sensors.size(); i++)
-            {
-                if (!isVL53L1XSensorConnected(distance_sensors[i].second, &Wire))
-                {
-                    Serial.print("Sensor: ");
-                    Serial.print(i + 1);
-                    Serial.println(" not connected");
-                    distance = -1;
-                    if (distance_sensor_degraded_notification_flag)
-                    {
-                        mp3.playWithFileName(VOICE_ALERTS_DIR, DISTANCE_SENSOR_DEGRADED);
-                        String log_data = "ERROR: ONE OR MORE DISTANCE MEASURING SENSORS NOT CONNECTED - OPERATING IN DEGRADED MODE";
-                        vTaskDelay(3000);
-                        distance_sensor_degraded_notification_flag = false;
-                    }
-                } else {
-                    vTaskDelay(50);
-                    if (distance_sensors[i].first->dataReady()) {
-                        distance = distance_sensors[i].first->distance();
-                    } else {
-                        Serial.println(F("Data not ready"));
-                    }
-                }
-                if (i == 0) {
-                    sensor_data.setSensor1Distance(distance);
-                }
-                if (i == 1) {
-                    sensor_data.setSensor2Distance(distance);
-                }
-                if (i == 2) {
-                    sensor_data.setSensor3Distance(distance);
-                }
-                if (i == 3) {
-                    sensor_data.setSensor4Distance(distance);
-                }
-                distance_sensors[i].first->clearInterrupt();
-            }
-        }
-        // samples MPU data
-        if (!mpu_degraded_flag && mpu_sensors[0].first->update())
-        {
-            vTaskDelay(delay_in_ms);
-            sensor_data.setPitch(mpu_sensors[0].first->getPitch());
-            int yaw = mpu_sensors[0].first->getYaw();
-            if (yaw < 0)
-            {
-                yaw = 360 + yaw;
-            }
-            sensor_data.setYaw(yaw);
-            sensor_data.setRoll(mpu_sensors[0].first->getRoll());
-            sensor_data.setAccelX(mpu_sensors[0].first->getAccX());
-            sensor_data.setAccelY(mpu_sensors[0].first->getAccY());
-            sensor_data.setAccelZ(mpu_sensors[0].first->getAccZ());
-            sensor_data.setLinearAccelX(mpu_sensors[0].first->getLinearAccX());
-            sensor_data.setLinearAccelY(mpu_sensors[0].first->getLinearAccY());
-            sensor_data.setLinearAccelZ(mpu_sensors[0].first->getLinearAccZ());
-            sensor_data.setGyroX(mpu_sensors[0].first->getGyroX());
-            sensor_data.setGyroY(mpu_sensors[0].first->getGyroY());
-            sensor_data.setGyroZ(mpu_sensors[0].first->getGyroZ());
-            sensor_data.updateLinearAccelX();
-        }
-        sensor_data.setlastUpdateTime(millis());
-    }
-    vTaskDelay(delay_in_ms);
-}
-
-
 void systemInit()
 {
     Serial.println("--------- System Init ---------");
@@ -164,11 +85,7 @@ void systemInit()
             init_logs(flags.wifi_flag);
             system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
             flags.sd_flag = true;
-            // Serial.println("----------------");
-            // system_settings.print();
-        }
-        else
-        {
+        } else {
             Serial.println("Failed to initialize SD card");
             String log_data = "ERROR: FAILED TO INITIALIZE SD CARD - SYSTEM WILL OPERATE IN DEGRADED MODE";
             logData(log_data);
@@ -177,18 +94,16 @@ void systemInit()
         }
     }
     // if we managed to connect to WIFI - use firebase settings, as they are the most updated.
-    if (flags.wifi_flag)
-    {
+    if (flags.wifi_flag) {
         setupFirebase(config, auth);
         // storeFirebaseSetting(&firebaseData,system_settings);
         systemSettings system_settings_from_fb;
-        if (getFirebaseSettings(&firebaseData, system_settings_from_fb))
-        {
-            if (system_settings.updateSettings(system_settings_from_fb))
-            {
+        if (getFirebaseSettings(&firebaseData, system_settings_from_fb)) {
+            if (system_settings.updateSettings(system_settings_from_fb)) {
                 system_settings.print();
-                if (flags.sd_flag)
+                if (flags.sd_flag) {
                     updateSDSettings(system_settings);
+                }
             }
         }
         updateFirebaseLocalIP(&firebaseData, WiFi.localIP().toString());
@@ -197,8 +112,7 @@ void systemInit()
         setupTime();
         // createDir(SD_MMC,"/images");
     }
-    if (!flags.camera_flag)
-    {
+    if (!flags.camera_flag) {
         flags.camera_flag = setupCamera();
         if (!flags.camera_flag) {
             xTaskCreate(playNoCameraDetectedAsTask, "playNoCameraDetectedAsTask", STACK_SIZE, &mp3, 2, nullptr);
@@ -211,11 +125,11 @@ void systemInit()
     Serial.printf("--------- System Init Done ---------\n");
 }
 
-void setup()
-{
+void setup() {
+
     static int DistanceSensorDelay = 50;
     static int SpeedCalcDelay = 100;
-    delay(500);
+    delay(5000);
     xTaskCreate(playPoweringOnSystemAsTask, "playPoweringOnSystemAsTask", STACK_SIZE, &mp3, 2, nullptr);
     Serial.begin(115200);
     delay(100);
@@ -314,16 +228,16 @@ void setup()
   logData(log_data);
 
   // Creates threaded tasks
-  VelocityTaskParams params = {SpeedCalcDelay, &system_settings, &velocity, &step_count, &sensor_data, &is_system_on};
+  VelocityTaskParams velocity_calc_params = {SpeedCalcDelay, &system_settings, &velocity, &step_count, &sensor_data, &is_system_on};
+  SampleSensorDataParams sensor_data_params = { DistanceSensorDelay, &system_settings, &sensor_data, distance_sensors, mpu_sensors, &mp3, &is_system_on, &mpu_degraded_flag};
 
-  xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &DistanceSensorDelay, 2, nullptr);
-  xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &params, 3, nullptr);
+  xTaskCreate(sampleSensorsData, "sampleSensorsData", STACK_SIZE, &sensor_data_params, 2, nullptr);
+  xTaskCreate(calculateVelocityAsTask, "calculateVelocity", STACK_SIZE, &velocity_calc_params, 3, nullptr);
 }
 
 void loop()
 {
-    if (flags.wifi_flag)
-    {
+    if (flags.wifi_flag) {
         wifiServerLoop();
         msgServerLoop();
     }
@@ -333,22 +247,19 @@ void loop()
     static unsigned long double_press_start_time = 0; // Tracks time of the first press in a double press
 
     // Press detection
-    if (onOffButton.isPressed())
-    {
+    if (onOffButton.isPressed()) {
         pressed_time = millis();
         is_pressing = true;
         is_long_press = false;
     }
 
     // Release detection
-    if (onOffButton.isReleased())
-    {
+    if (onOffButton.isReleased()) {
         is_pressing = false;
         unsigned long pressDuration = millis() - pressed_time; // Calculate press duration
         unsigned long currentTime = millis();
 
-        if (pressDuration >= LONG_PRESS_THRESHOLD)
-        {
+        if (pressDuration >= LONG_PRESS_THRESHOLD) {
             // Long press detected
             Serial.println("SAFESTEP MPU RECALIBRATION ROUTINE STARTING...");
             String log_data = "INFO: SAFESTEP MPU RECALIBRATION ROUTINE STARTING...";
@@ -437,24 +348,32 @@ void loop()
         is_double_press_pending = false;
     }
     if (is_system_on && !is_pressing && system_calibrated) {
-        // sensor data update routine
+        // Declare static variable to track last call time
+        static unsigned long lastCollisionAlertTime = 0;
+        //sensor_data.printData();
         if (system_settings.getAlertMethod() == "TimeToImpact") {
             if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
                 double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
-                if (collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
-                    if (system_settings.getEnableCamera()) {
-                        CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
+                if (millis() - lastCollisionAlertTime >= 50) {
+                    if (collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
+                        if (system_settings.getEnableCamera()) {
+                            CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
+                        }
                     }
                 }
+                lastCollisionAlertTime = millis();
             }
         } else {
             if (is_system_on && !is_pressing) {
                 double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity, mpu_degraded_flag);
-                if (obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
-                    if (system_settings.getEnableCamera()) {
-                        CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
+                if (millis() - lastCollisionAlertTime >= 50) {
+                    if (obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
+                        if (system_settings.getEnableCamera()) {
+                            CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
+                        }
                     }
                 }
+                lastCollisionAlertTime = millis();
             }
         }
     }

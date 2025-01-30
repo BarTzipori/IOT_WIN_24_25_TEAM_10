@@ -431,7 +431,7 @@ void writeFile(fs::FS &fs, const char * path, String message){
 }
 
 void appendFile(fs::FS &fs, const char * path, String message){
-    Serial.printf("Appending to file(S): %s\n", path);
+    //Serial.printf("Appending to file(S): %s\n", path);
 
     File file = fs.open(path, FILE_APPEND);
     if(!file){
@@ -440,18 +440,18 @@ void appendFile(fs::FS &fs, const char * path, String message){
     }
     else
     {
-        Serial.println("File opened for appending");
+        //Serial.println("File opened for appending");
     }
     String t1(message);
     String t2("\n");
     String msg = String(t1+t2);
     if (file.print(msg)){
-        Serial.println("Message appended");
+        //Serial.println("Message appended");
         file.close();
     }
     else
     {
-        Serial.println("Append failed");
+        //Serial.println("Append failed");
         file.close();
     }
 }
