@@ -95,10 +95,10 @@
 #define SENSOR_3_ANGLE 30
 #define SENSOR_4_ANGLE 15
 
-#define SENSOR_1_BOX_HEIGHT 0
-#define SENSOR_2_BOX_HEIGHT 0
-#define SENSOR_3_BOX_HEIGHT 0
-#define SENSOR_4_BOX_HEIGHT 0
+#define SENSOR_1_BOX_HEIGHT 10
+#define SENSOR_2_BOX_HEIGHT 25
+#define SENSOR_3_BOX_HEIGHT 40
+#define SENSOR_4_BOX_HEIGHT 50
 
 //additional system settings (comms, wifi, camera)
 
