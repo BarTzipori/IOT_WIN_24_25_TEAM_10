@@ -6,6 +6,7 @@ extern Flags flags;
 
 void logData(String data)
 {
+    Serial.println(data);
     String stamp = FormatTime(millis(),flags.wifi_flag,false) + " :  ";
     appendFile(SD_MMC, log_filename.c_str() ,stamp + data);
     if(flags.wifi_flag){
