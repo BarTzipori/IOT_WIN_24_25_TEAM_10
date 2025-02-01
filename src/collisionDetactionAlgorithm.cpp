@@ -24,8 +24,6 @@ void playMP3AsTask(void *pvParameters) {
   uint8_t file_name  = (uint8_t)(uintptr_t)params[2];
 
   mp3->playWithFileName(directory_name, file_name);
-  String log_data = "playing sound number: " + String(file_name);
-  logData(log_data);
   vTaskDelay(1000);
   vTaskDelete(NULL);
 }
@@ -115,35 +113,22 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
 
         // Estimate speed (meters per second)
         *speed = stepFrequency * strideLength;
-        Serial.print("User height: ");
-        Serial.print(userHeight);
-        Serial.print("| Steps in window: ");
-        Serial.print(stepsInWindow);
-        Serial.print("| Speed estimated: ");
-        Serial.print(*speed);
-        Serial.println(" m/s");
-        Serial.println("Stride length: " + String(strideLength) + " m");
+        
+        // log data
+        String log_data = "INFO: User height: " + String(userHeight) + ", Stride length: " + String(strideLength) + ", Steps in window: " + String(stepsInWindow) + ", Speed estimated: " + String(*speed) + " m/s";
+        logData(log_data);
 
         // Reset for the next window
         stepsInWindow = 0;
         startTime = currentTime;
-        String log_data = "Steps in window: " + String(stepsInWindow) + ", Speed estimated: " + String(*speed) + " m/s";
-        logData(log_data);
     }
 
     // Update previous values
     prevAccX = currentAccX;
     prevGyroMagnitude = currentGyroMagnitude;
 
-    // Debug output
-    //Serial.print("Delta AccX: ");
-    //Serial.print(deltaAccX);
-    //Serial.print(" | Delta Gyro Magnitude: ");
-    //Serial.print(deltaGyroMagnitude);
-    //Serial.print(" | Step Count: ");
-    //Serial.println(*stepCount);
-    //Serial.println();
-    String log_data = "Delta AccX: " + String(deltaAccX) + ", Delta Gyro Magnitude: " + String(deltaGyroMagnitude) + ", Step Count: " + String(*stepCount);
+    //log data
+    String log_data = "INFO: Delta AccX: " + String(deltaAccX) + ", Delta Gyro Magnitude: " + String(deltaGyroMagnitude) + ", Step Count: " + String(*stepCount);
     logData(log_data);
 }
 
@@ -198,13 +183,8 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
 
         // Ignore distances where Z is higher than the user's head or X is 0
         if (x_distance <= 0 || z_distance > user_head_height) {
-            Serial.print("Obstacle ignored (above user's head or at X=0). X_distance: ");
-            Serial.print(x_distance);
-            Serial.print(", Z_distance: ");
-            Serial.println(z_distance);
-            Serial.print("User head height: ");
-            Serial.println(user_head_height);
-            String log_data = "Obstacle detected but ignored: X_distance=" + String(x_distance) + ", Z_distance=" + String(z_distance) + ", User head height=" + String(user_head_height);
+            //log data
+            String log_data = "INFO: Obstacle detected but ignored (above user's head, or at x = 0): X_distance=" + String(x_distance) + ", Z_distance=" + String(z_distance) + ", User head height=" + String(user_head_height);
             logData(log_data);
             continue;
         }
@@ -215,25 +195,17 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
                 //Serial.println("Velocity is zero or negative; cannot calculate impact time.");
             } else {
                 impact_time = (x_distance / 1000.0) / *velocity;
-                Serial.print("Obstacle detected. X_distance: ");
-                Serial.print(x_distance);
-                Serial.print(" | Z_distance: ");
-                Serial.print(z_distance);
-                Serial.print(" | Expected Impact time: ");
-                Serial.println(impact_time);
-                Serial.println();
-                String log_data = "Obstacle detected. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance) + ", Impact time: " + String(impact_time);
-                logData(log_data);          
+                //log data
+                String log_data = "INFO: Obstacle detected. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance) + ", Expected impact time: " + String(impact_time);
+                logData(log_data);   
+
                 previous_x_distance = x_distance; // Update the previous distance
                 found_valid_obstacle = true;
                 return impact_time;
             }
         } else {
-            Serial.print("Obstacle detected, but user is not walking toward it. X_distance: ");
-            Serial.print(x_distance);
-            Serial.print(" | Previous X_distance: ");
-            Serial.println(previous_x_distance);
-            String log_data = "Obstacle detected but user not walking toward it. X_distance=" + String(x_distance) + ", Previous X_distance=" + String(previous_x_distance);
+            //log data
+            String log_data = "INFO: Obstacle detected but user not walking toward it. X_distance=" + String(x_distance) + ", Previous X_distance=" + String(previous_x_distance);
             logData(log_data);
         }
     }
@@ -288,13 +260,8 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
 
         // Ignore obstacles above the user's head or at X=0
         if (x_distance == 0 || z_distance > user_head_height) {
-            Serial.println("Condition: Ignored - Obstacle above user's head or at X=0.");
-            Serial.print("x_distance: ");
-            Serial.println(x_distance);
-            Serial.print("z_distance: ");
-            Serial.println(z_distance);
-            Serial.print("User head height: ");
-            Serial.println(user_head_height);
+            //log data
+            String log_data = "INFO: Obstacle detected but ignored (above user's head, or at x = 0): X_distance=" + String(x_distance) + ", Z_distance=" + String(z_distance) + ", User head height=" + String(user_head_height);
             continue;
         }
 
@@ -307,7 +274,7 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
         // Check if the user is approaching the obstacle
         if (previous_x_distance == -1 || (previous_x_distance - x_distance) > DISTANCE_CHANGE_THRESHOLD) {
             if (abs(previous_x_distance - x_distance) < DISTANCE_CHANGE_THRESHOLD) {
-                Serial.println("Condition: Ignored - Static obstacle detected; no alert triggered.");
+                String log_data = "INFO: Condition: Ignored - Static obstacle detected; no alert triggered.";
                 continue;
             }
 
@@ -341,36 +308,42 @@ bool collisionTimeAlertHandler(double collision_time, systemSettings& system_set
     if (collision_time > 0) {
       if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
         if (collision_time <= system_settings.getAlertTiming1()) {
-          Serial.println("Alerted collision from alert 1");
+          String log_data = "ALERT: Alerted collision from alert 1";
+          logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
         if (collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {
-          Serial.println("Alerted collision from alert 1");
+          String log_data = "ALERT: Alerted collision from alert 1";
+          logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
         if (collision_time <= system_settings.getAlertTiming2() && collision_time > 0) {
-          Serial.println("Alerted collision from alert 2");
+          String log_data = "ALERT: Alerted collision from alert 2";
+          logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
         if (collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {
-          Serial.println("Alerted collision from alert 1");
+          String log_data = "ALERT: Alerted collision from alert 1";
+          logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
         if (collision_time <= system_settings.getAlertTiming2() && collision_time > system_settings.getAlertTiming3()) {
-          Serial.println("Alerted collision from alert 2");
+          String log_data = "ALERT: Alerted collision from alert 2";
+          logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
         if (collision_time > 0 && collision_time <= system_settings.getAlertTiming3()) {
-          Serial.println("Alerted collision from alert 3");
+          String log_data = "ALERT: Alerted collision from alert 3";
+          logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3(), system_settings.getAlertSound3AsInt());
           return true;
         }
@@ -383,47 +356,42 @@ bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& syst
     if (obstacle_distance > 0) {
       if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
         if (obstacle_distance <= system_settings.getAlertDistance1()*10){
-          Serial.println("Alerted collision from alert 1");
-          String logs_data = "Alerted collision from alert 1";
-          logData(logs_data);
+          String log_data = "ALERT: Alerted collision from alert 1";
+          logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
         if (obstacle_distance <= system_settings.getAlertDistance1()*10 && obstacle_distance > system_settings.getAlertDistance2()*10) {
-          Serial.println("Alerted collision from alert 1");
-          String logs_data = "Alerted collision from alert 1";
-          logData(logs_data);
+          String log_data = "ALERT: Alerted collision from alert 1";
+          logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
         if (obstacle_distance <= system_settings.getAlertDistance2()*10 && obstacle_distance > 0) {
-          String logs_data = "Alerted collision from alert 2";
-          logData(logs_data);
+          String log_data = "ALERT: Alerted collision from alert 2";
+          logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
         if (obstacle_distance <= system_settings.getAlertDistance1()*10 && obstacle_distance > system_settings.getAlertDistance2()*10) {
-          Serial.println("Alerted collision from alert 1");
-          String logs_data = "Alerted collision from alert 1";
-          logData(logs_data);
+          String log_data = "ALERT: Alerted collision from alert 1";
+          logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
         if (obstacle_distance <= system_settings.getAlertDistance2()*10 && obstacle_distance > system_settings.getAlertDistance3()*10) {
-          Serial.println("Alerted collision from alert 2");
-          String logs_data = "Alerted collision from alert 2";
-          logData(logs_data);
+          String log_data = "ALERT: Alerted collision from alert 2";
+          logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
         if (obstacle_distance > 0 && obstacle_distance <= system_settings.getAlertDistance3()*10) {
-          Serial.println("Alerted collision from alert 3");
-          String logs_data = "Alerted collision from alert 3";
-          logData(logs_data);
+          String log_data = "ALERT: Alerted collision from alert 3";
+          logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3(), system_settings.getAlertSound3AsInt());
           return true;
         }

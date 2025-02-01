@@ -86,7 +86,6 @@ void systemInit()
             system_settings = readSettings(SD_MMC, "/Settings/setting.txt");
             flags.sd_flag = true;
         } else {
-            Serial.println("Failed to initialize SD card");
             String log_data = "ERROR: FAILED TO INITIALIZE SD CARD - SYSTEM WILL OPERATE IN DEGRADED MODE";
             logData(log_data);
             xTaskCreate(playNoSDDetectedAsTask, "playNoSDDetectedAsTask", STACK_SIZE, &mp3, 2, nullptr);
@@ -164,7 +163,6 @@ void setup() {
 
     // Initializes MPU
     if (!mpu.setup(MPU9250_ADDRESS, mpu_setting)) {
-        Serial.println("ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATE IN DOWNGRADED MODE");
         String log_data = "ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATRE IN DEGRADED MODE";
         logData(log_data);
         xTaskCreate(playMPUSensorDegradedAsTask, "playMPUSensorDegradedAsTask", STACK_SIZE, &mp3, 2, nullptr);
@@ -223,7 +221,6 @@ void setup() {
   }
   xTaskCreate(playSystemReadytoUseAsTask, "playSystemReadytoUseAsTask", STACK_SIZE, &mp3, 2, nullptr);
   is_system_on = true;
-  Serial.println("SAFE STEP IS READY TO USE: STARTING OPERATIONS");
   String log_data = "SAFE STEP IS READY TO USE: STARTING OPERATIONS";
   logData(log_data);
 
@@ -261,7 +258,6 @@ void loop()
 
         if (pressDuration >= LONG_PRESS_THRESHOLD) {
             // Long press detected
-            Serial.println("SAFESTEP MPU RECALIBRATION ROUTINE STARTING...");
             String log_data = "INFO: SAFESTEP MPU RECALIBRATION ROUTINE STARTING...";
             logData(log_data);
             is_long_press = true; // Set long press flag
@@ -277,7 +273,6 @@ void loop()
             // Reset double press tracking
             is_double_press_pending = false;
         } else if (pressDuration >= MEDIUM_PRESS_TRESHOLD && pressDuration < LONG_PRESS_THRESHOLD) {
-            Serial.println("SAFESTEP MEDIUM PRESS ROUTINE STARTING...");
             String log_data = "INFO: SAFESTEP MEDIUM PRESS ROUTINE STARTING...";
             logData(log_data);
             // Reset double press tracking
@@ -290,13 +285,9 @@ void loop()
         } else {
             if (is_double_press_pending) {
                 // Confirmed double press
-                //mp3.playWithFileName(VOICE_ALERTS_DIR, WIFI_PAIRING_INITIATED);
-                //delay(5000);
                 xTaskCreate(playWifiPairingInitiatedAsTask, "playWifiPairingInitiatedAsTask", STACK_SIZE, &mp3, 2, nullptr);
                 vTaskDelay(5000);
                 xTaskCreate(playPleaseConnectToSafestepWifiAsTask, "playPleaseConnectToSafestepWifiAsTask", STACK_SIZE, &mp3, 2, nullptr);
-                //mp3.playWithFileName(VOICE_ALERTS_DIR, PLEASE_CONNECT_TO_SAFESTEP_WIFI);
-                Serial.println("SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...");
                 String log_data = "INFO: SAFESTEP PAIRING PROCEDURE STARTED - PAIRING TO A NEW WIFI NETWORK...";
                 logData(log_data);
                 motor1.vibrate(vibrationPattern::pulseBuzz);
@@ -304,17 +295,13 @@ void loop()
                     Serial.println("Failed to connect to a new network, using SD card settings instead...");
                     String log_data = "ERROR: Failed to connect to a new network, using SD card settings instead...";
                     logData(log_data);
-                    //mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_NOT_PAIRED);
                     xTaskCreate(playSystemNotPairedAsTask, "playSystemNotPairedAsTask", STACK_SIZE, &mp3, 2, nullptr);
                     vTaskDelay(500);
                 } else {
                     flags.wifi_flag = true;
                     systemInit();
-                    //mp3.playWithFileName(VOICE_ALERTS_DIR, SYSTEM_PAIRED);
                     xTaskCreate(playSystemPairedAsTask, "playSystemPairedAsTask", STACK_SIZE, &mp3, 2, nullptr);
-                    //playSystemPairedAsTask(&mp3);
                     vTaskDelay(500);
-                    Serial.println("system paired to a new network");
                     String log_data = "INFO: system paired to a new network";
                     logData(log_data);
                 } 
@@ -330,7 +317,6 @@ void loop()
     // Check for short press after double press timeout
     if (is_double_press_pending && (millis() - double_press_start_time > DOUBLE_PRESS_THRESHOLD)) {
         // No second press detected, treat as a short press
-        Serial.println("SAFESTEP SHORT PRESS ROUTINE STARTING...");
         String log_data = "INFO: SAFESTEP SHORT PRESS ROUTINE STARTING...";
         logData(log_data);
         motor1.vibrate(vibrationPattern::shortBuzz);
