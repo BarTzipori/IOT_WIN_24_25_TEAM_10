@@ -56,7 +56,16 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         item.textController = _controllers[item.headerValue];
       }
     }
-    _fetchLocalIP(); // Fetch localIP during initialization
+
+    _loadSavedSettings();
+    _fetchLocalIP();
+  }
+
+  Future<void> _loadSavedSettings() async {
+    final savedSettings = await _fetchSettingsFromFirebase();
+    if (savedSettings != null) {
+      _populateSettings(savedSettings);
+    }
   }
 
   void _fetchLocalIP() async {
@@ -492,6 +501,64 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         ),
       );
     }
+  }
+
+  Future<Map<String, dynamic>?> _fetchSettingsFromFirebase() async {
+    try {
+      final DataSnapshot snapshot = await _databaseRef.child('System_Settings/settings').get();
+      if (snapshot.value != null) {
+        return Map<String, dynamic>.from(snapshot.value as Map);
+      }
+    } catch (e) {
+      print('Error fetching settings from Firebase: $e');
+    }
+    return null;
+  }
+  void _populateSettings(Map<String, dynamic> settings) {
+    final Map<String, String> varNameToHeader = {
+      'mode': '1. Mode',
+      'alertMethod': '2. Alert Method',
+      'enableAlert1': '3. Alert 1',
+      'enableAlert2': '4. Alert 2',
+      'enableAlert3': '5. Alert 3',
+      'alertTiming1': '6. Alert 1 Timing',
+      'alertTiming2': '7. Alert 2 Timing',
+      'alertTiming3': '8. Alert 3 Timing',
+      'alertDistance1': '9. Alert 1 Distance',
+      'alertDistance2': '10. Alert 2 Distance',
+      'alertDistance3': '11. Alert 3 Distance',
+      'alertVibration1': '12. Alert 1 Vibration',
+      'alertVibration2': '13. Alert 2 Vibration',
+      'alertVibration3': '14. Alert 3 Vibration',
+      'alertSound1': '15. Alert 1 Sound',
+      'alertSound2': '16. Alert 2 Sound',
+      'alertSound3': '17. Alert 3 Sound',
+      'userHeight': '18. User Height',
+      'systemHeight': '19. System Height',
+      'volume': '20. Volume Sound',
+      'minimalHeight': '21. Minimal Height',
+      'headSafetyMargin': '22. Head Safety Margin'
+    };
+
+    settings.forEach((key, value) {
+      String? headerValue = varNameToHeader[key];
+      if (headerValue != null) {
+        var item = _data.firstWhere(
+              (element) => element.headerValue == headerValue,
+          orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: []),
+        );
+
+        if (item.headerValue.isNotEmpty) {
+          if (item.isTextField) {
+            item.textController?.text = value.toString();
+          } else {
+            setState(() {
+              item.selectedOption = value.toString();
+            });
+          }
+        }
+      }
+    });
   }
 
   Future<void> _testConnection() async {
