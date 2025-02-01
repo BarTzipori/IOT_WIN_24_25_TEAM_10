@@ -297,12 +297,66 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         expandedValue: 'Set sound volume (1-5)',
         options: List.generate(5, (index) => (index + 1).toString()),
       ),
+      SettingsItem(
+        headerValue: '21. Minimal Height',
+        expandedValue: 'Enter minimal height in centimeters',
+        options: [],
+        isTextField: true,
+        isNumericRange: true,
+        minValue: 50,
+        maxValue: 200,
+      ),
+      SettingsItem(
+        headerValue: '22. Head Safety Margin',
+        expandedValue: 'Enter head safety margin in centimeters',
+        options: [],
+        isTextField: true,
+        isNumericRange: true,
+        minValue: 5,
+        maxValue: 20,
+      ),
     ];
   }
 
   Future<void> _saveSettingsToDatabase() async {
     // Collect all validation errors
     List<String> errors = validateSettings();
+
+    // Add validation for new height fields
+    double? minimalHeight = double.tryParse(_controllers['21. Minimal Height']?.text ?? '');
+    double? headSafetyMargin = double.tryParse(_controllers['22. Head Safety Margin']?.text ?? '');
+    double? userHeight = double.tryParse(_controllers['18. User Height']?.text ?? '');
+    double? systemHeight = double.tryParse(_controllers['19. System Height']?.text ?? '');
+
+    // Validate minimal height
+    if (minimalHeight != null) {
+      if (minimalHeight < 50 || minimalHeight > 200) {  // Assuming reasonable range for minimal height
+        errors.add('Minimal height must be between 50cm and 200cm');
+      }
+      if (userHeight != null) {
+        if (minimalHeight > userHeight) {
+          errors.add('Minimal height cannot be greater than user height');
+        }
+        if (userHeight - minimalHeight < 20) {
+          errors.add('Difference between user height and minimal height must be at least 20cm');
+        }
+      }
+    }
+
+    // Validate head safety margin
+    if (headSafetyMargin != null) {
+      if (headSafetyMargin < 5 || headSafetyMargin > 20) {  // Assuming reasonable range for safety margin
+        errors.add('Head safety margin must be between 5cm and 20cm');
+      }
+      if (userHeight != null && systemHeight != null) {
+        double effectiveHeight = userHeight - systemHeight - headSafetyMargin;
+        if (effectiveHeight < 0) {
+          errors.add('Head safety margin is too large for current user and system heights');
+        }
+      }
+    }
+
+
 
     // If there are any errors, display them and don't save
     if (errors.isNotEmpty) {
@@ -342,7 +396,9 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         '17. Alert 3 Sound': 'alertSound3',
         '18. User Height': 'userHeight',
         '19. System Height': 'systemHeight',
-        '20. Volume Sound': 'volume'
+        '20. Volume Sound': 'volume',
+        '21. Minimal Height': 'minimalHeight',
+        '22. Head Safety Margin': 'headSafetyMargin'
       };
 
       // Define which fields should be treated as numbers
@@ -355,9 +411,12 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         'alertDistance3',
         'userHeight',
         'systemHeight',
-        'volume'
+        'volume',
+        'minimalHeight',
+        'headSafetyMargin'
       };
 
+      // Process each setting item
       for (var item in _data) {
         String? dbVarName = headerToVarName[item.headerValue];
         if (dbVarName != null) {
@@ -369,7 +428,9 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
               if (numValue != null) {
                 if (dbVarName == 'volume' ||
                     dbVarName == 'userHeight' ||
-                    dbVarName == 'systemHeight') {
+                    dbVarName == 'systemHeight' ||
+                    dbVarName == 'minimalHeight' ||
+                    dbVarName == 'headSafetyMargin') {
                   // Convert to integer for specific fields
                   settingsData[dbVarName] = numValue.round();
                 } else {
@@ -401,18 +462,34 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         }
       }
 
+      // Print settings data before saving (for debugging)
       print('Settings Data to Save: $settingsData');
+
+      // Remove any empty values
       settingsData.removeWhere((key, value) => value.toString().isEmpty);
 
+      // Save to Firebase
       await _databaseRef.child('System_Settings/settings').update(settingsData);
 
+      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Settings saved successfully!')),
+        const SnackBar(
+          content: Text('Settings saved successfully!'),
+          backgroundColor: Colors.green,
+        ),
       );
+
+      // Optionally log the saved data
+      final DataSnapshot snapshot = await _databaseRef.child('System_Settings/settings').get();
+      print('Saved settings in database: ${snapshot.value}');
+
     } catch (e) {
       print('Error saving settings to Firebase: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving settings: $e')),
+        SnackBar(
+          content: Text('Error saving settings: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
