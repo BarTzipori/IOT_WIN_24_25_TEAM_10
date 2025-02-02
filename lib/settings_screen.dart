@@ -94,61 +94,278 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
 
   List<String> validateSettings() {
     List<String> errors = [];
+
+    // Validate basic selections
+    String? mode = _data.firstWhere((item) => item.headerValue == '1. Mode').selectedOption;
     String? alertMethod = _data.firstWhere((item) => item.headerValue == '2. Alert Method').selectedOption;
+    String? alert1Status = _data.firstWhere((item) => item.headerValue == '3. Alert 1').selectedOption;
+    String? alert2Status = _data.firstWhere((item) => item.headerValue == '4. Alert 2').selectedOption;
+    String? alert3Status = _data.firstWhere((item) => item.headerValue == '5. Alert 3').selectedOption;
 
+    // Check required selections
+    if (mode == null) {
+      errors.add('Mode must be selected');
+    }
+    if (alertMethod == null) {
+      errors.add('Alert Method must be selected');
+    }
+    if (alert1Status == null) {
+      errors.add('Alert 1 status must be selected');
+    }
+
+    // Validate Time to Impact settings
     if (alertMethod == 'Time to Impact') {
-      double? timing1 = double.tryParse(_data.firstWhere((item) => item.headerValue == '6. Alert 1 Timing').selectedOption ?? '');
-      double? timing2 = double.tryParse(_data.firstWhere((item) => item.headerValue == '7. Alert 2 Timing').selectedOption ?? '');
-      double? timing3 = double.tryParse(_data.firstWhere((item) => item.headerValue == '8. Alert 3 Timing').selectedOption ?? '');
+      double? timing1;
+      double? timing2;
+      double? timing3;
 
-      if (timing1 != null && timing2 != null) {
-        // Check if they follow the required order
-        if (!( timing2 < timing1 )) {
-          errors.add('Alert timings must follow the order: Alert 2 < Alert 1');
+      if (alert1Status == 'Enable') {
+        var timing1Item = _data.firstWhere((item) => item.headerValue == '6. Alert 1 Timing');
+        timing1 = double.tryParse(timing1Item.selectedOption ?? '');
+        if (timing1 == null) {
+          errors.add('Alert 1 timing must be set when Alert 1 is enabled');
         }
       }
 
-      // Check if all timings are set
-      if (timing1 != null && timing2 != null && timing3 != null) {
-        // Check if they follow the required order
-        if (!(timing3 < timing2 || timing2 < timing1 || timing3 < timing1)) {
-          errors.add('Alert timings must follow the order: Alert 3 < Alert 2 < Alert 1');
-        }
-      }
-    } else if (alertMethod == 'Distance') {
-      double? distance1 = double.tryParse(_controllers['9. Alert 1 Distance']?.text ?? '');
-      double? distance2 = double.tryParse(_controllers['10. Alert 2 Distance']?.text ?? '');
-      double? distance3 = double.tryParse(_controllers['11. Alert 3 Distance']?.text ?? '');
-
-      // Check range validation
-      if (distance1 != null && (distance1 < 20 || distance1 > 250)) {
-        errors.add('Alert 1 distance must be between [20cm - 250cm]');
-      }
-
-      if (distance2 != null && (distance2 < 20 || distance2 > 250)) {
-        errors.add('Alert 2 distance must be between [20cm - 250cm]');
-      }
-
-      if (distance3 != null && (distance3 < 20 || distance3 > 250)) {
-        errors.add('Alert 3 distance must be between [20cm - 250cm]');
-      }
-
-      if (distance1 != null && distance2 != null) {
-        // Check if they follow the required order
-        if (!( distance2 < distance1 )) {
-          errors.add('Alert distances must follow the order: Alert 2 < Alert 1');
+      if (alert2Status == 'Enable') {
+        var timing2Item = _data.firstWhere((item) => item.headerValue == '7. Alert 2 Timing');
+        timing2 = double.tryParse(timing2Item.selectedOption ?? '');
+        if (timing2 == null) {
+          errors.add('Alert 2 timing must be set when Alert 2 is enabled');
         }
       }
 
-      // Check if all distances are set and within range
-      if (distance1 != null && distance2 != null && distance3 != null) {
-        // Check if they follow the required order
-        if (!(distance3 < distance2 || distance2 < distance1 || distance3 < distance1 )) {
-          errors.add('Alert distances must follow the order: Alert 3 < Alert 2 < Alert 1');
+      if (alert3Status == 'Enable') {
+        var timing3Item = _data.firstWhere((item) => item.headerValue == '8. Alert 3 Timing');
+        timing3 = double.tryParse(timing3Item.selectedOption ?? '');
+        if (timing3 == null) {
+          errors.add('Alert 3 timing must be set when Alert 3 is enabled');
+        }
+      }
+
+      // Validate timing order
+      if (timing1 != null && timing2 != null && timing1 <= timing2) {
+        errors.add('Alert 1 timing (${timing1}s) must be greater than Alert 2 timing (${timing2}s)');
+      }
+      if (timing2 != null && timing3 != null && timing2 <= timing3) {
+        errors.add('Alert 2 timing (${timing2}s) must be greater than Alert 3 timing (${timing3}s)');
+      }
+      if (timing1 != null && timing3 != null && timing1 <= timing3) {
+        errors.add('Alert 1 timing (${timing1}s) must be greater than Alert 3 timing (${timing3}s)');
+      }
+    }
+
+    // Validate Distance settings
+    if (alertMethod == 'Distance') {
+      double? distance1;
+      double? distance2;
+      double? distance3;
+
+      if (alert1Status == 'Enable') {
+        distance1 = double.tryParse(_controllers['9. Alert 1 Distance']?.text ?? '');
+        if (distance1 == null) {
+          errors.add('Alert 1 distance must be set when Alert 1 is enabled');
+        } else if (distance1 < 20 || distance1 > 250) {
+          errors.add('Alert 1 distance must be between 20cm and 250cm');
+        }
+      }
+
+      if (alert2Status == 'Enable') {
+        distance2 = double.tryParse(_controllers['10. Alert 2 Distance']?.text ?? '');
+        if (distance2 == null) {
+          errors.add('Alert 2 distance must be set when Alert 2 is enabled');
+        } else if (distance2 < 20 || distance2 > 250) {
+          errors.add('Alert 2 distance must be between 20cm and 250cm');
+        }
+      }
+
+      if (alert3Status == 'Enable') {
+        distance3 = double.tryParse(_controllers['11. Alert 3 Distance']?.text ?? '');
+        if (distance3 == null) {
+          errors.add('Alert 3 distance must be set when Alert 3 is enabled');
+        } else if (distance3 < 20 || distance3 > 250) {
+          errors.add('Alert 3 distance must be between 20cm and 250cm');
+        }
+      }
+
+      // Validate distance order
+      if (distance1 != null && distance2 != null && distance1 <= distance2) {
+        errors.add('Alert 1 distance (${distance1}cm) must be greater than Alert 2 distance (${distance2}cm)');
+      }
+      if (distance2 != null && distance3 != null && distance2 <= distance3) {
+        errors.add('Alert 2 distance (${distance2}cm) must be greater than Alert 3 distance (${distance3}cm)');
+      }
+      if (distance1 != null && distance3 != null && distance1 <= distance3) {
+        errors.add('Alert 1 distance (${distance1}cm) must be greater than Alert 3 distance (${distance3}cm)');
+      }
+    }
+
+    // Validate heights and other numeric fields
+    _validateRequiredFields(errors);
+
+    // Validate numeric ranges for all applicable fields
+    for (var item in _data) {
+      _validateNumericRange(errors, item);
+    }
+
+    return errors;
+  }
+
+  void _validateRequiredFields(List<String> errors) {
+    // Validate User Height
+    String? userHeightText = _controllers['18. User Height']?.text;
+    if (userHeightText == null || userHeightText.isEmpty) {
+      errors.add('User Height is required');
+    } else {
+      double? userHeight = double.tryParse(userHeightText);
+      if (userHeight == null) {
+        errors.add('User Height must be a valid number');
+      } else if (userHeight < 100 || userHeight > 250) {  // Assuming reasonable height range
+        errors.add('User Height must be between 100cm and 250cm');
+      }
+    }
+
+    // Validate System Height
+    String? systemHeightText = _controllers['19. System Height']?.text;
+    if (systemHeightText == null || systemHeightText.isEmpty) {
+      errors.add('System Height is required');
+    } else {
+      double? systemHeight = double.tryParse(systemHeightText);
+      if (systemHeight == null) {
+        errors.add('System Height must be a valid number');
+      } else if (systemHeight < 0 || systemHeight > 200) {  // Assuming reasonable range
+        errors.add('System Height must be between 0cm and 200cm');
+      }
+    }
+
+    // Validate Minimal Height
+    String? minHeightText = _controllers['21. Minimal Height']?.text;
+    if (minHeightText != null && minHeightText.isNotEmpty) {
+      double? minHeight = double.tryParse(minHeightText);
+      double? userHeight = double.tryParse(_controllers['18. User Height']?.text ?? '');
+
+      if (minHeight != null && userHeight != null) {
+        if (minHeight > userHeight) {
+          errors.add('Minimal Height cannot be greater than User Height');
+        }
+        if (userHeight - minHeight < 20) {
+          errors.add('Difference between User Height and Minimal Height must be at least 20cm');
         }
       }
     }
-    return errors;
+
+    // Validate Head Safety Margin
+    String? safetyMarginText = _controllers['22. Head Safety Margin']?.text;
+    if (safetyMarginText != null && safetyMarginText.isNotEmpty) {
+      double? safetyMargin = double.tryParse(safetyMarginText);
+      double? userHeight = double.tryParse(_controllers['18. User Height']?.text ?? '');
+      double? systemHeight = double.tryParse(_controllers['19. System Height']?.text ?? '');
+
+      if (safetyMargin != null && userHeight != null && systemHeight != null) {
+        double effectiveHeight = userHeight - systemHeight - safetyMargin;
+        if (effectiveHeight < 0) {
+          errors.add('Head Safety Margin is too large for current User and System Heights');
+        }
+      }
+    }
+
+    // Validate Volume Sound if mode includes sound
+    String? mode = _data.firstWhere((item) => item.headerValue == '1. Mode').selectedOption;
+    if (mode != 'Vibration') {  // If mode is 'Sound' or 'Both'
+      String? volume = _data.firstWhere((item) => item.headerValue == '20. Volume Sound').selectedOption;
+      if (volume == null) {
+        errors.add('Volume Sound must be selected when using sound alerts');
+      }
+    }
+  }
+
+  void _validateNumericRange(List<String> errors, SettingsItem item) {
+    if (item.isNumericRange && item.textController != null) {
+      String value = item.textController!.text.trim();
+      if (value.isNotEmpty) {
+        double? numValue = double.tryParse(value);
+        if (numValue == null) {
+          errors.add('${item.headerValue} must be a valid number');
+        } else {
+          if (item.minValue != null && numValue < item.minValue!) {
+            errors.add('${item.headerValue} must be at least ${item.minValue}cm');
+          }
+          if (item.maxValue != null && numValue > item.maxValue!) {
+            errors.add('${item.headerValue} must be at most ${item.maxValue}cm');
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> _saveSettingsToDatabase() async {
+    // Collect all validation errors
+    List<String> errors = validateSettings();
+
+    // If there are any errors, display them and don't save
+    if (errors.isNotEmpty) {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,  // User must tap button to close dialog
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Row(
+              children: const [
+                Icon(Icons.error_outline, color: Colors.red),
+                SizedBox(width: 8),
+                Text('Validation Errors'),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: errors.map((error) =>
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('• ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Expanded(child: Text(error)),
+                        ],
+                      ),
+                    )
+                ).toList(),
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    try {
+      Map<String, dynamic> settingsData = {};
+      // ... rest of your existing saving logic ...
+      await _databaseRef.child('System_Settings/settings').update(settingsData);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Settings saved successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      print('Error saving settings: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving settings: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   List<double> _generateTimingOptions() {
@@ -327,182 +544,6 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
     ];
   }
 
-  Future<void> _saveSettingsToDatabase() async {
-    // Collect all validation errors
-    List<String> errors = validateSettings();
-
-    // Add validation for new height fields
-    double? minimalHeight = double.tryParse(_controllers['21. Minimal Height']?.text ?? '');
-    double? headSafetyMargin = double.tryParse(_controllers['22. Head Safety Margin']?.text ?? '');
-    double? userHeight = double.tryParse(_controllers['18. User Height']?.text ?? '');
-    double? systemHeight = double.tryParse(_controllers['19. System Height']?.text ?? '');
-
-    // Validate minimal height
-    if (minimalHeight != null) {
-      if (minimalHeight < 50 || minimalHeight > 200) {  // Assuming reasonable range for minimal height
-        errors.add('Minimal height must be between 50cm and 200cm');
-      }
-      if (userHeight != null) {
-        if (minimalHeight > userHeight) {
-          errors.add('Minimal height cannot be greater than user height');
-        }
-        if (userHeight - minimalHeight < 20) {
-          errors.add('Difference between user height and minimal height must be at least 20cm');
-        }
-      }
-    }
-
-    // Validate head safety margin
-    if (headSafetyMargin != null) {
-      if (headSafetyMargin < 5 || headSafetyMargin > 20) {  // Assuming reasonable range for safety margin
-        errors.add('Head safety margin must be between 5cm and 20cm');
-      }
-      if (userHeight != null && systemHeight != null) {
-        double effectiveHeight = userHeight - systemHeight - headSafetyMargin;
-        if (effectiveHeight < 0) {
-          errors.add('Head safety margin is too large for current user and system heights');
-        }
-      }
-    }
-
-
-
-    // If there are any errors, display them and don't save
-    if (errors.isNotEmpty) {
-      String errorMessage = 'Cannot save due to the following errors:\n' +
-          errors.map((e) => '• $e').join('\n');
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 5),
-        ),
-      );
-      return;
-    }
-
-    try {
-      Map<String, dynamic> settingsData = {};
-
-      final Map<String, String> headerToVarName = {
-        '1. Mode': 'mode',
-        '2. Alert Method': 'alertMethod',
-        '3. Alert 1': 'enableAlert1',
-        '4. Alert 2': 'enableAlert2',
-        '5. Alert 3': 'enableAlert3',
-        '6. Alert 1 Timing': 'alertTiming1',
-        '7. Alert 2 Timing': 'alertTiming2',
-        '8. Alert 3 Timing': 'alertTiming3',
-        '9. Alert 1 Distance': 'alertDistance1',
-        '10. Alert 2 Distance': 'alertDistance2',
-        '11. Alert 3 Distance': 'alertDistance3',
-        '12. Alert 1 Vibration': 'alertVibration1',
-        '13. Alert 2 Vibration': 'alertVibration2',
-        '14. Alert 3 Vibration': 'alertVibration3',
-        '15. Alert 1 Sound': 'alertSound1',
-        '16. Alert 2 Sound': 'alertSound2',
-        '17. Alert 3 Sound': 'alertSound3',
-        '18. User Height': 'userHeight',
-        '19. System Height': 'systemHeight',
-        '20. Volume Sound': 'volume',
-        '21. Minimal Height': 'minimalHeight',
-        '22. Head Safety Margin': 'headSafetyMargin'
-      };
-
-      // Define which fields should be treated as numbers
-      final Set<String> numericFields = {
-        'alertTiming1',
-        'alertTiming2',
-        'alertTiming3',
-        'alertDistance1',
-        'alertDistance2',
-        'alertDistance3',
-        'userHeight',
-        'systemHeight',
-        'volume',
-        'minimalHeight',
-        'headSafetyMargin'
-      };
-
-      // Process each setting item
-      for (var item in _data) {
-        String? dbVarName = headerToVarName[item.headerValue];
-        if (dbVarName != null) {
-          if (item.isTextField) {
-            String value = item.textController?.text.trim() ?? '';
-            if (numericFields.contains(dbVarName) && value.isNotEmpty) {
-              // Convert to double first for decimal numbers
-              double? numValue = double.tryParse(value);
-              if (numValue != null) {
-                if (dbVarName == 'volume' ||
-                    dbVarName == 'userHeight' ||
-                    dbVarName == 'systemHeight' ||
-                    dbVarName == 'minimalHeight' ||
-                    dbVarName == 'headSafetyMargin') {
-                  // Convert to integer for specific fields
-                  settingsData[dbVarName] = numValue.round();
-                } else {
-                  // Keep as double for distances and timings
-                  settingsData[dbVarName] = numValue;
-                }
-              }
-            } else {
-              settingsData[dbVarName] = value;
-            }
-          } else {
-            String value = item.selectedOption ?? '';
-            if (numericFields.contains(dbVarName) && value.isNotEmpty) {
-              // Convert to double first for decimal numbers
-              double? numValue = double.tryParse(value);
-              if (numValue != null) {
-                if (dbVarName == 'volume') {
-                  // Convert to integer for volume
-                  settingsData[dbVarName] = numValue.round();
-                } else {
-                  // Keep as double for distances and timings
-                  settingsData[dbVarName] = numValue;
-                }
-              }
-            } else {
-              settingsData[dbVarName] = value;
-            }
-          }
-        }
-      }
-
-      // Print settings data before saving (for debugging)
-      print('Settings Data to Save: $settingsData');
-
-      // Remove any empty values
-      settingsData.removeWhere((key, value) => value.toString().isEmpty);
-
-      // Save to Firebase
-      await _databaseRef.child('System_Settings/settings').update(settingsData);
-
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Settings saved successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      // Optionally log the saved data
-      final DataSnapshot snapshot = await _databaseRef.child('System_Settings/settings').get();
-      print('Saved settings in database: ${snapshot.value}');
-
-    } catch (e) {
-      print('Error saving settings to Firebase: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error saving settings: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
   Future<Map<String, dynamic>?> _fetchSettingsFromFirebase() async {
     try {
       final DataSnapshot snapshot = await _databaseRef.child('System_Settings/settings').get();
@@ -679,14 +720,18 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
     return dependentItem.selectedOption == 'Enable';
   }
 
+
   @override
   Widget build(BuildContext context) {
-    // Filter visible items first
     final visibleItems = _data.where((item) => _shouldShowItem(item)).toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('System Settings'),
+        title: const Text(
+          'System Settings',
+          style: TextStyle(fontSize: 20),
+          overflow: TextOverflow.ellipsis,
+        ),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       ),
       body: SingleChildScrollView(
@@ -708,79 +753,151 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                       return ListTile(
                         title: Text(
                           item.headerValue,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        subtitle: Text(item.expandedValue),
+                        subtitle: Text(
+                          item.expandedValue,
+                          style: const TextStyle(fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       );
                     },
                     body: item.isTextField
                         ? Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        controller: item.textController,
-                        decoration: InputDecoration(
-                          labelText: item.isNumericRange
-                              ? 'Enter value (${item.minValue}-${item.maxValue}cm)'
-                              : 'Enter value',
-                          border: const OutlineInputBorder(),
-                          suffixText: item.headerValue.toLowerCase().contains('height')
-                              ? 'cm'
-                              : (item.isNumericRange ? 'cm' : null),
-                        ),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        onChanged: (value) {},
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
                       ),
-                    )
-                        : Column(
-                      children: item.options.map((String option) {
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: RadioListTile<String>(
-                                title: Text(option),
-                                value: option,
-                                groupValue: item.selectedOption,
-                                onChanged: (String? value) {
-                                  setState(() {
-                                    item.selectedOption = value;
-                                  });
-                                },
-                              ),
-                            ),
-                            if (item.headerValue.contains('Sound') ||
-                                item.headerValue.contains('Vibration'))
-                              Padding(
-                                padding: const EdgeInsets.only(right: 16.0),
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    if (item.headerValue.contains('Sound')) {
-                                      _makeSound(option);
-                                    } else {
-                                      _makeVibration(option);
-                                    }
-                                  },
-                                  child: const Text('Play'),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: item.textController,
+                                  decoration: InputDecoration(
+                                    labelText: item.isNumericRange
+                                        ? 'Value (${item.minValue}-${item.maxValue}cm)'
+                                        : 'Value',
+                                    border: const OutlineInputBorder(),
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    suffixText: item.headerValue.toLowerCase().contains('height')
+                                        ? 'cm'
+                                        : (item.isNumericRange ? 'cm' : null),
+                                  ),
+                                  style: const TextStyle(fontSize: 14),
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                 ),
                               ),
-                          ],
+                            ],
+                          );
+                        },
+                      ),
+                    )
+                        : LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Column(
+                          children: item.options.map((String option) {
+                            return Container(
+                              constraints: BoxConstraints(
+                                maxWidth: constraints.maxWidth,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: RadioListTile<String>(
+                                      title: Text(
+                                        option,
+                                        style: const TextStyle(fontSize: 14),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      value: option,
+                                      groupValue: item.selectedOption,
+                                      onChanged: (String? value) {
+                                        setState(() {
+                                          item.selectedOption = value;
+                                        });
+                                      },
+                                      dense: true,
+                                      contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                      ),
+                                    ),
+                                  ),
+                                  if (item.headerValue.contains('Sound') ||
+                                      item.headerValue.contains('Vibration'))
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 8.0),
+                                      child: SizedBox(
+                                        width: 70,
+                                        height: 30,
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            if (item.headerValue.contains('Sound')) {
+                                              _makeSound(option);
+                                            } else {
+                                              _makeVibration(option);
+                                            }
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0,
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'Play',
+                                            style: TextStyle(fontSize: 12),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
                         );
-                      }).toList(),
+                      },
                     ),
                     isExpanded: item.isExpanded,
                   );
                 }).toList(),
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _testConnection,
-                child: const Text('Test Connection'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: _testConnection,
+                    child: const Text(
+                      'Test Connection',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: _saveSettingsToDatabase,
+                    child: const Text(
+                      'Save Settings',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ],
               ),
-              Text('Connection Status: $_connectionStatus'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _saveSettingsToDatabase,
-                child: const Text('Save Settings'),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Connection Status: $_connectionStatus',
+                  style: const TextStyle(fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               const SizedBox(height: 32),
             ],
