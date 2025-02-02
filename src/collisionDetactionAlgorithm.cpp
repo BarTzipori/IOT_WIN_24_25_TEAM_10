@@ -140,6 +140,7 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
     double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
     double system_height_in_mm = system_settings.getSystemHeight() * 10; // Height of the system in mm
     double minimun_obstacle_height_in_mm = system_settings.getMinimumObstacleHeight() * 10; // Minimum obstacle height in mm
+    minimun_obstacle_height_in_mm -= system_height_in_mm; // Adjust for system height
     double head_clearance_in_mm = system_settings.getHeadClearance() * 10; // Head clearance in mm
     double impact_time = 0.0;
 
@@ -227,6 +228,7 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
     double system_height_in_mm = system_settings.getSystemHeight() * 10; // Height of the system in mm
 
     double minimun_obstacle_height_in_mm = system_settings.getMinimumObstacleHeight() * 10; // Minimum obstacle height in mm
+    minimun_obstacle_height_in_mm -= system_height_in_mm; // Adjust for system height
     double head_clearance_in_mm = system_settings.getHeadClearance() * 10; // Head clearance in mm
 
     // Calculate the height of the user's head
