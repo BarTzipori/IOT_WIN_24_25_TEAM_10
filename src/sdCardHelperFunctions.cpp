@@ -59,6 +59,8 @@ bool init_sd_card()
         appendFile(SD_MMC, "/Settings/setting.txt", "alert_distance_3: 25");
         appendFile(SD_MMC, "/Settings/setting.txt", "user_height: 170");
         appendFile(SD_MMC, "/Settings/setting.txt", "system_height: 85");
+        appendFile(SD_MMC, "/Settings/setting.txt", "minimum_obstacle_height: 85");
+        appendFile(SD_MMC, "/Settings/setting.txt", "head_clearance: 5");
         appendFile(SD_MMC, "/Settings/setting.txt", "enable_alert_1: true");
         appendFile(SD_MMC, "/Settings/setting.txt", "enable_alert_2: true");
         appendFile(SD_MMC, "/Settings/setting.txt", "enable_alert_3: true");
@@ -115,6 +117,8 @@ void updateSDSettings(systemSettings &s)
     appendFile(SD_MMC, "/Settings/setting.txt", "alert_distance_3: " + String(s.getAlertDistance3()));
     appendFile(SD_MMC, "/Settings/setting.txt", "user_height: " + String(s.getUserHeight()));
     appendFile(SD_MMC, "/Settings/setting.txt", "system_height: " + String(s.getSystemHeight()));
+    appendFile(SD_MMC, "/Settings/setting.txt", "minimum_obstacle_height: " + String(s.getMinimumObstacleHeight()));
+    appendFile(SD_MMC, "/Settings/setting.txt", "head_clearance: " + String(s.getHeadClearance()));
     appendFile(SD_MMC, "/Settings/setting.txt", "enable_alert_1: " + String(s.getEnableAlert1()));
     appendFile(SD_MMC, "/Settings/setting.txt", "enable_alert_2: " + String(s.getEnableAlert2()));
     appendFile(SD_MMC, "/Settings/setting.txt", "enable_alert_3: " + String(s.getEnableAlert3()));

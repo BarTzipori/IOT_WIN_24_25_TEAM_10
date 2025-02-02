@@ -4,10 +4,7 @@
 // bool time_flag;
 extern Flags flags;
 
-
-
 unsigned long lastCaptureTime = 0;
-
 
 bool setupCamera()
 {
@@ -243,5 +240,45 @@ bool CaptureObstacle(FirebaseData &fbdo, FirebaseAuth &auth, FirebaseConfig &con
       result = true;
   }
   esp_camera_fb_return(fb);
+  return result;
+}
+
+bool CaptureError()
+{
+  unsigned long currentTime = millis();
+  if (currentTime - lastCaptureTime < CAMERA_CAPTURE_INTERVAL)
+  {
+    logData("Image Not Taken - Capture too often");
+    Serial.println("Image Not Taken - Capture too often");
+    return false;
+  }
+  lastCaptureTime = currentTime;
+  bool result = false;
+  camera_fb_t *fb = capturePicture();
+
+  if (!SD_MMC.begin("/sdcard", true))
+  {
+    Serial.println("SD card initialization failed");
+    esp_camera_fb_return(fb);
+    return false;
+  }
+
+  String path = "/images/ERROR_" + FormatTime(millis(), flags.wifi_flag, true) + ".jpg";
+
+  File file = SD_MMC.open(path, FILE_WRITE);
+  if (!file)
+  {
+    Serial.println("Failed to open file on SD card");
+    esp_camera_fb_return(fb);
+    return false;
+  }
+
+  file.write(fb->buf, fb->len);
+  file.close();
+  esp_camera_fb_return(fb);
+  Serial.println("Image saved to SD card successfully");
+  Serial.println("Image saved as: " + path);
+  result = true;
+
   return result;
 }

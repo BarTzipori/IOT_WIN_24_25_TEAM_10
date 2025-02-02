@@ -26,7 +26,8 @@ static const struct {
 };
 
 
-systemSettings::systemSettings(String mode, String method, bool e1, bool e2, bool e3, String s1, String s2, String s3, String v1, String v2, String v3, double t1, double t2, double t3, int d1, int d2, int d3, int u, int s, bool e, String l, int vol,bool c)
+systemSettings::systemSettings(String mode, String method, bool e1, bool e2, bool e3, String s1, String s2, String s3, String v1, String v2, String v3, double t1, double t2, double t3, int d1, int d2, int d3, int u, int s,int min_obs,
+                   int head, bool e, String l, int vol,bool c)
 {
     Mode = mode;
     alert_method = method;
@@ -44,6 +45,8 @@ systemSettings::systemSettings(String mode, String method, bool e1, bool e2, boo
     alert_distance_3 = d3;
     user_height = u;
     system_height = s;
+    minimum_obstacle_height = min_obs;
+    head_clearance = head;
     enable_alert_1 = e1;
     enable_alert_2 = e2;
     enable_alert_3 = e3;
@@ -157,6 +160,20 @@ bool systemSettings::updateSettings(systemSettings s)
         Serial.println("System Height changed");
     }
 
+    if (minimum_obstacle_height != s.getMinimumObstacleHeight())
+    {
+        minimum_obstacle_height = s.getMinimumObstacleHeight();
+        changed = true;
+        Serial.println("minimum obstacle height changed");
+    }
+
+    if(head_clearance != s.getHeadClearance())
+    {
+        head_clearance = s.getHeadClearance();
+        changed = true;
+        Serial.println("head clearance changed");
+    }
+
     if (enable_alert_1 != s.getEnableAlert1())
     {
         enable_alert_1 = s.getEnableAlert1();
@@ -229,6 +246,8 @@ void systemSettings::print()
     Serial.println("Alert Distance 3: " + String(alert_distance_3));
     Serial.println("User Height: " + String(user_height));
     Serial.println("System Height: " + String(system_height));
+    Serial.println("Minimum Obstacle Height: " + String(minimum_obstacle_height));
+    Serial.println("Head Clearance: " + String(head_clearance));
     Serial.println("Enable Alert 1: " + String(enable_alert_1));
     Serial.println("Enable Alert 2: " + String(enable_alert_2));
     Serial.println("Enable Alert 3: " + String(enable_alert_3));

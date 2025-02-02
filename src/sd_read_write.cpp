@@ -209,7 +209,7 @@ systemSettings readSettings(fs::FS &fs, const char *path)
     std::vector<String> tokens;
     String m_mode, m_method, m_sound1,m_sound2,m_sound3,m_viberation1,m_viberation2,m_viberation3,m_language;
     double m_timing1,m_timing2,m_timing3;
-    int m_usrheight,m_sysheight,m_volume, m_distance1,m_distance2,m_distance3;
+    int m_usrheight,m_sysheight,m_volume, m_distance1,m_distance2,m_distance3,m_minimum_obstacle_height,m_head_clearance;
     bool m_enable_alert1,m_enable_alert2,m_enable_alert3,m_enable_voice_alerts,m_enable_camera;
     File file = fs.open(path);
     if(!file){
@@ -322,6 +322,18 @@ systemSettings readSettings(fs::FS &fs, const char *path)
         if (tokens[0]=="system_height:") {
                m_sysheight = tokens[1].toInt();
                 s.setSystemHeight(m_sysheight);
+               continue;
+        }
+
+        if (tokens[0]=="minimum_obstacle_height:") {
+               m_minimum_obstacle_height = tokens[1].toInt();
+                s.setMinimumObstacleHeight(m_minimum_obstacle_height);
+               continue;
+        }
+
+        if (tokens[0]=="head_clearance:") {
+               m_head_clearance = tokens[1].toInt();
+                s.setHeadClearance(m_head_clearance);
                continue;
         }
 

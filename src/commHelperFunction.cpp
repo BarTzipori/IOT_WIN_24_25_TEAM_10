@@ -19,7 +19,7 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s)
     Serial.println("Getting settings from Firebase...");
 
     String mode = "Both", alert_method = "timeToImpact", sound_1 = "Sound1", sound_2 = "Sound1", sound_3 = "Sound1", vibration_1 = "vibration1", vibration_2 = "vibration1", vibration_3 = "vibration1", voice_alerts_language = "English";
-    int userheight = 170, systemheight = 85, volume = 5, distance_1 = 1000, distance_2 = 500, distance_3 = 250;
+    int userheight = 170, systemheight = 85, volume = 5, distance_1 = 1000, distance_2 = 500, distance_3 = 250,minimum_obstacle_height = 85, head_clearance = 5;
     bool enable_alert_1 = true, enable_alert_2 = true, enable_alert_3 = true, enable_voice_alerts = true, enable_camera = true;
     double timing_1 = 1.5, timing_2 = 0.8, timing_3 = 0.3;
 
@@ -83,7 +83,7 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s)
     // Fetching settings
     GET_STRING("/System_Settings/settings/mode", mode);
     s.setMode(mode);
-    GET_STRING("/System_Settings/settings/method", alert_method);
+    GET_STRING("/System_Settings/settings/alertMethod", alert_method);
     s.setAlertMethod(alert_method);
     GET_STRING("/System_Settings/settings/alertSound1", sound_1);
     s.setAlertSound1(sound_1);
@@ -118,8 +118,14 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s)
     s.setUserHeight(userheight);
     GET_INT("/System_Settings/settings/systemHeight", systemheight);
     s.setSystemHeight(systemheight);
+    GET_INT("/System_Settings/settings/minimalHeight", minimum_obstacle_height);
+    s.setMinimumObstacleHeight(minimum_obstacle_height);
+    GET_INT("/System_Settings/settings/headSafetyMargin", head_clearance);
+    s.setHeadClearance(head_clearance);
     GET_INT("/System_Settings/settings/volume", volume);
     s.setVolume(volume);
+
+
 
     GET_BOOL("/System_Settings/settings/enableAlert1", enable_alert_1);
     s.setEnableAlert1(enable_alert_1);
@@ -200,7 +206,7 @@ void storeFirebaseSetting(FirebaseData *firebaseData, systemSettings &s)
 
     // Store settings to Firebase
     SET_STRING("/System_Settings/settings/mode", s.getMode());
-    SET_STRING("/System_Settings/settings/method", s.getAlertMethod());
+    SET_STRING("/System_Settings/settings/alertMethod", s.getAlertMethod());
     SET_STRING("/System_Settings/settings/alertSound1", s.getAlertSound1());
     SET_STRING("/System_Settings/settings/alertSound2", s.getAlertSound2());
     SET_STRING("/System_Settings/settings/alertSound3", s.getAlertSound3());
@@ -219,6 +225,8 @@ void storeFirebaseSetting(FirebaseData *firebaseData, systemSettings &s)
 
     SET_INT("/System_Settings/settings/userHeight", s.getUserHeight());
     SET_INT("/System_Settings/settings/systemHeight", s.getSystemHeight());
+    SET_INT("/System_Settings/settings/minimalHeight", s.getMinimumObstacleHeight());
+    SET_INT("/System_Settings/settings/headSafetyMargin", s.getHeadClearance());
     SET_INT("/System_Settings/settings/volume", s.getVolume());
 
     SET_BOOL("/System_Settings/settings/enableAlert1", s.getEnableAlert1());
