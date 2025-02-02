@@ -138,6 +138,42 @@ The following chart describes the process presented above:
 
 ---
 
+## System Logs
+
+SafeStep includes a comprehensive logging system that records key events and activities to improve performance monitoring, troubleshooting, and user safety. These logs provide valuable insights into system behavior and can be used for diagnostics or analysis.
+
+### **Logging Features**
+
+1. **Event Documentation**
+   - The system automatically records events in a log file stored on the SD card.
+   - Logged events include:
+     - Obstacle detections.
+     - Button presses.
+     - Mode changes.
+     - System status updates.
+   - This ensures a clear history of interactions and detections for future reference.
+
+2. **Obstacle Image Capture (Optional)**
+   - If enabled via the **SafeStep app**, the onboard camera will capture an image of every detected obstacle.
+   - These images are stored alongside the log entries, providing a visual record of obstacles encountered.
+
+3. **Log Upload via Wi-Fi**
+   - When the system is powered on and a Wi-Fi network is available, the user will be prompted with an option to upload logs and images to the **SafeStep database**.
+   - To initiate the upload, the user simply needs to **press the action button once**.
+   - This allows users to back up their logs and images for later review or technical support.
+
+4. **System Error Reporting**
+   - At any time, the user can manually report a system error by pressing the **Action Button (medium press, 3-4 seconds)**.
+   - This will:
+     - Document the error in the log file.
+     - Capture an image of the environment using the onboard camera for further analysis.
+   - This feature helps in troubleshooting and diagnosing unexpected system behavior.
+  
+     <img width="1626" alt="Screenshot 2025-02-02 at 21 21 21" src="https://github.com/user-attachments/assets/1e39f7cb-be42-4ec4-850d-0d71286fbead" />
+
+
+---
+
 ## Action Button:
 
 The SafeStep system includes a versatile **Action Button** that allows users to quickly access key features without needing to use the mobile app. This button provides intuitive control for critical functions, ensuring ease of use in various scenarios.
