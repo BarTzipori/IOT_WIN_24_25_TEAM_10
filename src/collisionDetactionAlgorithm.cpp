@@ -276,10 +276,10 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
         }
 
         // Print previous and current x_distance for debugging
-        Serial.print("Previous x_distance: ");
-        Serial.println(previous_x_distance);
-        Serial.print("Current x_distance: ");
-        Serial.println(x_distance);
+        //Serial.print("Previous x_distance: ");
+        //Serial.println(previous_x_distance);
+        //Serial.print("Current x_distance: ");
+        //Serial.println(x_distance);
 
         // Check if the user is approaching the obstacle
         if (previous_x_distance == -1 || (previous_x_distance - x_distance) > DISTANCE_CHANGE_THRESHOLD) {
