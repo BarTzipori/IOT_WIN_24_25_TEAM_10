@@ -281,8 +281,14 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
 
         // Check if the user is approaching the obstacle
         if (previous_x_distance == -1 || (previous_x_distance - x_distance) > DISTANCE_CHANGE_THRESHOLD) {
-            if (abs(previous_x_distance - x_distance) < DISTANCE_CHANGE_THRESHOLD) {
-                String log_data = "INFO: Condition: Ignored - Static obstacle detected; no alert triggered.";
+            if(!mpu_degraded_flag) {
+                if(*velocity <= 0) {
+                    //log data
+                    String log_data = "INFO: Condition: Ignored - User not moving; no alert triggered.";
+                    continue;
+                }
+            } else if (abs(previous_x_distance - x_distance) < DISTANCE_CHANGE_THRESHOLD) {
+                String log_data = "INFO: Condition: Ignored (from mpu degraded mode) - Static obstacle detected; no alert triggered.";
                 continue;
             }
 
@@ -305,10 +311,10 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
     }
 
     // Reset previous_x_distance only if no valid obstacles are detected
-    /*if (!found_valid_obstacle) {
+    if (!found_valid_obstacle) {
         Serial.println("Condition: No valid obstacle found. Resetting previous_x_distance.");
         previous_x_distance = -1;
-    }*/
+    }
     return 0;
 }
 
