@@ -229,17 +229,31 @@ The SafeStep system includes a versatile **Action Button** that allows users to 
 
 ## Folder description :
 * ESP32: source code for the esp side (firmware).
+* Src: source code for platform io (cpp files)
+* Include: source code for platform io compilation (header files)
 * Documentation: wiring diagram + basic operating instructions
 * Unit Tests: tests for individual hardware components (input / output devices)
-* flutter_app : dart code for our Flutter app.
-* Parameters: contains description of configurable parameters 
+* flutter_app : dart code for our Flutter app. 
 * Assets: 3D printed parts, Audio files used in this project, 
 
 ## Arduino/ESP32 libraries used in this project:
-## Arduino/ESP libraries installed for the project:
-* XXXX - version XXXXX
-* XXXX - version XXXXX
-* XXXX - version XXXXX
+
+* 	adafruit/Adafruit VL53L1X@^3.1.2
+* 	adafruit/Adafruit BusIO@^1.16.2
+* 	espressif/esp32-camera@^2.0.4
+* 	plerup/EspSoftwareSerial@^8.2.0
+* 	SPI
+* 	Wire
+* 	adafruit/Adafruit Unified Sensor@^1.1.14
+* 	arduinogetstarted/ezButton@^1.0.6
+* 	hideakitai/MPU9250@^0.4.8
+* 	arduino-libraries/ArduinoMqttClient@^0.1.8
+* 	mobizt/Firebase Arduino Client Library for ESP8266 and ESP32@^4.4.17
+* 	tzapu/WiFiManager@^2.0.17
+* 	 phome/AsyncTCP-esphome@^2.1.4
+* 	 esphome/ESPAsyncWebServer-esphome@^3.3.0
+* 	 gilmaimon/ArduinoWebsockets@^0.5.4
+* 	 ayushsharma82/WebSerial@^2.0.8
 
 ## Project Poster:
  
