@@ -139,10 +139,13 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
     // User and system heights
     double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
     double system_height_in_mm = system_settings.getSystemHeight() * 10; // Height of the system in mm
+    double minimun_obstacle_height_in_mm = system_settings.getMinimumObstacleHeight() * 10; // Minimum obstacle height in mm
+    double head_clearance_in_mm = system_settings.getHeadClearance() * 10; // Head clearance in mm
     double impact_time = 0.0;
 
     // Calculate the height of the user's head
     double user_head_height = user_height_in_mm - system_height_in_mm;
+    user_head_height += head_clearance_in_mm; // add the head clearance to the user's head height
 
     // Store distances (X, Z) in a vector for sorting
     std::vector<std::pair<int, int>> distances;
@@ -182,9 +185,9 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
         int z_distance = distance.second;
 
         // Ignore distances where Z is higher than the user's head or X is 0
-        if (x_distance <= 0 || z_distance > user_head_height) {
+        if (x_distance <= 0 || z_distance > user_head_height ||  z_distance < minimun_obstacle_height_in_mm) {
             //log data
-            String log_data = "INFO: Obstacle detected but ignored (above user's head, or at x = 0): X_distance=" + String(x_distance) + ", Z_distance=" + String(z_distance) + ", User head height=" + String(user_head_height);
+            String log_data = "INFO: Obstacle detected but ignored (above user's head, below minimum height, or at x = 0): X_distance=" + String(x_distance) + ", Z_distance=" + String(z_distance) + ", User head height=" + String(user_head_height) + ", Minimum obstacle height=" + String(minimun_obstacle_height_in_mm);
             logData(log_data);
             continue;
         }
@@ -223,7 +226,12 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
     double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
     double system_height_in_mm = system_settings.getSystemHeight() * 10; // Height of the system in mm
 
+    double minimun_obstacle_height_in_mm = system_settings.getMinimumObstacleHeight() * 10; // Minimum obstacle height in mm
+    double head_clearance_in_mm = system_settings.getHeadClearance() * 10; // Head clearance in mm
+
+    // Calculate the height of the user's head
     double user_head_height = user_height_in_mm - system_height_in_mm;
+    user_head_height += head_clearance_in_mm; // add the head clearance to the user's head height
 
     std::vector<std::pair<int, int>> distances;
     double pitch_value = 0; // mpu_degraded_flag ? 0 : sensor_data.getPitch();
@@ -259,9 +267,9 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
         int z_distance = distance.second;
 
         // Ignore obstacles above the user's head or at X=0
-        if (x_distance == 0 || z_distance > user_head_height) {
+        if (x_distance == 0 || z_distance > user_head_height || z_distance < minimun_obstacle_height_in_mm) {
             //log data
-            String log_data = "INFO: Obstacle detected but ignored (above user's head, or at x = 0): X_distance=" + String(x_distance) + ", Z_distance=" + String(z_distance) + ", User head height=" + String(user_head_height);
+            String log_data = "INFO: Obstacle detected but ignored (above user's head, or at x = 0): X_distance=" + String(x_distance) + ", Z_distance=" + String(z_distance) + ", User head height=" + String(user_head_height) + ", Minimum obstacle height=" + String(minimun_obstacle_height_in_mm);
             continue;
         }
 
