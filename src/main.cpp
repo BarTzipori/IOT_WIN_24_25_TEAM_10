@@ -67,7 +67,8 @@ static bool mpu_degraded_flag = false;
 
 void systemInit()
 {
-    Serial.println("--------- System Init ---------");
+    String log_Data = "INFO: SYSTEM INITIALIZATION STARTED";
+    logData(log_Data);
     if (!flags.wifi_flag) {
         flags.wifi_flag = WifiSetup();
     }
@@ -109,7 +110,6 @@ void systemInit()
         setupWifiServer();
         setupMsgServer();
         setupTime();
-        // createDir(SD_MMC,"/images");
     }
     if (!flags.camera_flag) {
         flags.camera_flag = setupCamera();
@@ -117,11 +117,12 @@ void systemInit()
             xTaskCreate(playNoCameraDetectedAsTask, "playNoCameraDetectedAsTask", STACK_SIZE, &mp3, 2, nullptr);
         }
     }
-
     if (!flags.wifi_flag && !flags.sd_flag) {
         xTaskCreate(playNoSDAndWifiAsTask, "playNoSDAndWifiAsTask", STACK_SIZE, &mp3, 2, nullptr);
     }
-    Serial.printf("--------- System Init Done ---------\n");
+    system_settings.changeVolume(system_settings.getVolume(), &mp3); //updates the system volume
+    log_Data = "INFO: SYSTEM INITIALIZATION DONE";  
+    logData(log_Data);
 }
 
 void setup() {
@@ -202,7 +203,8 @@ void setup() {
     }
     // Check button press result
     if (buttonPressed) {
-      Serial.println("Button pressed. Uploading logs...");
+      String log_data = "INFO: Action button pressed. Uploading logs...";
+      logData(log_data);
       xTaskCreate(playUploadingFilesAsTask, "playUploadingFilesAsTask", STACK_SIZE, &mp3, 2, nullptr);
 
       // Non-blocking delay for audio playback
@@ -214,10 +216,10 @@ void setup() {
       uploadLogs(SD_MMC, fbdo, auth, config);   // Upload logs to Firebase
       uploadImages(SD_MMC, fbdo, auth, config); // Upload images to Firebase
     } else {
-      Serial.println("Button not pressed. Skipping log upload.");
+      String log_data = "INFO: Action button not pressed. Skipping log upload.";
+      logData(log_data);
     }
     // Continue with the rest of the setup routine
-    Serial.println("Continuing with setup...");
   }
   xTaskCreate(playSystemReadytoUseAsTask, "playSystemReadytoUseAsTask", STACK_SIZE, &mp3, 2, nullptr);
   is_system_on = true;
