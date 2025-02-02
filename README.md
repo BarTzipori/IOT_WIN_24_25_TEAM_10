@@ -8,7 +8,7 @@
 * Name 2
 * Name 3  
   
-##SafeStep: Redefining Mobility for the Visually Impaired
+## SafeStep: Redefining Mobility for the Visually Impaired
 
 SafeStep is a compact, innovative system designed to assist visually impaired individuals in detecting obstacles approaching their upper body (chest and head). While traditional aids like walking sticks and guide dogs (K9s) effectively address obstacles at ground level, they often fail to provide protection against upper-body hazards such as low-hanging branches, protruding objects, or other unseen obstructions.
 
