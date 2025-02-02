@@ -1,3 +1,6 @@
+
+![playstore](https://github.com/user-attachments/assets/dfab6fe2-dd94-4fbc-b0e1-ba7d3b094f28)
+
 ## SafeStep - impaired vision device: 
 
 ## Submitted by Team 10, IOT winter 24-25:
