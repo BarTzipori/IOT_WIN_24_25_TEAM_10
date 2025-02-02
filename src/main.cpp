@@ -283,6 +283,7 @@ void loop()
             xTaskCreate(playErrorReportedAsTask, "playErrorReportedAsTask", STACK_SIZE, &mp3, 2, nullptr);
             String log_Data = "ERROR: System Malfunction reported by the user";
             logData(log_Data);
+            CaptureError();
             is_system_on = true;
         } else {
             if (is_double_press_pending) {

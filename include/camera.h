@@ -25,4 +25,5 @@ camera_fb_t *capturePicture();
 //void sendImageToServer();
 String FormatTime(unsigned long currentMillis,bool wifi_flag,bool sd_flag);
 bool CaptureObstacle(FirebaseData &fbdo,FirebaseAuth &auth, FirebaseConfig &config,bool wifi_flag);
+bool CaptureError();
 #endif
