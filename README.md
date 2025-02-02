@@ -1,16 +1,14 @@
 
 ![playstore](https://github.com/user-attachments/assets/dfab6fe2-dd94-4fbc-b0e1-ba7d3b094f28)
 
-## SafeStep - impaired vision device: 
+# SafeStep: Redefining Mobility for the Visually Impaired
 
 ## Submitted by Team 10, IOT winter 24-25:
 * Name 1
 * Name 2
 * Name 3  
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/N4xg39ReWNw/0.jpg)](https://www.youtube.com/watch?v=N4xg39ReWNw)
-  
-## SafeStep: Redefining Mobility for the Visually Impaired
+[![YouTube](http://i.ytimg.com/vi/N4xg39ReWNw/hqdefault.jpg)](https://www.youtube.com/watch?v=N4xg39ReWNw)
 
 SafeStep is a compact, innovative system designed to assist visually impaired individuals in detecting obstacles approaching their upper body (chest and head). While traditional aids like walking sticks and guide dogs (K9s) effectively address obstacles at ground level, they often fail to provide protection against upper-body hazards such as low-hanging branches, protruding objects, or other unseen obstructions.
 
