@@ -43,14 +43,11 @@ extern const char* root_ca =
 // see https://qiita.com/basi/items/3623a576b754f738138e (Japanese)
 
 
-// Replace with your network credentials
-#define WIFI_SSID "ilay"
-#define WIFI_PASSWORD "123456789"
 // Firebase credentials
 #define FIREBASE_HOST "https://safestep-2bc31-default-rtdb.europe-west1.firebasedatabase.app" // Replace with your database URL
 #define API_KEY "AIzaSyBplNk42Hp3O6M17iJObv_FM2MuanadKjM"
-#define USER_EMAIL "neta.matano@gmail.com"
-#define USER_PASSWORD "123456"
+#define USER_EMAIL "neta.matano@gmail.com" // for FIREBASE_AUTH
+#define USER_PASSWORD "123456" // for FIREBASE_AUTH
 #define FIREBASE_AUTH "AIzaSyBplNk42Hp3O6M17iJObv_FM2MuanadKjM"
 #define FIREBASE_HOST_STORAGE  "https://console.firebase.google.com/project/safestep-2bc31/storage"
 #define STORAGE_BUCKET_ID "safestep-2bc31.firebasestorage.app"
