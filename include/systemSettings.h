@@ -23,28 +23,28 @@ public:
     systemSettings() : Mode("Both"),
                        alert_method("TimeToImpact"),
                        enable_alert_1(true),
-                       enable_alert_2(true),
-                       enable_alert_3(true),
+                       enable_alert_2(false),
+                       enable_alert_3(false),
                        alert_sound_1("Beep_2"),
                        alert_sound_2("Alarm_clock_4_beeps"),
                        alert_sound_3("Collision_warning_hebrew"),
                        alert_Vibration_1("Short"),
                        alert_Vibration_2("Double"),
                        alert_Vibration_3("Pulse"),
-                       alert_timing_1(1.5),   // in seconds
+                       alert_timing_1(2.5),   // in seconds
                        alert_timing_2(0.8),   // in seconds
                        alert_timing_3(0.3),   // in seconds
-                       alert_distance_1(100), // in cm
-                       alert_distance_2(50),  // in cm
-                       alert_distance_3(25),  // in cm
+                       alert_distance_1(200), // in cm
+                       alert_distance_2(75),  // in cm
+                       alert_distance_3(30),  // in cm
                        user_height(170),      // in cm
                        system_height(85),     // in cm
                        minimum_obstacle_height(85),
                        head_clearance(5),
                        enable_voice_alerts(true),
                        voice_alerts_language("English"),
-                       volume(5),
-                       enable_camera(true) {};
+                       volume(3),
+                       enable_camera(false) {};
 
     systemSettings(String mode,
                    String method,
