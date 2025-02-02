@@ -269,7 +269,7 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
         // Ignore obstacles above the user's head or at X=0
         if (x_distance == 0 || z_distance > user_head_height || z_distance < minimun_obstacle_height_in_mm) {
             //log data
-            String log_data = "INFO: Obstacle detected but ignored (above user's head, or at x = 0): X_distance=" + String(x_distance) + ", Z_distance=" + String(z_distance) + ", User head height=" + String(user_head_height) + ", Minimum obstacle height=" + String(minimun_obstacle_height_in_mm);
+            String log_data = "INFO: Obstacle detected but ignored (above user's head, below minimum height or at x = 0): X_distance=" + String(x_distance) + ", Z_distance=" + String(z_distance) + ", User head height=" + String(user_head_height) + ", Minimum obstacle height=" + String(minimun_obstacle_height_in_mm);
             continue;
         }
 
