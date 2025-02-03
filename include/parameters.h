@@ -54,10 +54,10 @@
 
 //MP3 volume levels (indexes of different volum levels)
 #define VOLUME_1 0x10
-#define VOLUME_2 0x20
-#define VOLUME_3 0x30
-#define VOLUME_4 0x40
-#define VOLUME_5 0x50
+#define VOLUME_2 0x14
+#define VOLUME_3 0x1A
+#define VOLUME_4 0x1C
+#define VOLUME_5 0x1E
 
 //voice alerts indexes - these are the indexes used as input for the mp3 player (it needs an index to play a sound)
 
