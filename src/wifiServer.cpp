@@ -111,7 +111,7 @@ void playVibrationPulse() {
 void playVolume1() {
   // Add code to play sound 3
   mp3.setVolume(VOLUME_1);
-  mp3.playWithFileName(ALERTS_DIR,ALERT_1);
+  mp3.playWithFileName(ALERTS_DIR,BEEP_BEEP);
   
   server.send(200, "text/plain", "Volume 1 played");
 }
@@ -119,7 +119,7 @@ void playVolume1() {
 void playVolume2() {
   // Add code to play sound 3
   mp3.setVolume(VOLUME_2);
-  mp3.playWithFileName(ALERTS_DIR,ALERT_1);
+  mp3.playWithFileName(ALERTS_DIR,BEEP_BEEP);
   
   server.send(200, "text/plain", "Volume 2 played");
 }
@@ -127,7 +127,7 @@ void playVolume2() {
 void playVolume3() {
   // Add code to play sound 3
   mp3.setVolume(VOLUME_3);
-  mp3.playWithFileName(ALERTS_DIR,ALERT_1);
+  mp3.playWithFileName(ALERTS_DIR,BEEP_BEEP);
   
   server.send(200, "text/plain", "Volume 3 played");
 }
@@ -135,7 +135,7 @@ void playVolume3() {
 void playVolume4() {
   // Add code to play sound 3
   mp3.setVolume(VOLUME_4);
-  mp3.playWithFileName(ALERTS_DIR,ALERT_1);
+  mp3.playWithFileName(ALERTS_DIR,BEEP_BEEP);
   
   server.send(200, "text/plain", "Volume 4 played");
 }
@@ -143,7 +143,7 @@ void playVolume4() {
 void playVolume5() {
   // Add code to play sound 3
   mp3.setVolume(VOLUME_5);
-  mp3.playWithFileName(ALERTS_DIR,ALERT_1);
+  mp3.playWithFileName(ALERTS_DIR,BEEP_BEEP);
   
   server.send(200, "text/plain", "Volume 5 played");
 }
