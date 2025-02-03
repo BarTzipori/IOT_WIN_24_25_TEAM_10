@@ -1,4 +1,5 @@
 #include "systemSettings.h"
+#include "safestep_logs.h"
 
 static const struct {
     const char* name; // Track name
@@ -344,6 +345,8 @@ vibrationPattern systemSettings::getVibration1AsPattern() {
 
 void systemSettings::changeVolume(int volume, MP3* mp3) {
     // Set the volume of the MP3 module based on the input
+    String log_data = "INFO: Change volume to: " + String(volume);
+    logData(log_data);
     switch (volume) {
         case 1:
             mp3->setVolume(VOLUME_1);
