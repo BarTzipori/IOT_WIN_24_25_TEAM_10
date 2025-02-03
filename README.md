@@ -4,9 +4,9 @@
 # SafeStep: Redefining Mobility for the Visually Impaired
 
 ## Submitted by Team 10, IOT winter 24-25:
-* Name 1
-* Name 2
-* Name 3
+* Esther Bricker
+* Matanel Ohayon
+* Bar Tzipori
 
 # Short demo:
 
