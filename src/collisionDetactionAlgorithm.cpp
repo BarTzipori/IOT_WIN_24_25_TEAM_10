@@ -72,7 +72,7 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     float currentAccX = sensorData.getLinearAccelX();
 
     // Calculate the delta (change) in acceleration
-    float deltaAccX = currentAccX - prevAccX;
+    float deltaAccX = fabs(currentAccX - prevAccX);
 
     // Get the gyroscope readings
     float gyroX = sensorData.getGyroX();
