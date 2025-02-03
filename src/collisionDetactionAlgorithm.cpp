@@ -194,25 +194,23 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
         }
 
         // Check if we are walking toward the obstacle
-        if (previous_x_distance == -1 || (previous_x_distance - x_distance) > DISTANCE_CHANGE_THRESHOLD) {
-            if (*velocity <= 0) {
-                String log_data = "INFO: Condition: Ignored - Velocity is 0 or negative, cannot calculate impact time.";
-                logData(log_data);
-            } else {
-                impact_time = (x_distance / 1000.0) / *velocity;
-                //log data
-                String log_data = "INFO: Obstacle detected. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance) + ", Expected impact time: " + String(impact_time);
-                logData(log_data);   
-
-                previous_x_distance = x_distance; // Update the previous distance
-                found_valid_obstacle = true;
-                return impact_time;
-            }
-        } else {
-            //log data
-            String log_data = "INFO: Obstacle detected but user not walking toward it. X_distance=" + String(x_distance) + ", Previous X_distance=" + String(previous_x_distance);
+        if (*velocity <= 0) {
+            String log_data = "INFO: Condition: Ignored - Velocity is 0 or negative, cannot calculate impact time.";
             logData(log_data);
+        } else {
+            impact_time = (x_distance / 1000.0) / *velocity;
+            //log data
+            String log_data = "INFO: Obstacle detected. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance) + ", Expected impact time: " + String(impact_time);
+            logData(log_data);   
+
+            previous_x_distance = x_distance; // Update the previous distance
+            found_valid_obstacle = true;
+            return impact_time;
         }
+
+        //log data
+        //String log_data = "INFO: Obstacle detected but user not walking toward it. X_distance=" + String(x_distance) + ", Previous X_distance=" + String(previous_x_distance);
+        //logData(log_data);
     }
 
     // Reset previous_x_distance only if no valid obstacles are detected
@@ -283,36 +281,29 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
         //Serial.println(x_distance);
 
         // Check if the user is approaching the obstacle
-        if (previous_x_distance == -1 || (previous_x_distance - x_distance) > DISTANCE_CHANGE_THRESHOLD) {
-            if(!mpu_degraded_flag) {
-                if(*velocity <= 0) {
-                    //log data
-                    String log_data = "INFO: Condition: Ignored - User not moving; no alert triggered.";
-                    continue;
-                }
-            } else if (abs(previous_x_distance - x_distance) < DISTANCE_CHANGE_THRESHOLD) {
-                String log_data = "INFO: Condition: Ignored (from mpu degraded mode) - Static obstacle detected; no alert triggered.";
+        if(!mpu_degraded_flag) {
+            if(*velocity <= 0) {
+                //log data
+                String log_data = "INFO: Condition: Ignored - User not moving; no alert triggered.";
+                logData(log_data);
                 continue;
             }
-
-            Serial.println("Condition: Alert - User approaching obstacle.");
-            Serial.print("Previous x_distance: ");
-            Serial.println(previous_x_distance);
-            Serial.print("x_distance: ");
-            Serial.println(x_distance);
-
-            previous_x_distance = x_distance; // Update the previous distance
-            found_valid_obstacle = true;
-            return x_distance;
-        } else {
-            Serial.println("Condition: Ignored - User not approaching obstacle.");
-            Serial.print("Previous x_distance: ");
-            Serial.println(previous_x_distance);
-            Serial.print("Current x_distance: ");
-            Serial.println(x_distance);
+        } else if (abs(previous_x_distance - x_distance) < DISTANCE_CHANGE_THRESHOLD) {
+            String log_data = "INFO: Condition: Ignored (from mpu degraded mode) - Static obstacle detected; no alert triggered.";
+            logData(log_data);
+            continue;
         }
-    }
 
+        Serial.println("Condition: Alert - User approaching obstacle.");
+        Serial.print("Previous x_distance: ");
+        Serial.println(previous_x_distance);
+        Serial.print("x_distance: ");
+        Serial.println(x_distance);
+
+        previous_x_distance = x_distance; // Update the previous distance
+        found_valid_obstacle = true;
+        return x_distance;
+    }
     // Reset previous_x_distance only if no valid obstacles are detected
     if (!found_valid_obstacle) {
         Serial.println("Condition: No valid obstacle found. Resetting previous_x_distance.");
