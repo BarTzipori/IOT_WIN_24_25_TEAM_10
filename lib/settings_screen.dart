@@ -304,19 +304,21 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
 
     // If there are validation errors, show them and don't save
     if (errors.isNotEmpty) {
+      if (!context.mounted) return;
+
       await showDialog(
         context: context,
-        barrierDismissible: false,
+        barrierDismissible: false,  // User must tap button to close dialog
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Row(
-              children: const [
+            title: const Row(
+              children: [
                 Icon(Icons.error_outline, color: Colors.red),
                 SizedBox(width: 8),
                 Text('Validation Errors'),
               ],
             ),
-            content: SingleChildScrollView(
+            content: SingleChildScrollView(  // Make the content scrollable if needed
               child: ListBody(
                 children: errors.map((error) =>
                     Padding(
@@ -343,19 +345,16 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
           );
         },
       );
-      return;
+      return;  // Stop here if there are validation errors
     }
 
     try {
-      // Create settings data map
       Map<String, dynamic> settingsData = {
-        // Basic settings
+        // Basic settings (strings)
         'mode': _data.firstWhere((item) => item.headerValue == '1. Mode',
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
         'alertMethod': _data.firstWhere((item) => item.headerValue == '2. Alert Method',
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
-
-        // Alert enable/disable status
         'enableAlert1': _data.firstWhere((item) => item.headerValue == '3. Alert 1',
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
         'enableAlert2': _data.firstWhere((item) => item.headerValue == '4. Alert 2',
@@ -363,20 +362,23 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         'enableAlert3': _data.firstWhere((item) => item.headerValue == '5. Alert 3',
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
 
-        // Alert timings
-        'alertTiming1': _data.firstWhere((item) => item.headerValue == '6. Alert 1 Timing',
-            orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
-        'alertTiming2': _data.firstWhere((item) => item.headerValue == '7. Alert 2 Timing',
-            orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
-        'alertTiming3': _data.firstWhere((item) => item.headerValue == '8. Alert 3 Timing',
-            orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
+        // Alert timings (doubles)
+        'alertTiming1': double.parse(_data.firstWhere((item) => item.headerValue == '6. Alert 1 Timing',
+            orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption ?? '0'),
+        'alertTiming2': double.parse(_data.firstWhere((item) => item.headerValue == '7. Alert 2 Timing',
+            orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption ?? '0'),
+        'alertTiming3': double.parse(_data.firstWhere((item) => item.headerValue == '8. Alert 3 Timing',
+            orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption ?? '0'),
 
-        // Alert distances
-        'alertDistance1': _controllers['9. Alert 1 Distance']?.text,
-        'alertDistance2': _controllers['10. Alert 2 Distance']?.text,
-        'alertDistance3': _controllers['11. Alert 3 Distance']?.text,
+        // Alert distances (integers)
+        'alertDistance1': _controllers['9. Alert 1 Distance']?.text != null && _controllers['9. Alert 1 Distance']!.text.isNotEmpty ?
+        int.parse(_controllers['9. Alert 1 Distance']!.text) : null,
+        'alertDistance2': _controllers['10. Alert 2 Distance']?.text != null && _controllers['10. Alert 2 Distance']!.text.isNotEmpty ?
+        int.parse(_controllers['10. Alert 2 Distance']!.text) : null,
+        'alertDistance3': _controllers['11. Alert 3 Distance']?.text != null && _controllers['11. Alert 3 Distance']!.text.isNotEmpty ?
+        int.parse(_controllers['11. Alert 3 Distance']!.text) : null,
 
-        // Vibration settings
+        // Vibration settings (strings)
         'alertVibration1': _data.firstWhere((item) => item.headerValue == '12. Alert 1 Vibration',
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
         'alertVibration2': _data.firstWhere((item) => item.headerValue == '13. Alert 2 Vibration',
@@ -384,7 +386,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         'alertVibration3': _data.firstWhere((item) => item.headerValue == '14. Alert 3 Vibration',
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
 
-        // Sound settings
+        // Sound settings (strings)
         'alertSound1': _data.firstWhere((item) => item.headerValue == '15. Alert 1 Sound',
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
         'alertSound2': _data.firstWhere((item) => item.headerValue == '16. Alert 2 Sound',
@@ -392,13 +394,17 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         'alertSound3': _data.firstWhere((item) => item.headerValue == '17. Alert 3 Sound',
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
 
-        // Height and system settings
-        'userHeight': _controllers['18. User Height']?.text,
-        'systemHeight': _controllers['19. System Height']?.text,
-        'volume': _data.firstWhere((item) => item.headerValue == '20. Volume Sound',
-            orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
-        'minimalHeight': _controllers['21. Minimal Height']?.text,
-        'headSafetyMargin': _controllers['22. Head Safety Margin']?.text,
+        // Height and system settings (integers)
+        'userHeight': _controllers['18. User Height']?.text != null && _controllers['18. User Height']!.text.isNotEmpty ?
+        int.parse(_controllers['18. User Height']!.text) : null,
+        'systemHeight': _controllers['19. System Height']?.text != null && _controllers['19. System Height']!.text.isNotEmpty ?
+        int.parse(_controllers['19. System Height']!.text) : null,
+        'volume': int.parse(_data.firstWhere((item) => item.headerValue == '20. Volume Sound',
+            orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption ?? '1'),
+        'minimalHeight': _controllers['21. Minimal Height']?.text != null && _controllers['21. Minimal Height']!.text.isNotEmpty ?
+        int.parse(_controllers['21. Minimal Height']!.text) : null,
+        'headSafetyMargin': _controllers['22. Head Safety Margin']?.text != null && _controllers['22. Head Safety Margin']!.text.isNotEmpty ?
+        int.parse(_controllers['22. Head Safety Margin']!.text) : null,
       };
 
       // Remove null or empty values
@@ -412,27 +418,25 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       await _databaseRef.child('System_Settings/settings').update(settingsData);
 
       // Show success message
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Settings saved successfully!'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Settings saved successfully!'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
     } catch (e) {
       print('Error saving settings: $e');
       // Show error message
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving settings: $e'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 4),
-          ),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving settings: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
   }
 
@@ -624,6 +628,8 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
     return null;
   }
   void _populateSettings(Map<String, dynamic> settings) {
+    print('Received settings from Firebase: $settings'); // Debug print
+
     final Map<String, String> varNameToHeader = {
       'mode': '1. Mode',
       'alertMethod': '2. Alert Method',
@@ -659,11 +665,19 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
 
         if (item.headerValue.isNotEmpty) {
           if (item.isTextField) {
+            // For text fields, convert the number to string for display
             item.textController?.text = value.toString();
           } else {
-            setState(() {
-              item.selectedOption = value.toString();
-            });
+            if (headerValue.contains('Timing')) {
+              // For timing options, handle as double
+              setState(() {
+                item.selectedOption = value.toDouble().toString();
+              });
+            } else {
+              setState(() {
+                item.selectedOption = value.toString();
+              });
+            }
           }
         }
       }
