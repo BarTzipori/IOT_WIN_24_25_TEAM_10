@@ -133,6 +133,7 @@ public:
     vibrationPattern getVibration2AsPattern();
     vibrationPattern getVibration3AsPattern();
     void changeVolume(int volume, MP3 *mp3);
+    int getVolumeFormat();
 };
 
 struct Flags

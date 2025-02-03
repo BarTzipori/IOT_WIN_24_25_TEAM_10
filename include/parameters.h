@@ -122,6 +122,8 @@
 #define SERVER_SOCKET_TIMEOUT 15000 // Timeout for server socket in milliseconds
 #define APP_SERVER_PORT 80 // Port for the app server
 #define WEBMSG_SERVER_PORT 82 // Port for the webmsg server
+#define NTP_SERVER_1 "pool.ntp.org"
+#define NTP_SERVER_2 "time.nist.gov"
 
 //collision detection algorithm settings 
 #define STEP_TIME_THRESHOLD 300 // Minimum time between steps in milliseconds

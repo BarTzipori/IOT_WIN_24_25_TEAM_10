@@ -14,14 +14,31 @@ void setupFirebase(FirebaseConfig &config, FirebaseAuth &auth)
     Firebase.reconnectNetwork(true);
 }
 
+String methodParser(String str)
+{
+    if(str == "Distance")
+        return str;
+    return String("TimeToImpact");
+}
+
+bool stringToBool(String str)
+{
+
+    if (str == "Enable" || str == "true"){
+        
+        return true;
+    }
+    return false;
+}
+
 bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s)
 {
     Serial.println("Getting settings from Firebase...");
 
     String mode = "Both", alert_method = "timeToImpact", sound_1 = "Sound1", sound_2 = "Sound1", sound_3 = "Sound1", vibration_1 = "vibration1", vibration_2 = "vibration1", vibration_3 = "vibration1", voice_alerts_language = "English";
     int userheight = 170, systemheight = 85, volume = 5, distance_1 = 1000, distance_2 = 500, distance_3 = 250,minimum_obstacle_height = 85, head_clearance = 5;
-    bool enable_alert_1 = true, enable_alert_2 = true, enable_alert_3 = true, enable_voice_alerts = true, enable_camera = true;
-    double timing_1 = 1.5, timing_2 = 0.8, timing_3 = 0.3;
+    String enable_alert_1 = "Enable", enable_alert_2 = "Disable", enable_alert_3 = "Disable", enable_voice_alerts = "Enable", enable_camera = "Enable";
+    String timing_1 = "1.5", timing_2 = "0.8", timing_3 = "0.3";
 
     // Helper macro for fetching data from Firebase
 #define GET_STRING(path, target)                     \
@@ -84,7 +101,7 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s)
     GET_STRING("/System_Settings/settings/mode", mode);
     s.setMode(mode);
     GET_STRING("/System_Settings/settings/alertMethod", alert_method);
-    s.setAlertMethod(alert_method);
+    s.setAlertMethod(methodParser(alert_method));
     GET_STRING("/System_Settings/settings/alertSound1", sound_1);
     s.setAlertSound1(sound_1);
     GET_STRING("/System_Settings/settings/alertSound2", sound_2);
@@ -100,12 +117,12 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s)
     GET_STRING("/System_Settings/settings/voiceAlertsLanguage", voice_alerts_language);
     s.setVoiceAlertsLanguage(voice_alerts_language);
 
-    GET_DOUBLE("/System_Settings/settings/alertTiming1", timing_1);
-    s.setAlertTiming1(timing_1);
-    GET_DOUBLE("/System_Settings/settings/alertTiming2", timing_2);
-    s.setAlertTiming2(timing_2);
-    GET_DOUBLE("/System_Settings/settings/alertTiming3", timing_3);
-    s.setAlertTiming3(timing_3);
+    GET_STRING("/System_Settings/settings/alertTiming1", timing_1);
+    s.setAlertTiming1(timing_1.toDouble());
+    GET_STRING("/System_Settings/settings/alertTiming2", timing_2);
+    s.setAlertTiming2(timing_2.toDouble());
+    GET_STRING("/System_Settings/settings/alertTiming3", timing_3);
+    s.setAlertTiming3(timing_3.toDouble());
 
     GET_DOUBLE("/System_Settings/settings/alertDistance1", distance_1);
     s.setAlertDistance1(distance_1);
@@ -127,16 +144,16 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s)
 
 
 
-    GET_BOOL("/System_Settings/settings/enableAlert1", enable_alert_1);
-    s.setEnableAlert1(enable_alert_1);
-    GET_BOOL("/System_Settings/settings/enableAlert2", enable_alert_2);
-    s.setEnableAlert2(enable_alert_2);
-    GET_BOOL("/System_Settings/settings/enableAlert3", enable_alert_3);
-    s.setEnableAlert3(enable_alert_3);
-    GET_BOOL("/System_Settings/settings/enableVoiceAlerts", enable_voice_alerts);
-    s.setEnableVoiceAlerts(enable_voice_alerts);
-    GET_BOOL("/System_Settings/settings/enableCamera", enable_camera);
-    s.setEnableCamera(enable_camera);
+    GET_STRING("/System_Settings/settings/enableAlert1", enable_alert_1);
+    s.setEnableAlert1(stringToBool(enable_alert_1));
+    GET_STRING("/System_Settings/settings/enableAlert2", enable_alert_2);
+    s.setEnableAlert2(stringToBool(enable_alert_2));
+    GET_STRING("/System_Settings/settings/enableAlert3", enable_alert_3);
+    s.setEnableAlert3(stringToBool(enable_alert_3));
+    GET_STRING("/System_Settings/settings/enableVoiceAlerts", enable_voice_alerts);
+    s.setEnableVoiceAlerts(stringToBool(enable_voice_alerts));
+    GET_STRING("/System_Settings/settings/enableCamera", enable_camera);
+    s.setEnableCamera(stringToBool(enable_camera));
 
     Serial.println("Settings retrieved successfully.");
 
@@ -508,8 +525,8 @@ void setupTime()
     //  Set the timezone to Israel (UTC+2) and adjust for DST (+1 hour during DST)
     const long gmtOffset_sec = GMT_OFFSET;     // UTC+2 in seconds
     const int daylightOffset_sec = DAYLIGHT_OFFSET; // +1 hour for DST
-    configTime(gmtOffset_sec, daylightOffset_sec, "pool.ntp.org", "time.nist.gov");
-
+    configTime(gmtOffset_sec, daylightOffset_sec, NTP_SERVER_1, NTP_SERVER_2);
+    //configTime(gmtOffset_sec, daylightOffset_sec, "ntp.technion.ac.il", "ntp.technion.ac.il");
     // Get and print the local time
     struct tm timeinfo;
     if (getLocalTime(&timeinfo))

@@ -3,6 +3,7 @@
 
 #include <Firebase_ESP_Client.h>
 #include "SECRETS.h"
+#include "parameters.h"
 #include "systemSettings.h"
 #include <time.h>
 #include <WiFiManager.h>
