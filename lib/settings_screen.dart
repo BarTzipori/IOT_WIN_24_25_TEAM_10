@@ -298,6 +298,27 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
     }
   }
 
+  Future<void> _notifyESP32(Map<String, dynamic> settings) async {
+    try {
+      // Convert settings to JSON string
+      final String jsonSettings = jsonEncode(settings);
+
+      // Send settings to ESP32
+      final response = await http.post(
+        Uri.parse('$_esp32Url/settings'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonSettings,
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update ESP32 settings: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error updating ESP32: $e');
+      throw e;  // Re-throw to be handled by the caller
+    }
+  }
+
   Future<void> _saveSettingsToDatabase() async {
     // First validate all settings
     List<String> errors = validateSettings();
@@ -308,7 +329,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
 
       await showDialog(
         context: context,
-        barrierDismissible: false,  // User must tap button to close dialog
+        barrierDismissible: false,
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Row(
@@ -318,7 +339,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                 Text('Validation Errors'),
               ],
             ),
-            content: SingleChildScrollView(  // Make the content scrollable if needed
+            content: SingleChildScrollView(
               child: ListBody(
                 children: errors.map((error) =>
                     Padding(
@@ -345,7 +366,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
           );
         },
       );
-      return;  // Stop here if there are validation errors
+      return;
     }
 
     try {
@@ -363,20 +384,20 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
 
         // Alert timings (doubles)
-        'alertTiming1': double.parse(_data.firstWhere((item) => item.headerValue == '6. Alert 1 Timing',
+        'alertTiming1': double.tryParse(_data.firstWhere((item) => item.headerValue == '6. Alert 1 Timing',
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption ?? '0'),
-        'alertTiming2': double.parse(_data.firstWhere((item) => item.headerValue == '7. Alert 2 Timing',
+        'alertTiming2': double.tryParse(_data.firstWhere((item) => item.headerValue == '7. Alert 2 Timing',
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption ?? '0'),
-        'alertTiming3': double.parse(_data.firstWhere((item) => item.headerValue == '8. Alert 3 Timing',
+        'alertTiming3': double.tryParse(_data.firstWhere((item) => item.headerValue == '8. Alert 3 Timing',
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption ?? '0'),
 
-        // Alert distances (integers)
+        // Alert distances (doubles)
         'alertDistance1': _controllers['9. Alert 1 Distance']?.text != null && _controllers['9. Alert 1 Distance']!.text.isNotEmpty ?
-        int.parse(_controllers['9. Alert 1 Distance']!.text) : null,
+        double.tryParse(_controllers['9. Alert 1 Distance']!.text) : null,
         'alertDistance2': _controllers['10. Alert 2 Distance']?.text != null && _controllers['10. Alert 2 Distance']!.text.isNotEmpty ?
-        int.parse(_controllers['10. Alert 2 Distance']!.text) : null,
+        double.tryParse(_controllers['10. Alert 2 Distance']!.text) : null,
         'alertDistance3': _controllers['11. Alert 3 Distance']?.text != null && _controllers['11. Alert 3 Distance']!.text.isNotEmpty ?
-        int.parse(_controllers['11. Alert 3 Distance']!.text) : null,
+        double.tryParse(_controllers['11. Alert 3 Distance']!.text) : null,
 
         // Vibration settings (strings)
         'alertVibration1': _data.firstWhere((item) => item.headerValue == '12. Alert 1 Vibration',
@@ -396,15 +417,15 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
 
         // Height and system settings (integers)
         'userHeight': _controllers['18. User Height']?.text != null && _controllers['18. User Height']!.text.isNotEmpty ?
-        int.parse(_controllers['18. User Height']!.text) : null,
+        int.tryParse(_controllers['18. User Height']!.text) : null,
         'systemHeight': _controllers['19. System Height']?.text != null && _controllers['19. System Height']!.text.isNotEmpty ?
-        int.parse(_controllers['19. System Height']!.text) : null,
-        'volume': int.parse(_data.firstWhere((item) => item.headerValue == '20. Volume Sound',
+        int.tryParse(_controllers['19. System Height']!.text) : null,
+        'volume': int.tryParse(_data.firstWhere((item) => item.headerValue == '20. Volume Sound',
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption ?? '1'),
         'minimalHeight': _controllers['21. Minimal Height']?.text != null && _controllers['21. Minimal Height']!.text.isNotEmpty ?
-        int.parse(_controllers['21. Minimal Height']!.text) : null,
+        int.tryParse(_controllers['21. Minimal Height']!.text) : null,
         'headSafetyMargin': _controllers['22. Head Safety Margin']?.text != null && _controllers['22. Head Safety Margin']!.text.isNotEmpty ?
-        int.parse(_controllers['22. Head Safety Margin']!.text) : null,
+        int.tryParse(_controllers['22. Head Safety Margin']!.text) : null,
       };
 
       // Remove null or empty values
@@ -414,8 +435,11 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
           value == ''
       );
 
-      // Update Firebase
+      // First update Firebase
       await _databaseRef.child('System_Settings/settings').update(settingsData);
+
+      // Then notify ESP32
+      await _notifyESP32(settingsData);
 
       // Show success message
       if (!context.mounted) return;
