@@ -147,14 +147,14 @@ void onSave(){
 void setupWifiServer()
 {
   server.on("/",handleRoot);
-  server.on("/play_sound=Sound%201", playSound1);
-  server.on("/play_sound=Sound%202", playSound2);
-  server.on("/play_sound=Sound%203", playSound3);
-  server.on("/play_sound=Sound%204", playSound4);
-  server.on("/play_sound=Sound%205", playSound5);
-  server.on("/play_sound=Sound%206", playSound6);
-  server.on("/play_sound=Sound%207", playSound7);
-  server.on("/play_sound=Sound%208", playSound8);
+  server.on("/play_sound=Collision_warning_hebrew", playSound1);
+  server.on("/play_sound=Alarm_clock_4_beeps", playSound2);
+  server.on("/play_sound=Alert1", playSound3);
+  server.on("/play_sound=Alert2", playSound4);
+  server.on("/play_sound=Beep_2", playSound5);
+  server.on("/play_sound=Warning_beeps", playSound6);
+  server.on("/play_sound=Notification_sound", playSound7);
+  server.on("/play_sound=Beep_3", playSound8);
   server.on("/play_vibration=Short", playVibrationShort);
   server.on("/play_vibration=Long", playVibrationLong);
   server.on("/play_vibration=Double", playVibrationDouble);
