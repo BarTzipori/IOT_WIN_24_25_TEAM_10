@@ -206,6 +206,29 @@ The SafeStep system includes a versatile **Action Button** that allows users to 
 
 ---
 
+# SafeStep App  
+
+The **SafeStep App** is the official companion application for customizing and managing your SafeStep system. It provides an intuitive interface for adjusting settings, and ensuring a personalized experience.  
+
+## Features  
+
+### **Customization & Alerts**  
+- Configure **Time-to-Impact** and **Distance-Based Alerts**  
+- Adjust **vibration patterns** and **sound types** for different alert stages
+- Change alerts volume
+- Enable or disable up to three alerts
+    
+- Set **safety margins** to filter out unnecessary obstacle detections  
+  
+The SafeStep App makes it easy to fine-tune our device, ensuring a smooth and reliable user experience.   
+
+![Screenshot_20250203-154627](https://github.com/user-attachments/assets/e35d9cc5-ce31-438a-945e-60007addec3f)
+![Screenshot_20250203-154508](https://github.com/user-attachments/assets/b18b4e4e-d8ab-4973-ad4c-19baeb1ff87d)
+![Screenshot_20250203-154728](https://github.com/user-attachments/assets/1b8a9979-54cf-4c83-97c5-bc9f46b6e835)
+![Screenshot_20250203-154643](https://github.com/user-attachments/assets/8d8175e2-ffe6-411d-8c98-e1ef86338d5a)
+![Screenshot_20250203-154701](https://github.com/user-attachments/assets/e61a9ee1-cc8c-4eba-8111-146f12a0fbfe)
+
+
 ## Wiring diagram :
 
 ![safeStep_wiring_diagram](https://github.com/user-attachments/assets/57ba782f-c5d0-4710-b2f8-c96a68f1d6c3)
