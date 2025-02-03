@@ -238,7 +238,7 @@ The SafeStep system includes a versatile **Action Button** that allows users to 
 * Documentation: wiring diagram + basic operating instructions
 * Unit Tests: tests for individual hardware components (input / output devices)
 * flutter_app : dart code for our Flutter app. 
-* Assets: 3D printed parts, Audio files used in this project, 
+* Assets: 3D printed parts, Audio files used in this project.
 
 ## Arduino/ESP32 libraries used in this project:
 
