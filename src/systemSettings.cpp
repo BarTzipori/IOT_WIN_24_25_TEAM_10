@@ -368,4 +368,23 @@ void systemSettings::changeVolume(int volume, MP3* mp3) {
 
 
 
-
+int systemSettings::getVolumeFormat() {
+    // Set the volume of the MP3 module based on the input
+    switch (volume) {
+        case 1:
+            return VOLUME_1;
+            
+        case 2:
+            return VOLUME_2;
+        case 3:
+            return VOLUME_3;
+        case 4:
+            return VOLUME_4;
+        case 5:
+            return VOLUME_5;
+        default:
+            Serial.println("Invalid volume level");
+            break;
+    }
+    return 0;
+}

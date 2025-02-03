@@ -28,56 +28,56 @@ void playSound1() {
   // Add code to play sound 1
   Serial.println("played sound 1");
   Serial.println("playing sound");
-  mp3.setVolume(0x1e);
+  mp3.setVolume(system_settings.getVolumeFormat());
   mp3.playWithFileName(ALERTS_DIR,COLLISION_WARNING_HEBREW);
   server.send(200, "text/plain", "Sound 1 played");
 }
 
 void playSound2() {
   // Add code to play sound 2
-  mp3.setVolume(0x1e);
+  mp3.setVolume(system_settings.getVolumeFormat());
   mp3.playWithFileName(ALERTS_DIR,ALARM_CLOCK_4_BEEPS);
   server.send(200, "text/plain", "Sound 2 played");
 }
 
 void playSound3() {
   // Add code to play sound 3
-  mp3.setVolume(0x1e);
+  mp3.setVolume(system_settings.getVolumeFormat());
   mp3.playWithFileName(ALERTS_DIR,ALERT_1);
   
   server.send(200, "text/plain", "Sound 3 played");
 }
 void playSound4() {
   // Add code to play sound 3
-  mp3.setVolume(0x1e);
+  mp3.setVolume(system_settings.getVolumeFormat());
   mp3.playWithFileName(ALERTS_DIR,ALERT_2);
   
   server.send(200, "text/plain", "Sound 4 played");
 }
 void playSound5() {
   // Add code to play sound 3
-  mp3.setVolume(0x1e);
+  mp3.setVolume(system_settings.getVolumeFormat());
   mp3.playWithFileName(ALERTS_DIR,BEEP_BEEP);
   
   server.send(200, "text/plain", "Sound 5 played");
 }
 void playSound6() {
   // Add code to play sound 3
-  mp3.setVolume(0x1e);
+  mp3.setVolume(system_settings.getVolumeFormat());
   mp3.playWithFileName(ALERTS_DIR,WARNING_BEEPS);
   
   server.send(200, "text/plain", "Sound 6 played");
 }
 void playSound7() {
   // Add code to play sound 3
-  mp3.setVolume(0x1e);
+  mp3.setVolume(system_settings.getVolumeFormat());
   mp3.playWithFileName(ALERTS_DIR,NOTIFICATION_SOUND);
   
   server.send(200, "text/plain", "Sound 7 played");
 }
 void playSound8() {
   // Add code to play sound 3
-  mp3.setVolume(0x1e);
+  mp3.setVolume(system_settings.getVolumeFormat());
   mp3.playWithFileName(ALERTS_DIR,BEEP_BEEP_BEEP);
   
   server.send(200, "text/plain", "Sound 8 played");
@@ -108,6 +108,47 @@ void playVibrationPulse() {
   server.send(200, "text/plain", "Vibration pulse played");
 }
 
+void playVolume1() {
+  // Add code to play sound 3
+  mp3.setVolume(VOLUME_1);
+  mp3.playWithFileName(ALERTS_DIR,ALERT_1);
+  
+  server.send(200, "text/plain", "Volume 1 played");
+}
+
+void playVolume2() {
+  // Add code to play sound 3
+  mp3.setVolume(VOLUME_2);
+  mp3.playWithFileName(ALERTS_DIR,ALERT_1);
+  
+  server.send(200, "text/plain", "Volume 2 played");
+}
+
+void playVolume3() {
+  // Add code to play sound 3
+  mp3.setVolume(VOLUME_3);
+  mp3.playWithFileName(ALERTS_DIR,ALERT_1);
+  
+  server.send(200, "text/plain", "Volume 3 played");
+}
+
+void playVolume4() {
+  // Add code to play sound 3
+  mp3.setVolume(VOLUME_4);
+  mp3.playWithFileName(ALERTS_DIR,ALERT_1);
+  
+  server.send(200, "text/plain", "Volume 4 played");
+}
+
+void playVolume5() {
+  // Add code to play sound 3
+  mp3.setVolume(VOLUME_5);
+  mp3.playWithFileName(ALERTS_DIR,ALERT_1);
+  
+  server.send(200, "text/plain", "Volume 5 played");
+}
+
+
 void handleNotFound() {
   String message = "404 Not Found\n\n";
   message += "URI: ";
@@ -126,6 +167,7 @@ void handleNotFound() {
 
 void onSave(){
   //save_flag = true;
+  
   systemSettings s;
   if (getFirebaseSettings(&firebaseData, s))
   {
@@ -159,7 +201,13 @@ void setupWifiServer()
   server.on("/play_vibration=Long", playVibrationLong);
   server.on("/play_vibration=Double", playVibrationDouble);
   server.on("/play_vibration=Pulse", playVibrationPulse);
-  server.on("/save_settings", onSave);
+  server.on("/play_sound=1", playVolume1);
+  server.on("/play_sound=2", playVolume2);
+  server.on("/play_sound=3", playVolume3);
+  server.on("/play_sound=4", playVolume4);
+  server.on("/play_sound=5", playVolume5);
+
+  server.on("/settings", onSave);
 
   // Fallback for undefined routes
   server.onNotFound(handleNotFound);
