@@ -29,17 +29,32 @@ class _RootScreenState extends State<RootScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo
-                Image.asset(
-                  'images/logo3.png',
-                  height: 150,
-                  width: 150,
+                // Logo with matching background and bigger circle
+                Container(
+                  padding: const EdgeInsets.all(40), // Increased padding
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Image.asset(
+                    'images/logo5.png',
+                    height: 150,
+                    width: 150,
+                  ),
                 ),
                 const SizedBox(height: 32),
 
                 // Welcome Text with Shadow
                 Text(
-                  'Welcome to Step Safe',
+                  'Welcome to Safe Step ',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.blue.shade700,
