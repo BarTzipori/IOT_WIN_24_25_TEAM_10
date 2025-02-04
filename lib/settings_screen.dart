@@ -398,6 +398,8 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
         'enableAlert3': _data.firstWhere((item) => item.headerValue == '5. Alert 3',
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
+        'enableCamera': _data.firstWhere((item) => item.headerValue == '23. Camera',
+            orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
 
         // Alert timings (doubles)
         'alertTiming1': double.tryParse(_data.firstWhere((item) => item.headerValue == '6. Alert 1 Timing',
@@ -479,6 +481,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       );
     }
   }
+
 
   List<double> _generateTimingOptions() {
     List<double> options = [];
@@ -653,6 +656,11 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         minValue: 5,
         maxValue: 20,
       ),
+      SettingsItem(
+        headerValue: '23. Camera',
+        expandedValue: 'Enable or disable camera',
+        options: ['Enable', 'Disable'],
+      ),
     ];
   }
 
@@ -692,7 +700,8 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       'systemHeight': '19. System Height',
       'volume': '20. Volume Sound',
       'minimalHeight': '21. Minimal Height',
-      'headSafetyMargin': '22. Head Safety Margin'
+      'headSafetyMargin': '22. Head Safety Margin',
+      'enableCamera': '23. Camera'
     };
 
     settings.forEach((key, value) {
