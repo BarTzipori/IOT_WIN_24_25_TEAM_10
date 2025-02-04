@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "183501175150",
+    "firebase_url": "https://safestep-2bc31-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "safestep-2bc31",
+    "storage_bucket": "safestep-2bc31.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:183501175150:android:e5b0a450f17da6f8bca97f",
+        "android_client_info": {
+          "package_name": "com.example.app1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "183501175150-jvn696g4fnaeu47puv31q0a5ddstpao9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmq8q9-HuQl6l-LyJvsOe4ijHw6WH5_6Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "183501175150-jvn696g4fnaeu47puv31q0a5ddstpao9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -2,7 +2,7 @@ ESP32/SECRETS.h
 # PlatformIO build files
 .pio/
 .vscode/
-
+others/
 #src and include folders
 ./src 
 ./include
