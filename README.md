@@ -265,9 +265,9 @@ The SafeStep App makes it easy to fine-tune our device, ensuring a smooth and re
 
 
 ## Folder description :
-* ESP32: source code for the esp side (firmware).
-* Src: source code for platform io (cpp files)
-* Include: source code for platform io compilation (header files)
+* ESP32: source code for the esp side (firmware) - this folder is currently empty to save space. It should contain every file in the src and include folders (listed below, but since we are working with platform io, we left it empty. If you need to use it for your build, just drag every file in src and include to this folder). 
+* Src: esp32 (firmware) source code for platform io (cpp files)
+* Include: esp 32 (firmware) source code for platform io compilation (header files)
 * Documentation: wiring diagram + basic operating instructions
 * Unit Tests: tests for individual hardware components (input / output devices)
 * flutter_app : dart code for our Flutter app. 
