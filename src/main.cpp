@@ -145,10 +145,11 @@ void setup() {
         pinMode(distance_sensors_xshut_pins[i], OUTPUT);
     }
     // Initialize Distance measuring sensors
-    initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &Wire);
-    initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &Wire);
-    initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &Wire);
-    initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &Wire);
+    bool distance_sensor_1_connected = initializeVL53L1XSensor(distance_sensors[0].first, XSHUT_PIN_1, distance_sensors[0].second, &Wire);
+    bool distance_sensor_2_connected = initializeVL53L1XSensor(distance_sensors[1].first, XSHUT_PIN_2, distance_sensors[1].second, &Wire);
+    bool distance_sensor_3_connected = initializeVL53L1XSensor(distance_sensors[2].first, XSHUT_PIN_3, distance_sensors[2].second, &Wire);
+    bool distance_sensor_4_connected = initializeVL53L1XSensor(distance_sensors[3].first, XSHUT_PIN_4, distance_sensors[3].second, &Wire);
+    bool all_distance_sensors_not_connected_flag = false;
 
     MPU9250Setting mpu_setting;
     mpu_setting.accel_fs_sel = ACCEL_FS_SEL::A2G;
@@ -162,6 +163,19 @@ void setup() {
 
     systemInit();
 
+    delay(2000);
+
+    //check if some or all distance measuring sensors are not connected (on power up)
+    if(!distance_sensor_1_connected && !distance_sensor_2_connected && !distance_sensor_3_connected && !distance_sensor_4_connected) {
+        mp3.playWithFileName(VOICE_ALERTS_DIR, ALL_DISTANCE_MEARUSING_SENSORS_NOT_CONNECTED);
+        delay(4000);
+        all_distance_sensors_not_connected_flag = true;
+    }
+    if((!distance_sensor_1_connected || !distance_sensor_2_connected || !distance_sensor_3_connected || !distance_sensor_4_connected)&& !all_distance_sensors_not_connected_flag) {
+        mp3.playWithFileName(VOICE_ALERTS_DIR, DISTANCE_SENSOR_DEGRADED );
+        delay(7000);     
+    }
+    
     // Initializes MPU
     if (!mpu.setup(MPU9250_ADDRESS, mpu_setting)) {
         String log_data = "ERROR: MPU NOT DETECTED - SYSTEM WILL OPERATRE IN DEGRADED MODE";
