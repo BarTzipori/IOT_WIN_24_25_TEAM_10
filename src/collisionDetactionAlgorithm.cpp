@@ -194,25 +194,23 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
         }
 
         // Check if we are walking toward the obstacle
-        if (previous_x_distance == -1 || (previous_x_distance - x_distance) > DISTANCE_CHANGE_THRESHOLD) {
-            if (*velocity <= 0) {
-                String log_data = "INFO: Condition: Ignored - Velocity is 0 or negative, cannot calculate impact time.";
-                logData(log_data);
-            } else {
-                impact_time = (x_distance / 1000.0) / *velocity;
-                //log data
-                String log_data = "INFO: Obstacle detected. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance) + ", Expected impact time: " + String(impact_time);
-                logData(log_data);   
-
-                previous_x_distance = x_distance; // Update the previous distance
-                found_valid_obstacle = true;
-                return impact_time;
-            }
-        } else {
-            //log data
-            String log_data = "INFO: Obstacle detected but user not walking toward it. X_distance=" + String(x_distance) + ", Previous X_distance=" + String(previous_x_distance);
+        if (*velocity <= 0) {
+            String log_data = "INFO: Condition: Ignored - Velocity is 0 or negative, cannot calculate impact time.";
             logData(log_data);
+        } else {
+            impact_time = (x_distance / 1000.0) / *velocity;
+            //log data
+            String log_data = "INFO: Obstacle detected. X_distance: " + String(x_distance) + ", Z_distance: " + String(z_distance) + ", Expected impact time: " + String(impact_time);
+            logData(log_data);   
+
+            previous_x_distance = x_distance; // Update the previous distance
+            found_valid_obstacle = true;
+            return impact_time;
         }
+
+        //log data
+        //String log_data = "INFO: Obstacle detected but user not walking toward it. X_distance=" + String(x_distance) + ", Previous X_distance=" + String(previous_x_distance);
+        //logData(log_data);
     }
 
     // Reset previous_x_distance only if no valid obstacles are detected
@@ -283,36 +281,29 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
         //Serial.println(x_distance);
 
         // Check if the user is approaching the obstacle
-        if (previous_x_distance == -1 || (previous_x_distance - x_distance) > DISTANCE_CHANGE_THRESHOLD) {
-            if(!mpu_degraded_flag) {
-                if(*velocity <= 0) {
-                    //log data
-                    String log_data = "INFO: Condition: Ignored - User not moving; no alert triggered.";
-                    continue;
-                }
-            } else if (abs(previous_x_distance - x_distance) < DISTANCE_CHANGE_THRESHOLD) {
-                String log_data = "INFO: Condition: Ignored (from mpu degraded mode) - Static obstacle detected; no alert triggered.";
+        if(!mpu_degraded_flag) {
+            if(*velocity <= 0) {
+                //log data
+                String log_data = "INFO: Condition: Ignored - User not moving; no alert triggered.";
+                logData(log_data);
                 continue;
             }
-
-            Serial.println("Condition: Alert - User approaching obstacle.");
-            Serial.print("Previous x_distance: ");
-            Serial.println(previous_x_distance);
-            Serial.print("x_distance: ");
-            Serial.println(x_distance);
-
-            previous_x_distance = x_distance; // Update the previous distance
-            found_valid_obstacle = true;
-            return x_distance;
-        } else {
-            Serial.println("Condition: Ignored - User not approaching obstacle.");
-            Serial.print("Previous x_distance: ");
-            Serial.println(previous_x_distance);
-            Serial.print("Current x_distance: ");
-            Serial.println(x_distance);
+        } else if (abs(previous_x_distance - x_distance) < DISTANCE_CHANGE_THRESHOLD) {
+            String log_data = "INFO: Condition: Ignored (from mpu degraded mode) - Static obstacle detected; no alert triggered.";
+            logData(log_data);
+            continue;
         }
-    }
 
+        Serial.println("Condition: Alert - User approaching obstacle.");
+        Serial.print("Previous x_distance: ");
+        Serial.println(previous_x_distance);
+        Serial.print("x_distance: ");
+        Serial.println(x_distance);
+
+        previous_x_distance = x_distance; // Update the previous distance
+        found_valid_obstacle = true;
+        return x_distance;
+    }
     // Reset previous_x_distance only if no valid obstacles are detected
     if (!found_valid_obstacle) {
         Serial.println("Condition: No valid obstacle found. Resetting previous_x_distance.");
@@ -320,46 +311,56 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
     }
     return 0;
 }
-
+//This function will handle collision alrts when using TTI mode.
+//we are adding gates and tolerances to the timing of alerts to achieve the following:
+//1. minimize the zones each alert should cover (to avoid spamming the user)
+//2. allow for some flexibility in the timing of alerts
+//the same logic applies to the distance alerts, managed by the next function.
 bool collisionTimeAlertHandler(double collision_time, systemSettings& system_settings, const MP3& mp3, vibrationMotor& motor1) {
+    float alert_1_gate = 0.5;
+    float alert_tol = 0.5;
     if (collision_time > 0) {
       if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
-        if (collision_time <= system_settings.getAlertTiming1()) {
-          String log_data = "ALERT: Alerted collision from alert 1 (time to impact)";
+        if (collision_time >= (system_settings.getAlertTiming1() -alert_1_gate) && collision_time <= system_settings.getAlertTiming1() + alert_tol) {
+          String log_data = "ALERT: Alerted collision from alert 1 (time to impact). Time to impact: " + String(collision_time) + ". Alert timing: " + String(system_settings.getAlertTiming1());
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
-        if (collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {
-          String log_data = "ALERT: Alerted collision from alert 1 (time to impact)";
+        float alert_1_2_gate = (system_settings.getAlertTiming1() - system_settings.getAlertTiming2())/2;
+        if (collision_time <= (system_settings.getAlertTiming1() + alert_tol) && collision_time > (system_settings.getAlertTiming1() - alert_1_2_gate)) {
+          String log_data = "ALERT: Alerted collision from alert 1 (time to impact). Time to impact: " + String(collision_time) + ". Alert timing: " + String(system_settings.getAlertTiming1());
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
-        if (collision_time <= system_settings.getAlertTiming2() && collision_time > 0) {
-          String log_data = "ALERT: Alerted collision from alert 2 (time to impact)";
+        if (collision_time <= (system_settings.getAlertTiming2() + alert_1_2_gate) && collision_time > 0) {
+          String log_data = "ALERT: Alerted collision from alert 2 (time to impact). Time to impact: " + String(collision_time) + ". Alert timing: " + String(system_settings.getAlertTiming2());
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
-        if (collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {
-          String log_data = "ALERT: Alerted collision from alert 1 (time to impact)";
+        float alert_1_2_gate = (system_settings.getAlertTiming1() - system_settings.getAlertTiming2())/2;
+        float alert_2_3_gate = (system_settings.getAlertTiming2() - system_settings.getAlertTiming3())/2;
+
+        if (collision_time <= (system_settings.getAlertTiming1() + alert_tol) && collision_time > (system_settings.getAlertTiming1()- alert_1_2_gate)) {
+          String log_data = "ALERT: Alerted collision from alert 1 (time to impact). Time to impact: " + String(collision_time) + ". Alert timing: " + String(system_settings.getAlertTiming1());
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
-        if (collision_time <= system_settings.getAlertTiming2() && collision_time > system_settings.getAlertTiming3()) {
-          String log_data = "ALERT: Alerted collision from alert 2 (time to impact)";
+        if (collision_time <= (system_settings.getAlertTiming2() + alert_1_2_gate) && collision_time > (system_settings.getAlertTiming2()- alert_2_3_gate)) {
+          String log_data = "ALERT: Alerted collision from alert 2 (time to impact). Time to impact: " + String(collision_time) + ". Alert timing: " + String(system_settings.getAlertTiming2());
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
-        if (collision_time > 0 && collision_time <= system_settings.getAlertTiming3()) {
-          String log_data = "ALERT: Alerted collision from alert 3 (time to impact)";
+        if (collision_time > 0 && collision_time <= (system_settings.getAlertTiming3() + alert_2_3_gate)) {
+          String log_data = "ALERT: Alerted collision from alert 3 (time to impact). Time to impact: " + String(collision_time) + ". Alert timing: " + String(system_settings.getAlertTiming3());
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3(), system_settings.getAlertSound3AsInt());
           return true;
@@ -370,44 +371,50 @@ bool collisionTimeAlertHandler(double collision_time, systemSettings& system_set
 }
 
 bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& system_settings, const MP3& mp3, vibrationMotor& motor1) {
+    float alert_1_gate = 500;
+    float alert_tol = 500;
     if (obstacle_distance > 0) {
       if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
-        if (obstacle_distance <= system_settings.getAlertDistance1()*10){
-          String log_data = "ALERT: Alerted collision from alert 1 (distance)";
+        if (obstacle_distance <= (system_settings.getAlertDistance1()*10 + alert_tol) && obstacle_distance > (system_settings.getAlertDistance1()*10 - alert_1_gate)) {
+          String log_data = "ALERT: Alerted collision from alert 1 (distance). Obstacle distance: " + String(obstacle_distance) + ". Alert distance = " + String(system_settings.getAlertDistance1()*10);
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
-        if (obstacle_distance <= system_settings.getAlertDistance1()*10 && obstacle_distance > system_settings.getAlertDistance2()*10) {
-          String log_data = "ALERT: Alerted collision from alert 1 (distance)";
+        float alert_1_2_gate = (system_settings.getAlertDistance1() - system_settings.getAlertDistance2())/2;
+        if (obstacle_distance <= (system_settings.getAlertDistance1()*10 + alert_tol) && obstacle_distance > (system_settings.getAlertDistance1()*10 - alert_1_gate)) {
+          String log_data = "ALERT: Alerted collision from alert 1 (distance). Obstacle distance: " + String(obstacle_distance) + ". Alert distance = " + String(system_settings.getAlertDistance1()*10);
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
-        if (obstacle_distance <= system_settings.getAlertDistance2()*10 && obstacle_distance > 0) {
-          String log_data = "ALERT: Alerted collision from alert 2 (distance)";
+        if (obstacle_distance <= (system_settings.getAlertDistance2()*10 + alert_1_2_gate) && obstacle_distance > 0) {
+          String log_data = "ALERT: Alerted collision from alert 2 (distance). Obstacle distance: " + String(obstacle_distance) + ". Alert distance = " + String(system_settings.getAlertDistance2()*10);
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
-        if (obstacle_distance <= system_settings.getAlertDistance1()*10 && obstacle_distance > system_settings.getAlertDistance2()*10) {
-          String log_data = "ALERT: Alerted collision from alert 1 (distance)";
+        float alert_1_2_gate = (system_settings.getAlertDistance1() - system_settings.getAlertDistance2())/2;
+        float alert_2_3_gate = (system_settings.getAlertDistance2() - system_settings.getAlertDistance3())/2;
+
+        if (obstacle_distance <= system_settings.getAlertDistance1()*10 + alert_tol && obstacle_distance > (system_settings.getAlertDistance1()*10 - alert_1_gate)) {
+          String log_data = "ALERT: Alerted collision from alert 1 (distance). Obstacle distance: " + String(obstacle_distance) + ". Alert distance = " + String(system_settings.getAlertDistance1()*10);
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
-        if (obstacle_distance <= system_settings.getAlertDistance2()*10 && obstacle_distance > system_settings.getAlertDistance3()*10) {
-          String log_data = "ALERT: Alerted collision from alert 2 (distance)";
+        if (obstacle_distance <= (system_settings.getAlertDistance2()*10 + alert_1_2_gate) && obstacle_distance > (system_settings.getAlertDistance2()*10 - alert_2_3_gate)) {
+          String log_data = "ALERT: Alerted collision from alert 2 (distance). Obstacle distance: " + String(obstacle_distance) + ". Alert distance = " + String(system_settings.getAlertDistance2()*10);
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
-        if (obstacle_distance > 0 && obstacle_distance <= system_settings.getAlertDistance3()*10) {
-          String log_data = "ALERT: Alerted collision from alert 3 (distance)";
+        if (obstacle_distance > 0 && obstacle_distance <= (system_settings.getAlertDistance3()*10+ alert_2_3_gate)) {
+          String log_data = "ALERT: Alerted collision from alert 3 (distance). Obstacle distance: " + String(obstacle_distance) + ". Alert distance = " + String(system_settings.getAlertDistance3()*10);
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3(), system_settings.getAlertSound3AsInt());
           return true;
@@ -441,6 +448,8 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1500);
     }
+    String log_data = "ALERT: Collision alert triggered. Vibration pattern: " + vib_pattern + ", Sound file: " + String(alert_sound_type);
+    logData(log_data);
 }
 
 // Samples sensors data

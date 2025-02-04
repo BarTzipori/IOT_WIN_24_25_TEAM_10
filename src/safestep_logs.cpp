@@ -12,6 +12,6 @@ void logData(String data)
         (SD_MMC, log_filename.c_str(), stamp + data);
     if (flags.wifi_flag)
     {
-        WebSerial.println(data);
+        WebSerial.println(stamp + data);
     }
 }

@@ -337,32 +337,48 @@ void loop()
         is_double_press_pending = false;
     }
     if (is_system_on && !is_pressing && system_calibrated) {
-        // Declare static variable to track last call time
+        // Declare static variables to track last call time and previous measurements
         static unsigned long lastCollisionAlertTime = 0;
-        //sensor_data.printData();
+        static double previous_obstacle_collision_time = -1.0; // Initialize with an invalid value
+        static double previous_obstacle_distance = -1.0; // Initialize with an invalid value
+
         if (system_settings.getAlertMethod() == "TimeToImpact") {
             if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
                 double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
-                if (millis() - lastCollisionAlertTime >= 50) {
-                    if (collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
-                        if (system_settings.getEnableCamera()) {
-                            CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
+
+                // Only trigger an alert if time to impact is decreasing (moving toward the obstacle)
+                if (previous_obstacle_collision_time < 0 || 
+                    nearest_obstacle_collision_time < previous_obstacle_collision_time) {
+                    
+                    if (millis() - lastCollisionAlertTime >= 50) {
+                        if (collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
+                            if (system_settings.getEnableCamera()) {
+                                CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
+                            }
                         }
+                        lastCollisionAlertTime = millis();
                     }
                 }
-                lastCollisionAlertTime = millis();
+                previous_obstacle_collision_time = nearest_obstacle_collision_time; // Update previous value
             }
         } else {
             if (is_system_on && !is_pressing) {
                 double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity, mpu_degraded_flag);
-                if (millis() - lastCollisionAlertTime >= 50) {
-                    if (obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
-                        if (system_settings.getEnableCamera()) {
-                            CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
+
+                // Only trigger an alert if the distance is decreasing (moving toward the obstacle)
+                if (previous_obstacle_distance < 0 || 
+                    nearest_obstacle_distance < previous_obstacle_distance) {
+                    
+                    if (millis() - lastCollisionAlertTime >= 50) {
+                        if (obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
+                            if (system_settings.getEnableCamera()) {
+                                CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
+                            }
                         }
+                        lastCollisionAlertTime = millis();
                     }
                 }
-                lastCollisionAlertTime = millis();
+                previous_obstacle_distance = nearest_obstacle_distance; // Update previous value
             }
         }
     }
