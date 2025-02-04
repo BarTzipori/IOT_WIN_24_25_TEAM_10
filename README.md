@@ -8,6 +8,16 @@
 * Matanel Ohayon
 * Bar Tzipori
 
+# Adi (the client) talks about his need for the system:
+
+[![YouTube](http://i.ytimg.com/vi/TcqyJC4pFEQ/hqdefault.jpg)](https://www.youtube.com/watch?v=TcqyJC4pFEQ)
+
+# Adi (the "client) talks about his experiences using the system for the first time:
+
+[![YouTube](http://i.ytimg.com/vi/tgIvOb7PmDs/hqdefault.jpg)](https://www.youtube.com/watch?v=tgIvOb7PmDs)
+
+
+
 # Short demo:
 
 [![YouTube](http://i.ytimg.com/vi/N4xg39ReWNw/hqdefault.jpg)](https://www.youtube.com/watch?v=N4xg39ReWNw)
