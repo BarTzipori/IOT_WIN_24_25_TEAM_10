@@ -311,7 +311,11 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
     }
     return 0;
 }
-
+//This function will handle collision alrts when using TTI mode.
+//we are adding gates and tolerances to the timing of alerts to achieve the following:
+//1. minimize the zones each alert should cover (to avoid spamming the user)
+//2. allow for some flexibility in the timing of alerts
+//the same logic applies to the distance alerts, managed by the next function.
 bool collisionTimeAlertHandler(double collision_time, systemSettings& system_settings, const MP3& mp3, vibrationMotor& motor1) {
     float alert_1_gate = 0.5;
     float alert_tol = 0.5;
