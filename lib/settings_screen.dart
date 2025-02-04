@@ -125,7 +125,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
     }
 
     // Validate Time to Impact settings
-    if (alertMethod == 'Time to Impact') {
+    if (alertMethod == 'Time To Impact') {
       double? timing1;
       double? timing2;
       double? timing3;
@@ -503,7 +503,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       SettingsItem(
         headerValue: '2. Alert Method',
         expandedValue: 'Choose between time to impact or distance',
-        options: ['Time to Impact', 'Distance'],
+        options: ['Time To Impact', 'Distance'],
       ),
       SettingsItem(
         headerValue: '3. Alert 1',
@@ -558,7 +558,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       ),
       SettingsItem(
         headerValue: '11. Alert 3 Distance',
-        expandedValue: 'Enter distance for Alert 2 (20cm - 250cm)',
+        expandedValue: 'Enter distance for Alert 3 (20cm - 250cm)',
         options: [],
         isTextField: true,
         isNumericRange: true,
@@ -809,7 +809,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
     }
 
     // Hide distance panels when Time to Impact is selected
-    if (alertMethod == 'Time to Impact') {
+    if (alertMethod == 'Time To Impact') {
       if (item.headerValue == '9. Alert 1 Distance' ||
           item.headerValue == '10. Alert 2 Distance' ||
           item.headerValue == '11. Alert 3 Distance') {
