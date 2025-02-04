@@ -325,7 +325,7 @@ bool collisionTimeAlertHandler(double collision_time, systemSettings& system_set
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
-        float alert_1_2_gate = (system_settings.getAlertTiming1() - system_settings.getAlertTiming2())/4;
+        float alert_1_2_gate = (system_settings.getAlertTiming1() - system_settings.getAlertTiming2())/2;
         if (collision_time <= (system_settings.getAlertTiming1() + alert_tol) && collision_time > (system_settings.getAlertTiming1() + alert_1_2_gate)) {
           String log_data = "ALERT: Alerted collision from alert 1 (time to impact). Time to impact: " + String(collision_time) + ". Alert timing: " + String(system_settings.getAlertTiming1());
           logData(log_data);
@@ -340,8 +340,8 @@ bool collisionTimeAlertHandler(double collision_time, systemSettings& system_set
         }
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
-        float alert_1_2_gate = (system_settings.getAlertTiming1() - system_settings.getAlertTiming2())/4;
-        float alert_2_3_gate = (system_settings.getAlertTiming2() - system_settings.getAlertTiming3())/4;
+        float alert_1_2_gate = (system_settings.getAlertTiming1() - system_settings.getAlertTiming2())/2;
+        float alert_2_3_gate = (system_settings.getAlertTiming2() - system_settings.getAlertTiming3())/2;
 
         if (collision_time <= (system_settings.getAlertTiming1() + alert_tol) && collision_time > (system_settings.getAlertTiming1()- alert_1_2_gate)) {
           String log_data = "ALERT: Alerted collision from alert 1 (time to impact). Time to impact: " + String(collision_time) + ". Alert timing: " + String(system_settings.getAlertTiming1());
