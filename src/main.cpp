@@ -350,7 +350,7 @@ void loop()
                 if (previous_obstacle_collision_time < 0 || 
                     nearest_obstacle_collision_time < previous_obstacle_collision_time) {
                     
-                    if (millis() - lastCollisionAlertTime >= 50) {
+                    if (millis() - lastCollisionAlertTime >= 200) {
                         if (collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
                             if (system_settings.getEnableCamera()) {
                                 CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
@@ -369,7 +369,7 @@ void loop()
                 if (previous_obstacle_distance < 0 || 
                     nearest_obstacle_distance < previous_obstacle_distance) {
                     
-                    if (millis() - lastCollisionAlertTime >= 50) {
+                    if (millis() - lastCollisionAlertTime >= 200) {
                         if (obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
                             if (system_settings.getEnableCamera()) {
                                 CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
