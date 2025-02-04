@@ -448,6 +448,8 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
         xTaskCreate(playMP3AsTask, "playmp3", STACK_SIZE, audio_params, 4, nullptr);
         vTaskDelay(1500);
     }
+    String log_data = "ALERT: Collision alert triggered. Vibration pattern: " + vib_pattern + ", Sound file: " + String(alert_sound_type);
+    logData(log_data);
 }
 
 // Samples sensors data
