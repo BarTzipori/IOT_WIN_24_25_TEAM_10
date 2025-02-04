@@ -316,7 +316,7 @@ bool collisionTimeAlertHandler(double collision_time, systemSettings& system_set
     if (collision_time > 0) {
       if (system_settings.getEnableAlert1() && !system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
         if (collision_time <= system_settings.getAlertTiming1()) {
-          String log_data = "ALERT: Alerted collision from alert 1 (time to impact)";
+          String log_data = "ALERT: Alerted collision from alert 1 (time to impact). Time to impact: " + String(collision_time) + ". Alert timing: " + String(system_settings.getAlertTiming1());
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
@@ -324,13 +324,13 @@ bool collisionTimeAlertHandler(double collision_time, systemSettings& system_set
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && !system_settings.getEnableAlert3()) {
         if (collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {
-          String log_data = "ALERT: Alerted collision from alert 1 (time to impact)";
+          String log_data = "ALERT: Alerted collision from alert 1 (time to impact). Time to impact: " + String(collision_time) + ". Alert timing: " + String(system_settings.getAlertTiming1());
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
         if (collision_time <= system_settings.getAlertTiming2() && collision_time > 0) {
-          String log_data = "ALERT: Alerted collision from alert 2 (time to impact)";
+          String log_data = "ALERT: Alerted collision from alert 2 (time to impact). Time to impact: " + String(collision_time) + ". Alert timing: " + String(system_settings.getAlertTiming2());
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
@@ -338,19 +338,19 @@ bool collisionTimeAlertHandler(double collision_time, systemSettings& system_set
       }
       if (system_settings.getEnableAlert1() && system_settings.getEnableAlert2() && system_settings.getEnableAlert3()) {
         if (collision_time <= system_settings.getAlertTiming1() && collision_time > system_settings.getAlertTiming2()) {
-          String log_data = "ALERT: Alerted collision from alert 1 (time to impact)";
+          String log_data = "ALERT: Alerted collision from alert 1 (time to impact). Time to impact: " + String(collision_time) + ". Alert timing: " + String(system_settings.getAlertTiming1());
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration1(), system_settings.getAlertSound1AsInt());
           return true;
         }
         if (collision_time <= system_settings.getAlertTiming2() && collision_time > system_settings.getAlertTiming3()) {
-          String log_data = "ALERT: Alerted collision from alert 2 (time to impact)";
+          String log_data = "ALERT: Alerted collision from alert 2 (time to impact). Time to impact: " + String(collision_time) + ". Alert timing: " + String(system_settings.getAlertTiming2());
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration2(), system_settings.getAlertSound2AsInt());
           return true;
         }
         if (collision_time > 0 && collision_time <= system_settings.getAlertTiming3()) {
-          String log_data = "ALERT: Alerted collision from alert 3 (time to impact)";
+          String log_data = "ALERT: Alerted collision from alert 3 (time to impact). Time to impact: " + String(collision_time) + ". Alert timing: " + String(system_settings.getAlertTiming3());
           logData(log_data);
           collisionAlert(system_settings, mp3, motor1, system_settings.getAlertVibration3(), system_settings.getAlertSound3AsInt());
           return true;
