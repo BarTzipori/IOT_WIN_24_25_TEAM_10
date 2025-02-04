@@ -113,6 +113,17 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       errors.add('Alert 1 status must be selected');
     }
 
+    // Validate alert dependencies
+    if (alert2Status == 'Enable' && alert1Status != 'Enable') {
+      errors.add('Alert 2 cannot be enabled when Alert 1 is disabled');
+    }
+
+    if (alert3Status == 'Enable') {
+      if (alert1Status != 'Enable' || alert2Status != 'Enable') {
+        errors.add('Alert 3 can only be enabled when both Alert 1 and Alert 2 are enabled');
+      }
+    }
+
     // Validate Time to Impact settings
     if (alertMethod == 'Time to Impact') {
       double? timing1;
@@ -200,56 +211,55 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       }
     }
 
-    // Validate heights and other numeric fields
-    _validateRequiredFields(errors);
-
-    // Validate numeric ranges for all applicable fields
-    for (var item in _data) {
-      _validateNumericRange(errors, item);
-    }
-
-    return errors;
-  }
-
-  void _validateRequiredFields(List<String> errors) {
-    // Validate User Height
+    // Validate heights and numeric fields
     String? userHeightText = _controllers['18. User Height']?.text;
+    String? systemHeightText = _controllers['19. System Height']?.text;
+    String? minHeightText = _controllers['21. Minimal Height']?.text;
+
+    // Validate User Height
     if (userHeightText == null || userHeightText.isEmpty) {
       errors.add('User Height is required');
     } else {
       double? userHeight = double.tryParse(userHeightText);
       if (userHeight == null) {
         errors.add('User Height must be a valid number');
-      } else if (userHeight < 100 || userHeight > 250) {  // Assuming reasonable height range
+      } else if (userHeight < 100 || userHeight > 250) {
         errors.add('User Height must be between 100cm and 250cm');
       }
     }
 
     // Validate System Height
-    String? systemHeightText = _controllers['19. System Height']?.text;
     if (systemHeightText == null || systemHeightText.isEmpty) {
       errors.add('System Height is required');
     } else {
       double? systemHeight = double.tryParse(systemHeightText);
       if (systemHeight == null) {
         errors.add('System Height must be a valid number');
-      } else if (systemHeight < 0 || systemHeight > 200) {  // Assuming reasonable range
+      } else if (systemHeight < 0 || systemHeight > 200) {
         errors.add('System Height must be between 0cm and 200cm');
       }
     }
 
     // Validate Minimal Height
-    String? minHeightText = _controllers['21. Minimal Height']?.text;
     if (minHeightText != null && minHeightText.isNotEmpty) {
       double? minHeight = double.tryParse(minHeightText);
-      double? userHeight = double.tryParse(_controllers['18. User Height']?.text ?? '');
+      double? systemHeight = double.tryParse(systemHeightText ?? '');
+      double? userHeight = double.tryParse(userHeightText ?? '');
 
-      if (minHeight != null && userHeight != null) {
-        if (minHeight > userHeight) {
-          errors.add('Minimal Height cannot be greater than User Height');
+      if (minHeight != null) {
+        // Check if minimal height is less than system height
+        if (systemHeight != null && minHeight < systemHeight) {
+          errors.add('Minimal Height (${minHeight}cm) cannot be less than System Height (${systemHeight}cm)');
         }
-        if (userHeight - minHeight < 20) {
-          errors.add('Difference between User Height and Minimal Height must be at least 20cm');
+
+        // Existing minimal height validations
+        if (userHeight != null) {
+          if (minHeight > userHeight) {
+            errors.add('Minimal Height cannot be greater than User Height');
+          }
+          if (userHeight - minHeight < 20) {
+            errors.add('Difference between User Height and Minimal Height must be at least 20cm');
+          }
         }
       }
     }
@@ -258,8 +268,8 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
     String? safetyMarginText = _controllers['22. Head Safety Margin']?.text;
     if (safetyMarginText != null && safetyMarginText.isNotEmpty) {
       double? safetyMargin = double.tryParse(safetyMarginText);
-      double? userHeight = double.tryParse(_controllers['18. User Height']?.text ?? '');
-      double? systemHeight = double.tryParse(_controllers['19. System Height']?.text ?? '');
+      double? userHeight = double.tryParse(userHeightText ?? '');
+      double? systemHeight = double.tryParse(systemHeightText ?? '');
 
       if (safetyMargin != null && userHeight != null && systemHeight != null) {
         double effectiveHeight = userHeight - systemHeight - safetyMargin;
@@ -270,13 +280,19 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
     }
 
     // Validate Volume Sound if mode includes sound
-    String? mode = _data.firstWhere((item) => item.headerValue == '1. Mode').selectedOption;
     if (mode != 'Vibration') {  // If mode is 'Sound' or 'Both'
       String? volume = _data.firstWhere((item) => item.headerValue == '20. Volume Sound').selectedOption;
       if (volume == null) {
         errors.add('Volume Sound must be selected when using sound alerts');
       }
     }
+
+    // Validate numeric ranges for all applicable fields
+    for (var item in _data) {
+      _validateNumericRange(errors, item);
+    }
+
+    return errors;
   }
 
   void _validateNumericRange(List<String> errors, SettingsItem item) {
@@ -621,7 +637,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       ),
       SettingsItem(
         headerValue: '21. Minimal Height',
-        expandedValue: 'Enter minimal height in centimeters',
+        expandedValue: 'Enter minimal height [50-200cm]',
         options: [],
         isTextField: true,
         isNumericRange: true,
@@ -630,7 +646,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       ),
       SettingsItem(
         headerValue: '22. Head Safety Margin',
-        expandedValue: 'Enter head safety margin in centimeters',
+        expandedValue: 'Enter head safety margin [5-20cm]',
         options: [],
         isTextField: true,
         isNumericRange: true,
@@ -849,7 +865,7 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
                 expandedHeaderPadding: const EdgeInsets.all(0),
                 expansionCallback: (int index, bool isExpanded) {
                   final originalIndex = _data.indexOf(visibleItems[index]);
-                  setState(() {
+                  setState(()  {
                     _data[originalIndex].isExpanded = !_data[originalIndex].isExpanded;
                   });
                 },
