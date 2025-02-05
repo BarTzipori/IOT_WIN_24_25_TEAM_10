@@ -296,3 +296,7 @@ The SafeStep App makes it easy to fine-tune our device, ensuring a smooth and re
  
 This project is part of ICST - The Interdisciplinary Center for Smart Technologies, Taub Faculty of Computer Science, Technion
 https://icst.cs.technion.ac.il/
+
+## SafeStep YouTube channel:
+
+https://www.youtube.com/@IOT_Technion_Team10
