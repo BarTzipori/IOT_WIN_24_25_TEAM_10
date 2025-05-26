@@ -358,7 +358,7 @@ void loop()
 
         if (system_settings.getAlertMethod() == "TimeToImpact") {
             if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
-                double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
+                double nearest_obstacle_collision_time = std::get<1>(nearestObstacleCollisionTime(sensor_data, system_settings, &velocity));
 
                 // Only trigger an alert if time to impact is decreasing (moving toward the obstacle)
                 if (previous_obstacle_collision_time < 0 || 
@@ -377,7 +377,7 @@ void loop()
             }
         } else {
             if (is_system_on && !is_pressing) {
-                double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity, mpu_degraded_flag);
+                double nearest_obstacle_distance = std::get<1>(distanceToNearestObstacle(sensor_data, system_settings, &velocity, mpu_degraded_flag));
 
                 // Only trigger an alert if the distance is decreasing (moving toward the obstacle)
                 if (previous_obstacle_distance < 0 || 

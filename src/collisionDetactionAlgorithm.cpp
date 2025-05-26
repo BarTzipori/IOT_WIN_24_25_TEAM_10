@@ -132,7 +132,7 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     logData(log_data);
 }
 
-double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
+std::tuple<double,int,int> nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
     // Static variable to store the previous x_distance
     static int previous_x_distance = -1; // Initialize with an invalid value
 
@@ -205,7 +205,7 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
 
             previous_x_distance = x_distance; // Update the previous distance
             found_valid_obstacle = true;
-            return impact_time;
+            return std::make_tuple(impact_time, x_distance, z_distance);
         }
 
         //log data
@@ -217,10 +217,10 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
     if (!found_valid_obstacle) {
         previous_x_distance = -1;
     }
-    return 0; // No valid obstacle detected
+    return std::make_tuple(0, 0, 0); // No valid obstacle detected
 }
 
-double distanceToNearestObstacle(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity, bool mpu_degraded_flag) {
+std::tuple<int,int> distanceToNearestObstacle(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity, bool mpu_degraded_flag) {
     static int previous_x_distance = -1; // Initialize with an invalid value
 
     double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
@@ -302,14 +302,14 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
 
         previous_x_distance = x_distance; // Update the previous distance
         found_valid_obstacle = true;
-        return x_distance;
+        return std::make_tuple(x_distance, z_distance);
     }
     // Reset previous_x_distance only if no valid obstacles are detected
     if (!found_valid_obstacle) {
         Serial.println("Condition: No valid obstacle found. Resetting previous_x_distance.");
         previous_x_distance = -1;
     }
-    return 0;
+    return std::make_tuple(0, 0);
 }
 //This function will handle collision alrts when using TTI mode.
 //we are adding gates and tolerances to the timing of alerts to achieve the following:
