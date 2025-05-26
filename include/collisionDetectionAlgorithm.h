@@ -41,6 +41,7 @@ bool collisionTimeAlertHandler(double collision_time, systemSettings& system_set
 bool obstacleDistanceAlertHandler(double obstacle_distance, systemSettings& system_settings, const MP3& mp3, vibrationMotor& motor1);
 std::tuple<int,int> distanceToNearestObstacle(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity, bool mpu_degraded_flag);
 void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibrationMotor& vibration_motor, String vib_pattern, uint alert_sound_type);
+void playHeightSpecificObstacleAlert(double nearest_obstacle_distance_z, const systemSettings& system_settings, MP3& mp3);
 void calculateVelocityAsTask(void *pvParameters);
 void sampleSensorsData(void *pvParameters);
 #endif

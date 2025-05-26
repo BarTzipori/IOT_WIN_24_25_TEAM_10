@@ -451,6 +451,39 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
     String log_data = "ALERT: Collision alert triggered. Vibration pattern: " + vib_pattern + ", Sound file: " + String(alert_sound_type);
     logData(log_data);
 }
+//play height specific alerts
+void playHeightSpecificObstacleAlert(double nearest_obstacle_distance_z, const systemSettings& system_settings, MP3& mp3) {
+
+    // User and system heights
+    double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
+    double system_height_in_mm = system_settings.getSystemHeight() * 10; // Height of the system in mm
+
+    // Calculate obstacle height from the floor
+    double obstacle_height = system_height_in_mm + nearest_obstacle_distance_z;
+
+    // Define body part height ranges (in mm from floor)
+    double waist_center = system_height_in_mm; // system sits at waist
+    double chest_center = 0.60 * user_height_in_mm;
+    double head_center  = 0.90 * user_height_in_mm;
+
+    // Tolerance windows (± in mm)
+    double waist_range = 100.0;
+    double chest_range = 150.0;
+    double head_range  = 100.0;
+
+    // Check and alert
+    if (obstacle_height >= waist_center - waist_range && obstacle_height <= waist_center + waist_range) {
+        xTaskCreate(playWaistLevelObstacleAlertAsTask, "playWaistLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 2, nullptr);
+    } else if (obstacle_height >= chest_center - chest_range && obstacle_height <= chest_center + chest_range) {
+        xTaskCreate(playChestLevelObstacleAlertAsTask, "playChestLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 2, nullptr);
+    } else if (obstacle_height >= head_center - head_range && obstacle_height <= head_center + head_range) {
+        xTaskCreate(playHeadLevelObstacleAlertAsTask, "playHeadLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 2, nullptr);
+    }
+
+}
+
+
+
 
 // Samples sensors data
 void sampleSensorsData(void *pvParameters) {
