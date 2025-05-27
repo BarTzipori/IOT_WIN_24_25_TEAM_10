@@ -8,5 +8,6 @@
 #include "systemSettings.h"
 
 void logData(String data);
+void logDistancesForVisualDebugger(const std::vector<std::pair<int, int>>& distances);
 
 #endif

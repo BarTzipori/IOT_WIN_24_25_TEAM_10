@@ -15,3 +15,22 @@ void logData(String data)
         WebSerial.println(stamp + data);
     }
 }
+
+void logDistancesForVisualDebugger(const std::vector<std::pair<int, int>>& distances)
+{
+    String json = "[";
+
+    for (size_t i = 0; i < distances.size(); ++i)
+    {
+        int z = distances[i].second; // forward distance
+        int h = distances[i].first;  // height (side view: sensor height)
+
+        json += "{\"points\":[{\"x\":" + String(z) + ",\"y\":" + String(h) + "}]}";
+
+        if (i < distances.size() - 1)
+            json += ",";
+    }
+
+    json += "]";
+    WebSerial.println(json);
+}
