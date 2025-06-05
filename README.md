@@ -24,7 +24,7 @@
 
 # Description:
 
-SafeStep is a compact, innovative system designed to assist visually impaired individuals in detecting obstacles approaching their upper body (chest and head). While traditional aids like walking sticks and guide dogs (K9s) effectively address obstacles at ground level, they often fail to provide protection against upper-body hazards such as low-hanging branches, protruding objects, or other unseen obstructions.
+SafeStep is a compact, innovative system designed to assist visually impaired individuals in detecting obstacles approaching their upper body (chest and head). While traditional aids like walking sticks and guide dogs effectively address obstacles at ground level, they often fail to provide protection against upper body hazards such as low hanging branches, protruding objects, or other unseen obstructions.
 
 SafeStep bridges this gap by integrating advanced sensors and intuitive alert mechanisms to offer an added layer of safety. The system provides real-time feedback through audio cues, ensuring immediate awareness of potential hazards. For environments where silence is preferred, SafeStep also features vibration alerts, allowing users to choose the mode that best fits their needs.
 
