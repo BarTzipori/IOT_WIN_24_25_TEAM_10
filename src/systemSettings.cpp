@@ -223,6 +223,12 @@ bool systemSettings::updateSettings(systemSettings s)
         changed = true;
         Serial.println("Enable Camera changed");
     }
+    if (enable_height_specific_alerts != s.getEnableHeightSpecificAlerts())
+    {
+        enable_height_specific_alerts = s.getEnableHeightSpecificAlerts();
+        changed = true;
+        Serial.println("Enable Height Specific Alerts changed");
+    }
 
 
     return changed;

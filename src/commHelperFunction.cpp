@@ -155,7 +155,7 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s)
     GET_STRING("/System_Settings/settings/enableCamera", enable_camera);
     s.setEnableCamera(stringToBool(enable_camera));
     GET_STRING("/System_Settings/settings/enableHeightSpecificAlerts", enable_height_specific_alerts);
-    s.setEnableCamera(stringToBool(enable_height_specific_alerts));
+    s.setHeightSpecificAlerts(stringToBool(enable_height_specific_alerts));
 
     Serial.println("Settings retrieved successfully.");
 
