@@ -469,20 +469,20 @@ void playHeightSpecificObstacleAlert(double nearest_obstacle_distance_z, const s
     double chest_center = 0.60 * user_height_in_mm;
     double head_center  = 0.90 * user_height_in_mm;
 
-    // Tolerance windows (± in mm)
-    double waist_range = 100.0;
-    double chest_range = 150.0;
-    double head_range  = 100.0;
+    // Calculate boundaries to eliminate gaps
+    double waist_chest_boundary = (waist_center + chest_center) / 2; 
+    double chest_head_boundary = (chest_center + head_center) / 2;  
 
     // Check and alert
-    if (obstacle_height >= waist_center - waist_range && obstacle_height <= waist_center + waist_range) {
-        xTaskCreate(playWaistLevelObstacleAlertAsTask, "playWaistLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 2, nullptr);
-    } else if (obstacle_height >= chest_center - chest_range && obstacle_height <= chest_center + chest_range) {
-        xTaskCreate(playChestLevelObstacleAlertAsTask, "playChestLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 2, nullptr);
-    } else if (obstacle_height >= head_center - head_range && obstacle_height <= head_center + head_range) {
+    if (obstacle_height >= chest_head_boundary) {
         xTaskCreate(playHeadLevelObstacleAlertAsTask, "playHeadLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 2, nullptr);
+    } else if (obstacle_height >= waist_chest_boundary) {
+        xTaskCreate(playChestLevelObstacleAlertAsTask, "playChestLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 2, nullptr);
+    } else {
+        xTaskCreate(playWaistLevelObstacleAlertAsTask, "playWaistLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 2, nullptr);
     }
-
+    String log_data = "ALERT: Height specific obstacle alert triggered. Obstacle height: " + String(obstacle_height) + " mm";
+    logData(log_data);
 }
 
 
