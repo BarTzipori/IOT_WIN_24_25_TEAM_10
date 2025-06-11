@@ -39,7 +39,7 @@ void sendDistanceData(const std::vector<std::pair<int, int>>& distances) {
     if (WiFi.status() == WL_CONNECTED) {
         HTTPClient http;
         WiFiClient client;
-        const char* serverUrl = "132.68.47.51"; // Replace with your server URL  
+        const char* serverUrl = "http://172.20.10.11:5015/lidar"; // Replace with your server URL  
         http.begin(client, serverUrl); // serverURL should be defined as the endpoint URL
         http.addHeader("Content-Type", "application/json");
         

@@ -4,6 +4,8 @@
 #include <algorithm>
 #include "collisionDetectionAlgorithm.h"
 
+//goto http://127.0.0.1:5015/lidar_graph for graph visualization
+
 // Vibration pattern for collision alert
 void vibrateMotorsAsTask(void *pvParameters) {
     // Extract parameters
