@@ -175,6 +175,7 @@ std::tuple<double,int,int> nearestObstacleCollisionTime(const SensorData& sensor
     });
     //Sends distances to the visual debugger
     logDistancesForVisualDebugger(distances);
+    sendDistanceData(distances);  // Send to PC instead of WebSerial
     // Sort distances by X (ascending)
     std::sort(distances.begin(), distances.end());
 
@@ -261,6 +262,7 @@ std::tuple<int,int> distanceToNearestObstacle(const SensorData& sensor_data, con
 
     //Sends distances to the visual debugger
     logDistancesForVisualDebugger(distances);
+    sendDistanceData(distances);  // Send to PC instead of WebSerial
     // Sort distances by X (ascending)
     std::sort(distances.begin(), distances.end());
     
@@ -475,11 +477,11 @@ void playHeightSpecificObstacleAlert(double nearest_obstacle_distance_z, const s
 
     // Check and alert
     if (obstacle_height >= chest_head_boundary) {
-        xTaskCreate(playHeadLevelObstacleAlertAsTask, "playHeadLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 2, nullptr);
+        xTaskCreate(playHeadLevelObstacleAlertAsTask, "playHeadLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 4, nullptr);
     } else if (obstacle_height >= waist_chest_boundary) {
-        xTaskCreate(playChestLevelObstacleAlertAsTask, "playChestLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 2, nullptr);
+        xTaskCreate(playChestLevelObstacleAlertAsTask, "playChestLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 4, nullptr);
     } else {
-        xTaskCreate(playWaistLevelObstacleAlertAsTask, "playWaistLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 2, nullptr);
+        xTaskCreate(playWaistLevelObstacleAlertAsTask, "playWaistLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 4, nullptr);
     }
     String log_data = "ALERT: Height specific obstacle alert triggered. Obstacle height: " + String(obstacle_height) + " mm";
     logData(log_data);
