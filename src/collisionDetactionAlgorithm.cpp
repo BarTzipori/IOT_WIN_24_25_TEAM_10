@@ -176,7 +176,6 @@ std::tuple<double,int,int> nearestObstacleCollisionTime(const SensorData& sensor
         (sensor_data.getDistanceSensor4() * sin((abs(SENSOR_4_ANGLE + pitch_value)) * (M_PI / 180.0))) + SENSOR_4_BOX_HEIGHT
     });
     //Sends distances to the visual debugger
-    logDistancesForVisualDebugger(distances);
     sendDistanceData(distances);  // Send to PC instead of WebSerial
     // Sort distances by X (ascending)
     std::sort(distances.begin(), distances.end());
@@ -263,7 +262,6 @@ std::tuple<int,int> distanceToNearestObstacle(const SensorData& sensor_data, con
     });
 
     //Sends distances to the visual debugger
-    logDistancesForVisualDebugger(distances);
     sendDistanceData(distances);  // Send to PC instead of WebSerial
     // Sort distances by X (ascending)
     std::sort(distances.begin(), distances.end());

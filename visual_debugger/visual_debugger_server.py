@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#goto http://127.0.0.1:5015/lidar_graph for lidar graph
 """
-Final Version — Legend Cleaned with Inline Labels Preserved
+LiDAR Visualizer with User Height Lines (No System Height), Auto Scale Toggle,
+Smaller History and Fast Refresh without Slide Animation
 """
 
 from flask import Flask, request, jsonify
@@ -10,7 +10,7 @@ import os
 from collections import deque
 
 app = Flask(__name__)
-lidar_points = deque(maxlen=100)
+lidar_points = deque(maxlen=40)
 os.makedirs("uploads", exist_ok=True)
 
 @app.route('/lidar', methods=['POST'])
@@ -50,12 +50,20 @@ def lidar_graph():
         <title>LiDAR Live Plot</title>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.4.0"></script>
     </head>
     <body>
         <h2>LiDAR Visualization</h2>
+        <div>
+            <label>User Height (mm): <input id="userHeight" type="number" value="175"></label>
+            <button onclick="updateReferenceLines()">Update</button>
+            <label><input type="checkbox" id="toggleBodyLines" checked onchange="toggleReferenceLines()"> Show Reference Lines</label>
+            <label><input type="checkbox" id="autoScale" checked> Auto Scale Axes</label>
+        </div>
         <button onclick="clearData()">Clear Data</button>
         <button onclick="toggleFringe()">Toggle Fringe Line</button>
         <canvas id="scatterChart" width="800" height="500"></canvas>
+
         <script>
             let showFringe = false;
 
@@ -67,18 +75,20 @@ def lidar_graph():
                 4: 'rgb(75, 192, 192)'
             };
 
+            const annotationLines = {};
+
             const scatterChart = new Chart(ctx, {
                 type: 'scatter',
                 data: { datasets: [] },
                 options: {
                     animation: false,
                     plugins: {
+                        annotation: {
+                            annotations: annotationLines
+                        },
                         legend: {
                             labels: {
-                                filter: function(item) {
-                                    // Filter out datasets like "latest_1", "latest_2", etc.
-                                    return !item.text.startsWith('latest_');
-                                }
+                                filter: item => !item.text.startsWith('latest_')
                             }
                         },
                         datalabels: {
@@ -100,19 +110,74 @@ def lidar_graph():
                         x: {
                             type: 'linear',
                             position: 'bottom',
-                            min: 0,
-                            max: 4500,
                             title: { display: true, text: 'Forward Distance (X)' }
                         },
                         y: {
-                            min: 0,
-                            max: 4500,
                             title: { display: true, text: 'Obstacle Height (Y)' }
                         }
                     }
                 },
                 plugins: [ChartDataLabels]
             });
+
+            function toggleReferenceLines() {
+                const showLines = document.getElementById('toggleBodyLines').checked;
+                if (!showLines) {
+                    scatterChart.options.plugins.annotation.annotations = {};
+                } else {
+                    updateReferenceLines();
+                }
+                scatterChart.update();
+            }
+
+            function updateReferenceLines() {
+                const userHeight = parseFloat(document.getElementById('userHeight').value);
+                const showLines = document.getElementById('toggleBodyLines').checked;
+
+                if (!showLines) return;
+
+                scatterChart.options.plugins.annotation.annotations = {
+                    chest: {
+                        type: 'line',
+                        yMin: 0.6 * userHeight,
+                        yMax: 0.6 * userHeight,
+                        borderColor: 'green',
+                        borderWidth: 1,
+                        label: {
+                            content: 'Chest',
+                            enabled: true,
+                            position: 'start'
+                        }
+                    },
+                    head: {
+                        type: 'line',
+                        yMin: 0.9 * userHeight,
+                        yMax: 0.9 * userHeight,
+                        borderColor: 'red',
+                        borderWidth: 1,
+                        label: {
+                            content: 'Head',
+                            enabled: true,
+                            position: 'start'
+                        }
+                    },
+                    fullHeight: {
+                        type: 'line',
+                        yMin: userHeight,
+                        yMax: userHeight,
+                        borderColor: 'black',
+                        borderDash: [5, 5],
+                        borderWidth: 1,
+                        label: {
+                            content: 'User Height',
+                            enabled: true,
+                            position: 'start'
+                        }
+                    }
+                };
+
+                scatterChart.update();
+            }
 
             async function updateChart() {
                 const res = await fetch('/lidar_data');
@@ -132,7 +197,6 @@ def lidar_graph():
                     const allButLast = points.slice(0, -1);
                     const last = points[points.length - 1];
 
-                    // Regular dataset (visible in legend)
                     if (allButLast.length > 0) {
                         datasets.push({
                             label: `Sensor ${sensor}`,
@@ -143,10 +207,9 @@ def lidar_graph():
                         });
                     }
 
-                    // Latest point with inline label but no legend entry
                     if (last) {
                         datasets.push({
-                            label: `latest_${sensor}`,  // Will be filtered out
+                            label: `latest_${sensor}`,
                             data: [last],
                             backgroundColor: color,
                             pointRadius: 6,
@@ -161,7 +224,6 @@ def lidar_graph():
                     }
                 });
 
-                // Fringe line in sensor order, only if all x >= 10
                 if (showFringe) {
                     const latestPointsOrdered = [1, 2, 3, 4]
                         .map(sensor => {
@@ -185,6 +247,13 @@ def lidar_graph():
                     }
                 }
 
+                const autoScale = document.getElementById('autoScale').checked;
+                scatterChart.options.scales.x.min = autoScale ? undefined : 0;
+                scatterChart.options.scales.x.max = autoScale ? undefined : 4500;
+                scatterChart.options.scales.y.min = autoScale ? undefined : 0;
+                scatterChart.options.scales.y.max = autoScale ? undefined : 4500;
+
+                scatterChart.options.animation = false;
                 scatterChart.data.datasets = datasets;
                 scatterChart.update();
             }
@@ -197,7 +266,8 @@ def lidar_graph():
                 showFringe = !showFringe;
             }
 
-            setInterval(updateChart, 1000);
+            setInterval(updateChart, 250);
+            window.onload = updateReferenceLines;
         </script>
     </body>
     </html>
