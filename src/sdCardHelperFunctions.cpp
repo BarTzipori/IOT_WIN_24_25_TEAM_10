@@ -68,6 +68,7 @@ bool init_sd_card()
         appendFile(SD_MMC, "/Settings/setting.txt", "voice_alerts_language: English");
         appendFile(SD_MMC, "/Settings/setting.txt", "volume: 3");
         appendFile(SD_MMC, "/Settings/setting.txt", "enable_camera: false");
+        appendFile(SD_MMC, "/Settings/setting.txt", "enable_height_specific_alerts: false");
         endFile(SD_MMC, "/Settings/setting.txt");
         Serial.println("created setting file");
         flag = false;
@@ -126,6 +127,7 @@ void updateSDSettings(systemSettings &s)
     appendFile(SD_MMC, "/Settings/setting.txt", "voice_alerts_language: " + s.getVoiceAlertsLanguage());
     appendFile(SD_MMC, "/Settings/setting.txt", "volume: " + String(s.getVolume()));
     appendFile(SD_MMC, "/Settings/setting.txt", "enable_camera: " + String(s.getEnableCamera()));
+    appendFile(SD_MMC, "/Settings/setting.txt", "enable_height_specific_alerts: " + String(s.getEnableHeightSpecificAlerts()));
 
     endFile(SD_MMC, "/Settings/setting.txt");
 }

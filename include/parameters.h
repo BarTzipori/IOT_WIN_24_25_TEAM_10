@@ -22,6 +22,7 @@
 
 #define VOICE_ALERTS_DIR 0x06 // voice alerts directory
 #define ALERTS_DIR 0x07 // alerts directory
+#define HEIGHT_SPECIFIC_ALERTS_DIR 0x08 // height specific alerts directory
 
 #define LONG_PRESS_THRESHOLD 10000  // 10 second for long press
 #define MEDIUM_PRESS_TRESHOLD 800  // 2 second for medium press
@@ -94,6 +95,11 @@
 #define WARNING_BEEPS 0x06
 #define NOTIFICATION_SOUND 0x07
 #define BEEP_BEEP_BEEP 0x08
+
+//height specific alerts indexes - these are the indexes used as input for the mp3 player (it needs an index to play a sound)
+#define WAIST_HEIGHT_ALERT 0x01 // height specific alert for users up to 150 cm
+#define CHEST_HEIGHT_ALERT 0x02 // height specific alert for users from 150 cm to 170 cm
+#define HEAD_HEGHT_ALERT 0x03 // height specific alert for users from 170 cm to 190 cm
 
 //sensor positions according to box (height from bottom of box)
 

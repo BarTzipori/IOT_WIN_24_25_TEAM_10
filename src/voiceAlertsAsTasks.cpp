@@ -162,3 +162,24 @@ void playErrorReportedAsTask(void *pvParameters) {
   vTaskDelay(pdMS_TO_TICKS(4000)); // 1000 ms = 1 second
   vTaskDelete(NULL);
 }
+
+void playWaistLevelObstacleAlertAsTask(void *pvParameters) {
+  MP3 *mp3 = (MP3 *)pvParameters; // Cast the incoming parameter to an array of void pointers
+  mp3->playWithFileName(HEIGHT_SPECIFIC_ALERTS_DIR, WAIST_HEIGHT_ALERT);
+  vTaskDelay(pdMS_TO_TICKS(2000)); // 1000 ms = 1 second
+  vTaskDelete(NULL);
+}
+
+void playChestLevelObstacleAlertAsTask(void *pvParameters) {
+  MP3 *mp3 = (MP3 *)pvParameters; // Cast the incoming parameter to an array of void pointers
+  mp3->playWithFileName(HEIGHT_SPECIFIC_ALERTS_DIR, CHEST_HEIGHT_ALERT);
+  vTaskDelay(pdMS_TO_TICKS(2000)); // 1000 ms = 1 second
+  vTaskDelete(NULL);
+}
+
+void playHeadLevelObstacleAlertAsTask(void *pvParameters) {
+  MP3 *mp3 = (MP3 *)pvParameters; // Cast the incoming parameter to an array of void pointers
+  mp3->playWithFileName(HEIGHT_SPECIFIC_ALERTS_DIR, HEAD_HEGHT_ALERT);
+  vTaskDelay(pdMS_TO_TICKS(2000)); // 1000 ms = 1 second
+  vTaskDelete(NULL);
+}

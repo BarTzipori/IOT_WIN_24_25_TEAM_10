@@ -29,4 +29,8 @@ void playSystemPairedAsTask(void *pvParameters);
 void playSystemNotPairedAsTask(void *pvParameters);
 void playAllDistanceSensorDegradedAsTask(void *pvParameters);
 
+void playWaistLevelObstacleAlertAsTask(void *pvParameters);
+void playChestLevelObstacleAlertAsTask(void *pvParameters);
+void playHeadLevelObstacleAlertAsTask(void *pvParameters);
+
 #endif

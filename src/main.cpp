@@ -358,16 +358,20 @@ void loop()
 
         if (system_settings.getAlertMethod() == "TimeToImpact") {
             if (mpu.update() && system_calibrated && is_system_on && !is_pressing) {
-                double nearest_obstacle_collision_time = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
-
+                auto result = nearestObstacleCollisionTime(sensor_data, system_settings, &velocity);
+                double nearest_obstacle_collision_time = std::get<0>(result);
+                double nearest_obstacle_distance_z = std::get<2>(result);
                 // Only trigger an alert if time to impact is decreasing (moving toward the obstacle)
                 if (previous_obstacle_collision_time < 0 || 
                     nearest_obstacle_collision_time < previous_obstacle_collision_time) {
                     
-                    if (millis() - lastCollisionAlertTime >= 50) {
+                    if (millis() - lastCollisionAlertTime >= 250) {
                         if (collisionTimeAlertHandler(nearest_obstacle_collision_time, system_settings, mp3, motor1)) {
                             if (system_settings.getEnableCamera()) {
                                 CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
+                            }
+                            if(system_settings.getEnableHeightSpecificAlerts() && system_settings.getMode() != "Vibration") {
+                                playHeightSpecificObstacleAlert(nearest_obstacle_distance_z, system_settings, mp3);
                             }
                         }
                         lastCollisionAlertTime = millis();
@@ -377,16 +381,22 @@ void loop()
             }
         } else {
             if (is_system_on && !is_pressing) {
-                double nearest_obstacle_distance = distanceToNearestObstacle(sensor_data, system_settings, &velocity, mpu_degraded_flag);
+
+                auto result = distanceToNearestObstacle(sensor_data, system_settings, &velocity, mpu_degraded_flag);
+                double nearest_obstacle_distance = std::get<0>(result);
+                double nearest_obstacle_distance_z = std::get<1>(result);
 
                 // Only trigger an alert if the distance is decreasing (moving toward the obstacle)
                 if (previous_obstacle_distance < 0 || 
                     nearest_obstacle_distance < previous_obstacle_distance) {
                     
-                    if (millis() - lastCollisionAlertTime >= 50) {
+                    if (millis() - lastCollisionAlertTime >= 250) {
                         if (obstacleDistanceAlertHandler(nearest_obstacle_distance, system_settings, mp3, motor1)) {
                             if (system_settings.getEnableCamera()) {
                                 CaptureObstacle(fbdo, auth, config, flags.wifi_flag);
+                            }
+                            if(system_settings.getEnableHeightSpecificAlerts() && system_settings.getMode() != "Vibration") {
+                                playHeightSpecificObstacleAlert(nearest_obstacle_distance_z, system_settings, mp3);
                             }
                         }
                         lastCollisionAlertTime = millis();

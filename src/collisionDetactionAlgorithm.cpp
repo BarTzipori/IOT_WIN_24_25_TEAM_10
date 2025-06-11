@@ -132,7 +132,7 @@ void calculateStepCountAndSpeed(const SensorData& sensorData, int* stepCount, do
     logData(log_data);
 }
 
-double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
+std::tuple<double,int,int> nearestObstacleCollisionTime(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity) {
     // Static variable to store the previous x_distance
     static int previous_x_distance = -1; // Initialize with an invalid value
 
@@ -173,7 +173,9 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
         sensor_data.getDistanceSensor4() * cos((abs(SENSOR_4_ANGLE + pitch_value)) * (M_PI / 180.0)),
         (sensor_data.getDistanceSensor4() * sin((abs(SENSOR_4_ANGLE + pitch_value)) * (M_PI / 180.0))) + SENSOR_4_BOX_HEIGHT
     });
-
+    //Sends distances to the visual debugger
+    logDistancesForVisualDebugger(distances);
+    sendDistanceData(distances);  // Send to PC instead of WebSerial
     // Sort distances by X (ascending)
     std::sort(distances.begin(), distances.end());
 
@@ -205,7 +207,7 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
 
             previous_x_distance = x_distance; // Update the previous distance
             found_valid_obstacle = true;
-            return impact_time;
+            return std::make_tuple(impact_time, x_distance, z_distance);
         }
 
         //log data
@@ -217,10 +219,10 @@ double nearestObstacleCollisionTime(const SensorData& sensor_data, const systemS
     if (!found_valid_obstacle) {
         previous_x_distance = -1;
     }
-    return 0; // No valid obstacle detected
+    return std::make_tuple(0, 0, 0); // No valid obstacle detected
 }
 
-double distanceToNearestObstacle(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity, bool mpu_degraded_flag) {
+std::tuple<int,int> distanceToNearestObstacle(const SensorData& sensor_data, const systemSettings& system_settings, double* velocity, bool mpu_degraded_flag) {
     static int previous_x_distance = -1; // Initialize with an invalid value
 
     double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
@@ -258,9 +260,12 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
         (sensor_data.getDistanceSensor4() * sin((SENSOR_4_ANGLE + pitch_value) * (M_PI / 180.0))) + SENSOR_4_BOX_HEIGHT
     });
 
+    //Sends distances to the visual debugger
+    logDistancesForVisualDebugger(distances);
+    sendDistanceData(distances);  // Send to PC instead of WebSerial
     // Sort distances by X (ascending)
     std::sort(distances.begin(), distances.end());
-
+    
     bool found_valid_obstacle = false;
 
     for (const auto& distance : distances) {
@@ -302,14 +307,14 @@ double distanceToNearestObstacle(const SensorData& sensor_data, const systemSett
 
         previous_x_distance = x_distance; // Update the previous distance
         found_valid_obstacle = true;
-        return x_distance;
+        return std::make_tuple(x_distance, z_distance);
     }
     // Reset previous_x_distance only if no valid obstacles are detected
     if (!found_valid_obstacle) {
         Serial.println("Condition: No valid obstacle found. Resetting previous_x_distance.");
         previous_x_distance = -1;
     }
-    return 0;
+    return std::make_tuple(0, 0);
 }
 //This function will handle collision alrts when using TTI mode.
 //we are adding gates and tolerances to the timing of alerts to achieve the following:
@@ -451,6 +456,39 @@ void collisionAlert(const systemSettings& system_settings, const MP3& mp3, vibra
     String log_data = "ALERT: Collision alert triggered. Vibration pattern: " + vib_pattern + ", Sound file: " + String(alert_sound_type);
     logData(log_data);
 }
+//play height specific alerts
+void playHeightSpecificObstacleAlert(double nearest_obstacle_distance_z, const systemSettings& system_settings, MP3& mp3) {
+
+    // User and system heights
+    double user_height_in_mm = system_settings.getUserHeight() * 10; // Height of user in mm
+    double system_height_in_mm = system_settings.getSystemHeight() * 10; // Height of the system in mm
+
+    // Calculate obstacle height from the floor
+    double obstacle_height = system_height_in_mm + nearest_obstacle_distance_z;
+
+    // Define body part height ranges (in mm from floor)
+    double waist_center = system_height_in_mm; // system sits at waist
+    double chest_center = 0.60 * user_height_in_mm;
+    double head_center  = 0.90 * user_height_in_mm;
+
+    // Calculate boundaries to eliminate gaps
+    double waist_chest_boundary = (waist_center + chest_center) / 2; 
+    double chest_head_boundary = (chest_center + head_center) / 2;  
+
+    // Check and alert
+    if (obstacle_height >= chest_head_boundary) {
+        xTaskCreate(playHeadLevelObstacleAlertAsTask, "playHeadLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 4, nullptr);
+    } else if (obstacle_height >= waist_chest_boundary) {
+        xTaskCreate(playChestLevelObstacleAlertAsTask, "playChestLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 4, nullptr);
+    } else {
+        xTaskCreate(playWaistLevelObstacleAlertAsTask, "playWaistLevelObstacleAlertAsTask", STACK_SIZE, &mp3, 4, nullptr);
+    }
+    String log_data = "ALERT: Height specific obstacle alert triggered. Obstacle height: " + String(obstacle_height) + " mm";
+    logData(log_data);
+}
+
+
+
 
 // Samples sensors data
 void sampleSensorsData(void *pvParameters) {
