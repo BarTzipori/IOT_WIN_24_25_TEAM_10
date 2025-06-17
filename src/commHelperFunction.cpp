@@ -35,7 +35,7 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s)
 {
     Serial.println("Getting settings from Firebase...");
 
-    String mode = "Both", alert_method = "timeToImpact", sound_1 = "Sound1", sound_2 = "Sound1", sound_3 = "Sound1", vibration_1 = "vibration1", vibration_2 = "vibration1", vibration_3 = "vibration1", voice_alerts_language = "English";
+    String mode = "Both", alert_method = "timeToImpact", sound_1 = "Sound1", sound_2 = "Sound1", sound_3 = "Sound1", vibration_1 = "vibration1", vibration_2 = "vibration1", vibration_3 = "vibration1", voice_alerts_language = "English", target_ip = "";
     int userheight = 170, systemheight = 85, volume = 5, distance_1 = 1000, distance_2 = 500, distance_3 = 250,minimum_obstacle_height = 85, head_clearance = 5;
     String enable_alert_1 = "Enable", enable_alert_2 = "Disable", enable_alert_3 = "Disable", enable_voice_alerts = "Enable", enable_camera = "Enable", enable_height_specific_alerts = "Disable";
     String timing_1 = "1.5", timing_2 = "0.8", timing_3 = "0.3";
@@ -156,6 +156,8 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s)
     s.setEnableCamera(stringToBool(enable_camera));
     GET_STRING("/System_Settings/settings/enableHeightSpecificAlerts", enable_height_specific_alerts);
     s.setHeightSpecificAlerts(stringToBool(enable_height_specific_alerts));
+    GET_STRING("/System_Settings/esp_target_ip", target_ip);
+    s.setTargetIPForVisualDebugger(target_ip);
 
     Serial.println("Settings retrieved successfully.");
 

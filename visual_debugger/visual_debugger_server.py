@@ -8,10 +8,33 @@ Smaller History and Fast Refresh without Slide Animation
 from flask import Flask, request, jsonify
 import os
 from collections import deque
+import socket
+import firebase_admin
+from firebase_admin import credentials, db
 
 app = Flask(__name__)
 lidar_points = deque(maxlen=40)
 os.makedirs("uploads", exist_ok=True)
+
+# Initialize Firebase Admin SDK
+cred = credentials.Certificate("firebase_key.json")  # Place your service account key here
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://safestep-2bc31-default-rtdb.europe-west1.firebasedatabase.app'
+})
+
+# Update IP in Firebase on server start using actual local network IP
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        return s.getsockname()[0]
+    finally:
+        s.close()
+
+local_ip = get_local_ip()
+ref = db.reference('System_Settings/esp_target_ip')
+ref.set(local_ip)
+print(f"Local IP {local_ip} written to Firebase")
 
 @app.route('/lidar', methods=['POST'])
 def receive_lidar_data():
