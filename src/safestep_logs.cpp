@@ -21,6 +21,7 @@ void sendDistanceData(const std::vector<std::pair<int, int>>& distances, String 
         HTTPClient http;
         WiFiClient client;
         String ip_str = "http://" + target_ip + ":5015/lidar";
+        Serial.printf("Sending data to %s\n", ip_str.c_str());
         http.begin(client, ip_str.c_str()); // serverURL should be defined as the endpoint URL
         http.addHeader("Content-Type", "application/json");
         
