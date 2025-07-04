@@ -12,6 +12,7 @@ private:
     String Mode;
     String alert_method, alert_sound_1, alert_sound_2, alert_sound_3;
     String alert_Vibration_1, alert_Vibration_2, alert_Vibration_3;
+    String target_ip;
     double alert_timing_1, alert_timing_2, alert_timing_3;
     int alert_distance_1, alert_distance_2, alert_distance_3;
     int user_height, system_height, minimum_obstacle_height, head_clearance;
@@ -45,7 +46,8 @@ public:
                        voice_alerts_language("English"),
                        volume(3),
                        enable_camera(false),
-                       enable_height_specific_alerts(false) {};
+                       enable_height_specific_alerts(false),
+                       target_ip("") {};
 
     systemSettings(String mode,
                    String method,
@@ -72,7 +74,8 @@ public:
                    String l,
                    int vol,
                    bool cam,
-                   bool h);
+                   bool h,
+                   String tip);
 
     String getMode() const { return Mode; }
     String getAlertMethod() const { return alert_method; }
@@ -95,6 +98,7 @@ public:
     bool getEnableAlert3() const { return enable_alert_3; }
     bool getEnableVoiceAlerts() const { return enable_voice_alerts; }
     String getVoiceAlertsLanguage() const { return voice_alerts_language; }
+    String getTargetIPForVisualDebugger() const { return target_ip; }
     int getVolume() const { return volume; }
     bool getEnableCamera() const { return enable_camera; }
     bool getEnableHeightSpecificAlerts() const { return enable_height_specific_alerts; }
@@ -127,6 +131,7 @@ public:
     void setHeightSpecificAlerts(bool h) { enable_height_specific_alerts = h; }
     void setMinimumObstacleHeight(int n) { minimum_obstacle_height = n; }
     void setHeadClearance(int n) { head_clearance = n; }
+    void setTargetIPForVisualDebugger(String ip) { target_ip = ip; }
 
     bool updateSettings(systemSettings s);
     void print();

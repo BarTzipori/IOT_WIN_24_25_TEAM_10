@@ -16,3 +16,4 @@ others/
 # IDE-specific files
 *.DS_Store
 Thumbs.db
+firebase_key.json

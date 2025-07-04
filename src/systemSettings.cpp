@@ -28,7 +28,7 @@ static const struct {
 
 
 systemSettings::systemSettings(String mode, String method, bool e1, bool e2, bool e3, String s1, String s2, String s3, String v1, String v2, String v3, double t1, double t2, double t3, int d1, int d2, int d3, int u, int s,int min_obs,
-                   int head, bool e, String l, int vol,bool c, bool h)
+                   int head, bool e, String l, int vol,bool c, bool h, String tip)
 {
     Mode = mode;
     alert_method = method;
@@ -56,6 +56,7 @@ systemSettings::systemSettings(String mode, String method, bool e1, bool e2, boo
     volume = vol;
     enable_camera = c;
     enable_height_specific_alerts = h;
+    target_ip = tip;
     //Serial.println("system setting consturctor enabled camera: " + String(c));
 }
 
@@ -229,6 +230,12 @@ bool systemSettings::updateSettings(systemSettings s)
         changed = true;
         Serial.println("Enable Height Specific Alerts changed");
     }
+    if (target_ip != s.getTargetIPForVisualDebugger())
+    {
+        target_ip = s.getTargetIPForVisualDebugger();
+        changed = true;
+        Serial.println("Target IP For Visual Debugger changed");
+    }
 
 
     return changed;
@@ -264,6 +271,7 @@ void systemSettings::print()
     Serial.println("Volume: " + String(volume));
     Serial.println("Enable Camera: " + String(enable_camera));
     Serial.println("Enable Height Specific Alerts: " + String(enable_height_specific_alerts));
+    Serial.println("Target IP For Visual Debugger: " + (target_ip));
     Serial.println("------------------------");
 }
 
