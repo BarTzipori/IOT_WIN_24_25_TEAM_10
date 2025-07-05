@@ -23,6 +23,7 @@
 #define VOICE_ALERTS_DIR 0x06 // voice alerts directory
 #define ALERTS_DIR 0x07 // alerts directory
 #define HEIGHT_SPECIFIC_ALERTS_DIR 0x08 // height specific alerts directory
+#define OBSTACLE_IDENTIFIER_ALERTS_DIR 0x09 // obstacle identifier alerts directory
 
 #define LONG_PRESS_THRESHOLD 10000  // 10 second for long press
 #define MEDIUM_PRESS_TRESHOLD 800  // 2 second for medium press
@@ -101,11 +102,47 @@
 #define CHEST_HEIGHT_ALERT 0x02 // height specific alert for users from 150 cm to 170 cm
 #define HEAD_HEGHT_ALERT 0x03 // height specific alert for users from 170 cm to 190 cm
 
+//obstacle identifier alerts indexes
+#define OBSTACLE_HOLE_ALERT 0x01 // obstacle hole alert
+#define OBSTACLE_POTHOLE_ALERT 0x02 // obstacle pothole alert
+#define OBSTACLE_FENCE_ALERT 0x03 // obstacle fence alert
+#define OBSTACLE_BARRIER_ALERT 0x04 // obstacle barrier alert
+#define OBSTACLE_WALL_ALERT 0x05 // obstacle wall alert
+#define OBSTACLE_STEP_ALERT 0x06 // obstacle step alert
+#define OBSTACLE_STAIRS_ALERT 0x07 // obstacle stairs alert
+#define OBSTACLE_CURB_ALERT 0x08 // obstacle curb alert
+#define OBSTACLE_BRANCH_ALERT 0x09 // obstacle branch alert
+#define OBSTACLE_TREE_ALERT 0x0A // obstacle tree alert
+#define OBSTACLE_BIKE_ALERT 0x0B // obstacle bike alert
+#define OBSTACLE_SCOOTER_ALERT 0x0C // obstacle scooter alert
+#define OBSTACLE_CAR_ALERT 0x0D // obstacle car alert
+#define OBSTACLE_TRASH_ALERT 0x0E // obstacle trash alert
+#define OBSTACLE_SIGN_ALERT 0x0F // obstacle sign alert
+#define OBSTACLE_CONSTRUCTION_ALERT 0x10 // obstacle construction alert
+#define OBSTACLE_BLOCK_ALERT 0x11 // obstacle block alert
+#define OBSTACLE_POLE_ALERT 0x12 // obstacle pole alert
+#define OBSTACLE_CHAIR_ALERT 0x13 // obstacle chair alert
+#define OBSTACLE_TABLE_ALERT 0x14 // obstacle table alert
+#define OBSTACLE_DOOR_ALERT 0x15 // obstacle door alert
+#define OBSTACLE_GATE_ALERT 0x16 // obstacle gate alert
+#define OBSTACLE_BENCH_ALERT 0x17 // obstacle bench alert
+#define OBSTACLE_WINDOW_ALERT 0x18 // obstacle window alert
+#define OBSTACLE_FLOOR_ALERT 0x19 // obstacle floor alert
+#define OBSTACLE_LEDGE_ALERT 0x1A // obstacle ledge alert
+#define OBSTACLE_DROP_ALERT 0x1B // obstacle drop alert
+#define OBSTACLE_MAN_ALERT 0x1C // obstacle man alert
+#define OBSTACLE_DESK_ALERT 0x1D // obstacle desk alert
+#define OBSTACLE_REFRIGERATOR_ALERT 0x1E // obstacle refrigerator alert
+#define OBSTACLE_PERSON_ALERT 0x1F // obstacle person alert
+#define OBSTACLE_BIN_ALERT 0x20 // obstacle bin alert
+#define OBSTACLE_BOX_ALERT 0x21 // obstacle box alert
+#define OBSTACLE_WOMAN_ALERT 0x22 // obstacle
+
 //sensor positions according to box (height from bottom of box)
 
-#define SENSOR_1_ANGLE 60 //angle from the horizontal axis
-#define SENSOR_2_ANGLE 45 //angle from the horizontal axis
-#define SENSOR_3_ANGLE 30 //angle from the horizontal axis
+#define SENSOR_1_ANGLE 45 //angle from the horizontal axis
+#define SENSOR_2_ANGLE 30 //angle from the horizontal axis
+#define SENSOR_3_ANGLE 20 //angle from the horizontal axis
 #define SENSOR_4_ANGLE 15 //angle from the horizontal axis
 
 #define SENSOR_1_BOX_HEIGHT 50 //Height from the bottom of the box
