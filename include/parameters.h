@@ -136,7 +136,8 @@
 #define OBSTACLE_PERSON_ALERT 0x1F // obstacle person alert
 #define OBSTACLE_BIN_ALERT 0x20 // obstacle bin alert
 #define OBSTACLE_BOX_ALERT 0x21 // obstacle box alert
-#define OBSTACLE_WOMAN_ALERT 0x22 // obstacle
+#define OBSTACLE_WOMAN_ALERT 0x22 // obstacle woman alert
+#define ANALYZING_ENVIRONMENT 0x23 // analyzing environment alert
 
 //sensor positions according to box (height from bottom of box)
 
