@@ -16,7 +16,7 @@ private:
     double alert_timing_1, alert_timing_2, alert_timing_3;
     int alert_distance_1, alert_distance_2, alert_distance_3;
     int user_height, system_height, minimum_obstacle_height, head_clearance;
-    bool enable_alert_1, enable_alert_2, enable_alert_3, enable_voice_alerts, enable_camera, enable_height_specific_alerts;
+    bool enable_alert_1, enable_alert_2, enable_alert_3, enable_voice_alerts, enable_camera, enable_height_specific_alerts, enable_obstacle_identification;
     String voice_alerts_language;
     int volume;
 
@@ -47,6 +47,7 @@ public:
                        volume(3),
                        enable_camera(false),
                        enable_height_specific_alerts(false),
+                       enable_obstacle_identification(false),
                        target_ip("") {};
 
     systemSettings(String mode,
@@ -75,6 +76,7 @@ public:
                    int vol,
                    bool cam,
                    bool h,
+                   bool i,
                    String tip);
 
     String getMode() const { return Mode; }
@@ -102,6 +104,7 @@ public:
     int getVolume() const { return volume; }
     bool getEnableCamera() const { return enable_camera; }
     bool getEnableHeightSpecificAlerts() const { return enable_height_specific_alerts; }
+    bool getEnableObstacleIdentification() const { return enable_obstacle_identification; }
     int getMinimumObstacleHeight() const { return minimum_obstacle_height; }
     int getHeadClearance() const { return head_clearance; }
 
@@ -129,6 +132,7 @@ public:
     void setVolume(int v) { volume = v; }
     void setEnableCamera(bool c) { enable_camera = c; }
     void setHeightSpecificAlerts(bool h) { enable_height_specific_alerts = h; }
+    void setEnableObstacleIdentification(bool i) { enable_obstacle_identification = i; }
     void setMinimumObstacleHeight(int n) { minimum_obstacle_height = n; }
     void setHeadClearance(int n) { head_clearance = n; }
     void setTargetIPForVisualDebugger(String ip) { target_ip = ip; }

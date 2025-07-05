@@ -33,4 +33,6 @@ void playWaistLevelObstacleAlertAsTask(void *pvParameters);
 void playChestLevelObstacleAlertAsTask(void *pvParameters);
 void playHeadLevelObstacleAlertAsTask(void *pvParameters);
 
+void playAnalyzingEnvironmentAstask(void *pvParameters);
+
 #endif

@@ -294,10 +294,15 @@ void loop()
             // Reset double press tracking
             is_double_press_pending = false;
             is_system_on = false;
-            xTaskCreate(playErrorReportedAsTask, "playErrorReportedAsTask", STACK_SIZE, &mp3, 2, nullptr);
-            String log_Data = "ERROR: System Malfunction reported by the user";
-            logData(log_Data);
-            CaptureError();
+            if(!system_settings.getEnableObstacleIdentification()) {
+                xTaskCreate(playErrorReportedAsTask, "playErrorReportedAsTask", STACK_SIZE, &mp3, 2, nullptr);
+                String log_Data = "ERROR: System Malfunction reported by the user";
+                logData(log_Data);
+                CaptureError();
+            } else {
+                //start object identification routine here
+                xTaskCreate(playAnalyzingEnvironmentAstask, "playAnalyzingEnvironmentAsTask", STACK_SIZE, &mp3, 2, nullptr);
+            }
             is_system_on = true;
         } else {
             if (is_double_press_pending) {

@@ -183,3 +183,10 @@ void playHeadLevelObstacleAlertAsTask(void *pvParameters) {
   vTaskDelay(pdMS_TO_TICKS(2000)); // 1000 ms = 1 second
   vTaskDelete(NULL);
 }
+
+void playAnalyzingEnvironmentAstask(void *pvParameters) {
+  MP3 *mp3 = (MP3 *)pvParameters; // Cast the incoming parameter to an array of void pointers
+  mp3->playWithFileName(OBSTACLE_IDENTIFIER_ALERTS_DIR, ANALYZING_ENVIRONMENT);
+  vTaskDelay(pdMS_TO_TICKS(2000)); // 1000 ms = 1 second
+  vTaskDelete(NULL);
+}

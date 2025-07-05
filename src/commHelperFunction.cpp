@@ -37,7 +37,7 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s)
 
     String mode = "Both", alert_method = "timeToImpact", sound_1 = "Sound1", sound_2 = "Sound1", sound_3 = "Sound1", vibration_1 = "vibration1", vibration_2 = "vibration1", vibration_3 = "vibration1", voice_alerts_language = "English", target_ip = "";
     int userheight = 170, systemheight = 85, volume = 5, distance_1 = 1000, distance_2 = 500, distance_3 = 250,minimum_obstacle_height = 85, head_clearance = 5;
-    String enable_alert_1 = "Enable", enable_alert_2 = "Disable", enable_alert_3 = "Disable", enable_voice_alerts = "Enable", enable_camera = "Enable", enable_height_specific_alerts = "Disable";
+    String enable_alert_1 = "Enable", enable_alert_2 = "Disable", enable_alert_3 = "Disable", enable_voice_alerts = "Enable", enable_camera = "Enable", enable_height_specific_alerts = "Disable", enable_obstacle_identification = "Disable";
     String timing_1 = "1.5", timing_2 = "0.8", timing_3 = "0.3";
 
     // Helper macro for fetching data from Firebase
@@ -142,8 +142,6 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s)
     GET_INT("/System_Settings/settings/volume", volume);
     s.setVolume(volume);
 
-
-
     GET_STRING("/System_Settings/settings/enableAlert1", enable_alert_1);
     s.setEnableAlert1(stringToBool(enable_alert_1));
     GET_STRING("/System_Settings/settings/enableAlert2", enable_alert_2);
@@ -156,6 +154,8 @@ bool getFirebaseSettings(FirebaseData *firebaseData, systemSettings &s)
     s.setEnableCamera(stringToBool(enable_camera));
     GET_STRING("/System_Settings/settings/enableHeightSpecificAlerts", enable_height_specific_alerts);
     s.setHeightSpecificAlerts(stringToBool(enable_height_specific_alerts));
+    GET_STRING("/System_Settings/settings/enableObstacleIdentification", enable_obstacle_identification);
+    s.setEnableObstacleIdentification(stringToBool(enable_obstacle_identification));
     GET_STRING("/System_Settings/esp_target_ip", target_ip);
     s.setTargetIPForVisualDebugger(target_ip);
 
@@ -256,6 +256,7 @@ void storeFirebaseSetting(FirebaseData *firebaseData, systemSettings &s)
     SET_BOOL("/System_Settings/settings/enableVoiceAlerts", s.getEnableVoiceAlerts());
     SET_BOOL("/System_Settings/settings/enableCamera", s.getEnableCamera());
     SET_BOOL("/System_Settings/settings/enableHeightSpecificAlerts", s.getEnableHeightSpecificAlerts());
+    SET_BOOL("/System_Settings/settings/enableObstacleIdentification", s.getEnableObstacleIdentification());
 
     Serial.println("Settings stored successfully.");
 }

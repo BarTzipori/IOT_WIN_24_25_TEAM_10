@@ -69,6 +69,7 @@ bool init_sd_card()
         appendFile(SD_MMC, "/Settings/setting.txt", "volume: 3");
         appendFile(SD_MMC, "/Settings/setting.txt", "enable_camera: false");
         appendFile(SD_MMC, "/Settings/setting.txt", "enable_height_specific_alerts: false");
+        appendFile(SD_MMC, "/Settings/setting.txt", "enable_obstacle_identification: false");
         endFile(SD_MMC, "/Settings/setting.txt");
         Serial.println("created setting file");
         flag = false;
@@ -128,6 +129,7 @@ void updateSDSettings(systemSettings &s)
     appendFile(SD_MMC, "/Settings/setting.txt", "volume: " + String(s.getVolume()));
     appendFile(SD_MMC, "/Settings/setting.txt", "enable_camera: " + String(s.getEnableCamera()));
     appendFile(SD_MMC, "/Settings/setting.txt", "enable_height_specific_alerts: " + String(s.getEnableHeightSpecificAlerts()));
+    appendFile(SD_MMC, "/Settings/setting.txt", "enable_obstacle_identification: " + String(s.getEnableObstacleIdentification()));
 
     endFile(SD_MMC, "/Settings/setting.txt");
 }

@@ -210,7 +210,7 @@ systemSettings readSettings(fs::FS &fs, const char *path)
     String m_mode, m_method, m_sound1,m_sound2,m_sound3,m_viberation1,m_viberation2,m_viberation3,m_language, m_target_ip;
     double m_timing1,m_timing2,m_timing3;
     int m_usrheight,m_sysheight,m_volume, m_distance1,m_distance2,m_distance3,m_minimum_obstacle_height,m_head_clearance;
-    bool m_enable_alert1,m_enable_alert2,m_enable_alert3,m_enable_voice_alerts,m_enable_camera,m_enable_height_specific_alerts;
+    bool m_enable_alert1,m_enable_alert2,m_enable_alert3,m_enable_voice_alerts,m_enable_camera,m_enable_height_specific_alerts,m_enable_obstacle_identification;
     File file = fs.open(path);
     if(!file){
         Serial.println("Failed to open file for reading");
@@ -387,6 +387,12 @@ systemSettings readSettings(fs::FS &fs, const char *path)
            {
                m_enable_height_specific_alerts = tokens[1].toInt();
                 s.setHeightSpecificAlerts(m_enable_height_specific_alerts);
+               continue;
+           }
+        if (tokens[0]=="enable_obstacle_identification:")
+           {
+               m_enable_obstacle_identification = tokens[1].toInt();
+                s.setEnableObstacleIdentification(m_enable_obstacle_identification);
                continue;
            }
         if (tokens[0]=="target_ip:")

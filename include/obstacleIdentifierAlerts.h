@@ -42,7 +42,6 @@ void playObstacleAlertBinAsTask(void *pvParameters);
 void playObstacleAlertBoxAsTask(void *pvParameters);
 void playObstacleAlertWomanAsTask(void *pvParameters);
 
-void playAnalyzingEnvironmentAstask(void *pvParameters);
 
 void playObstacleAlertsByNames(const std::vector<std::string>& obstacleNames, MP3* mp3);
 
