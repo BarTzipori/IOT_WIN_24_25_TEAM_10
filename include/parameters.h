@@ -168,6 +168,8 @@
 #define WEBMSG_SERVER_PORT 82 // Port for the webmsg server
 #define NTP_SERVER_1 "pool.ntp.org"
 #define NTP_SERVER_2 "time.nist.gov"
+#define IMGREC_serverUrl "http://172.20.10.2:5015/upload" // URL for image recognition server
+
 
 //collision detection algorithm settings 
 #define STEP_TIME_THRESHOLD 300 // Minimum time between steps in milliseconds

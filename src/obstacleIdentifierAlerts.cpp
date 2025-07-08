@@ -210,7 +210,7 @@ void playObstacleAlertWomanAsTask(void *pvParameters) {
 
 void playObstacleAlertsByNames(const std::vector<std::string>& obstacleNames, MP3* mp3) {
 
-    static const std::unordered_map<std::string, std::function<void(void*)>> obstacleAlertMap = {
+    static const std::unordered_map<std::string, TaskFunction_t> obstacleAlertMap = {
         {"hole", playObstacleAlertHoleAsTask},
         {"pothole", playObstacleAlertPotholeAsTask},
         {"fence", playObstacleAlertFenceAsTask},
@@ -249,8 +249,12 @@ void playObstacleAlertsByNames(const std::vector<std::string>& obstacleNames, MP
 
     for (const auto& name : obstacleNames) {
         auto it = obstacleAlertMap.find(name);
-        if (it != obstacleAlertMap.end()) {
-            it->second(static_cast<void*>(mp3));
+        //logData("************ inside loop ************");
+        if (it != obstacleAlertMap.end())
+        {
+          //logData("############## inside if ###############");
+          //it->second(static_cast<void *>(mp3));
+          xTaskCreate(it->second, "ObstacleAlertTask", STACK_SIZE, mp3, 2, nullptr);
         }
     }
 }

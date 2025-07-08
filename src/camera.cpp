@@ -282,3 +282,74 @@ bool CaptureError()
 
   return result;
 }
+
+//############################################# image recognition functions #############################################
+
+void parseJsonResponse(String payload,MP3* mp3) {
+  DynamicJsonDocument doc(1024);
+
+  DeserializationError error = deserializeJson(doc, payload);
+  if (error) {
+    Serial.print("JSON parse failed: ");
+    Serial.println(error.f_str());
+    return;
+  }
+
+  const char* message = doc["message"];
+  JsonArray obstacles = doc["obstacles"];
+  std::vector<std::string> obstaclesVec;
+  obstaclesVec.clear();
+  for (JsonVariant obstacle : obstacles) {
+    obstaclesVec.push_back(obstacle.as<const char*>());
+  }
+  playObstacleAlertsByNames(obstaclesVec,mp3);
+  logData(message);
+  for (auto obstacle : obstaclesVec) {
+    logData("Detected obstacle: ");
+    logData(obstacle.c_str());
+  }
+}
+
+
+void ImageRecognition(MP3* mp3)
+{
+  WiFiClient client;
+  HTTPClient http;
+
+  camera_fb_t* fb = esp_camera_fb_get();
+  if (!fb) {
+    logData("Camera capture failed");
+    return;
+  } else {
+    logData("Image captured successfully");
+  }
+
+  client.setTimeout(90000); // Set timeout to 60 seconds
+  //http.setMaxContentLength(1000000); // Increase buffer size to handle large images (1MB)
+  http.setTimeout(90000);  // Set timeout to 90 seconds
+
+  http.begin(client, IMGREC_serverUrl);
+  http.addHeader("Content-Type", "image/jpeg");
+  logData("Uploading image to server...");
+  Serial.printf("image size: %d bytes, %.3f kb\n", fb->len,(float)fb->len / 1024.0);
+  unsigned long start = micros();
+
+  int httpResponseCode = http.POST(fb->buf, fb->len);
+
+  unsigned long end = micros();
+  unsigned long duration = end - start;
+  double_t seconds = duration / 1000000.0;
+  Serial.printf("Image upload took %lu microseconds = %.3f seconds\n", duration,seconds);
+  if (httpResponseCode > 0) {
+    Serial.printf("HTTP Response code: %d\n", httpResponseCode);
+    String response = http.getString();
+    parseJsonResponse(response,mp3);
+    //Serial.println(response);
+  } else {
+    Serial.printf("Error: %s\n", http.errorToString(httpResponseCode).c_str());
+  }
+
+  http.end();
+  esp_camera_fb_return(fb);
+}
+

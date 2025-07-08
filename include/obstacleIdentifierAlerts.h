@@ -6,6 +6,8 @@
 #include <vector>
 #include <functional>
 #include "RedMP3.h"
+#include "safestep_logs.h"
+
 
 void playObstacleAlertHoleAsTask(void *pvParameters);
 void playObstacleAlertPotholeAsTask(void *pvParameters);

@@ -96,7 +96,7 @@ void systemInit()
     // if we managed to connect to WIFI - use firebase settings, as they are the most updated.
     if (flags.wifi_flag) {
         setupFirebase(config, auth);
-        // storeFirebaseSetting(&firebaseData,system_settings);
+        // storeFirebaseSetting(&firebaseData,system_settings); // use only when uploading new setting
         systemSettings system_settings_from_fb;
         if (getFirebaseSettings(&firebaseData, system_settings_from_fb)) {
             if (system_settings.updateSettings(system_settings_from_fb)) {
@@ -107,9 +107,11 @@ void systemInit()
             }
         }
         updateFirebaseLocalIP(&firebaseData, WiFi.localIP().toString());
+    
         setupWifiServer();
         setupMsgServer();
         setupTime();
+        
     }
     if (!flags.camera_flag) {
         flags.camera_flag = setupCamera();
@@ -126,7 +128,6 @@ void systemInit()
 }
 
 void setup() {
-
     static int DistanceSensorDelay = 50;
     static int SpeedCalcDelay = 100;
     delay(5000);
@@ -302,8 +303,13 @@ void loop()
             } else {
                 //start object identification routine here
                 xTaskCreate(playAnalyzingEnvironmentAstask, "playAnalyzingEnvironmentAsTask", STACK_SIZE, &mp3, 2, nullptr);
+                String log_data = "INFO: SAFESTEP OBJECT IDENTIFICATION ROUTINE STARTED";
+                logData(log_data);
+                ImageRecognition(&mp3);
+                logData("INFO: SAFESTEP OBJECT IDENTIFICATION ROUTINE FINISHED");
             }
             is_system_on = true;
+            xTaskCreate(playAnalyzingEnvironmentAstask, "playAnalyzingEnvironmentAsTask", STACK_SIZE, &mp3, 2, nullptr);
         } else {
             if (is_double_press_pending) {
                 // Confirmed double press
