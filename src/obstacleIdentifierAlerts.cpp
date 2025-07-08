@@ -208,9 +208,19 @@ void playObstacleAlertWomanAsTask(void *pvParameters) {
   vTaskDelete(NULL);
 }
 
-void playObstacleAlertsByNames(const std::vector<std::string>& obstacleNames, MP3* mp3) {
+void playNoIdentifiableObjectFoundAsTask(void *pvParameters) {
+  MP3 *mp3 = (MP3 *)pvParameters; // Cast the incoming parameter to an array of void pointers
+  mp3->playWithFileName(OBSTACLE_IDENTIFIER_ALERTS_DIR, NO_OBSTACLE_IDENTIFIED);
+  vTaskDelay(pdMS_TO_TICKS(2000)); // 1000 ms = 1 second
+  vTaskDelete(NULL);
+}
 
-    static const std::unordered_map<std::string, TaskFunction_t> obstacleAlertMap = {
+void playObstacleAlertsByNames(const std::vector<std::string>& obstacleNames, MP3* mp3) {
+  if(obstacleNames.empty()) {
+      xTaskCreate(playNoIdentifiableObjectFoundAsTask, "playNoIdentifiableObjectFoundAsTask", STACK_SIZE, &mp3, 2, nullptr);
+      return;
+  } else {
+      static const std::unordered_map<std::string, std::function<void(void*)>> obstacleAlertMap = {
         {"hole", playObstacleAlertHoleAsTask},
         {"pothole", playObstacleAlertPotholeAsTask},
         {"fence", playObstacleAlertFenceAsTask},
@@ -245,17 +255,14 @@ void playObstacleAlertsByNames(const std::vector<std::string>& obstacleNames, MP
         {"bin", playObstacleAlertBinAsTask},
         {"box", playObstacleAlertBoxAsTask},
         {"woman", playObstacleAlertWomanAsTask}
-    };
-
-    for (const auto& name : obstacleNames) {
-        auto it = obstacleAlertMap.find(name);
-        //logData("************ inside loop ************");
-        if (it != obstacleAlertMap.end())
-        {
-          //logData("############## inside if ###############");
-          //it->second(static_cast<void *>(mp3));
-          xTaskCreate(it->second, "ObstacleAlertTask", STACK_SIZE, mp3, 2, nullptr);
-        }
+      };
+      
+      for (const auto& name : obstacleNames) {
+          auto it = obstacleAlertMap.find(name);
+          if (it != obstacleAlertMap.end()) {
+              it->second(static_cast<void*>(mp3));
+          }
+      }
     }
 }
 // Note: The above function assumes that the MP3 object is properly initialized and passed as a parameter.

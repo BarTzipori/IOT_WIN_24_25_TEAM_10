@@ -43,6 +43,7 @@ void playObstacleAlertPersonAsTask(void *pvParameters);
 void playObstacleAlertBinAsTask(void *pvParameters);
 void playObstacleAlertBoxAsTask(void *pvParameters);
 void playObstacleAlertWomanAsTask(void *pvParameters);
+void playNoIdentifiableObjectFoundAsTask(void *pvParameters);
 
 
 void playObstacleAlertsByNames(const std::vector<std::string>& obstacleNames, MP3* mp3);

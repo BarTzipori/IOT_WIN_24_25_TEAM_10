@@ -138,6 +138,7 @@
 #define OBSTACLE_BOX_ALERT 0x21 // obstacle box alert
 #define OBSTACLE_WOMAN_ALERT 0x22 // obstacle woman alert
 #define ANALYZING_ENVIRONMENT 0x23 // analyzing environment alert
+#define NO_OBSTACLE_IDENTIFIED 0x24 // no object identified
 
 //sensor positions according to box (height from bottom of box)
 

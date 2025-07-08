@@ -309,7 +309,6 @@ void loop()
                 logData("INFO: SAFESTEP OBJECT IDENTIFICATION ROUTINE FINISHED");
             }
             is_system_on = true;
-            xTaskCreate(playAnalyzingEnvironmentAstask, "playAnalyzingEnvironmentAsTask", STACK_SIZE, &mp3, 2, nullptr);
         } else {
             if (is_double_press_pending) {
                 // Confirmed double press
