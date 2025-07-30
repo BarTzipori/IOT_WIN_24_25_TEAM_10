@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -32,7 +33,15 @@ class SettingsItem {
 }
 
 class SettingsQuestionnaire extends StatefulWidget {
-  const SettingsQuestionnaire({super.key});
+  static const routeName = '/Settings';
+  final String? profileName;
+  final bool isEditingProfile;
+
+  const SettingsQuestionnaire({
+    super.key,
+    this.profileName,
+    this.isEditingProfile = false,
+  });
 
   @override
   State<SettingsQuestionnaire> createState() => _SettingsQuestionnaireState();
@@ -45,6 +54,8 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
   String _connectionStatus = "Not Connected";
 
   final Map<String, TextEditingController> _controllers = {};
+
+  String? get _userId => FirebaseAuth.instance.currentUser?.uid;
 
   @override
   void initState() {
@@ -62,7 +73,16 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
   }
 
   Future<void> _loadSavedSettings() async {
-    final savedSettings = await _fetchSettingsFromFirebase();
+    Map<String, dynamic>? savedSettings;
+
+    if (widget.isEditingProfile && widget.profileName != null && _userId != null) {
+      // Load profile-specific settings
+      savedSettings = await _fetchProfileSettingsFromFirebase(widget.profileName!);
+    } else {
+      // Load main settings
+      savedSettings = await _fetchSettingsFromFirebase();
+    }
+
     if (savedSettings != null) {
       _populateSettings(savedSettings);
     }
@@ -84,7 +104,6 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       print('Error fetching local IP: $e');
     }
   }
-
 
   @override
   void dispose() {
@@ -453,24 +472,46 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
           value == ''
       );
 
-      // First update Firebase
-      await _databaseRef.child('System_Settings/settings').update(settingsData);
+      if (widget.isEditingProfile && widget.profileName != null && _userId != null) {
+        // Save to user's profile
+        await _databaseRef
+            .child('Users/$_userId/profiles/${widget.profileName}')
+            .set(settingsData);
 
-      // Then notify ESP32
-      await _notifyESP32(settingsData);
+        // If this is the active profile, also update main settings
+        final activeProfileSnapshot = await _databaseRef
+            .child('Users/$_userId/activeProfile')
+            .get();
 
-      // Show success message
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Settings saved successfully!'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
-        ),
-      );
+        if (activeProfileSnapshot.value == widget.profileName) {
+          await _databaseRef.child('System_Settings/settings').set(settingsData);
+          await _notifyESP32(settingsData);
+        }
+
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Profile "${widget.profileName}" saved successfully!'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        // Save to main settings (original behavior)
+        await _databaseRef.child('System_Settings/settings').update(settingsData);
+        await _notifyESP32(settingsData);
+
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Settings saved successfully!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     } catch (e) {
       print('Error saving settings: $e');
-      // Show error message
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -481,7 +522,6 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       );
     }
   }
-
 
   List<double> _generateTimingOptions() {
     List<double> options = [];
@@ -675,6 +715,24 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
     }
     return null;
   }
+
+  Future<Map<String, dynamic>?> _fetchProfileSettingsFromFirebase(String profileName) async {
+    try {
+      if (_userId == null) return null;
+
+      final DataSnapshot snapshot = await _databaseRef
+          .child('Users/$_userId/profiles/$profileName')
+          .get();
+
+      if (snapshot.value != null) {
+        return Map<String, dynamic>.from(snapshot.value as Map);
+      }
+    } catch (e) {
+      print('Error fetching profile settings from Firebase: $e');
+    }
+    return null;
+  }
+
   void _populateSettings(Map<String, dynamic> settings) {
     print('Received settings from Firebase: $settings'); // Debug print
 
@@ -851,16 +909,18 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
     return dependentItem.selectedOption == 'Enable';
   }
 
-
   @override
   Widget build(BuildContext context) {
     final visibleItems = _data.where((item) => _shouldShowItem(item)).toList();
+    String screenTitle = widget.isEditingProfile
+        ? 'Edit ${widget.profileName} Profile'
+        : 'System Settings';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'System Settings',
-          style: TextStyle(fontSize: 20),
+        title: Text(
+          screenTitle,
+          style: const TextStyle(fontSize: 20),
           overflow: TextOverflow.ellipsis,
         ),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
@@ -870,6 +930,36 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              if (widget.isEditingProfile) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.blue.shade600,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'You are editing the ${widget.profileName} profile. Changes will be saved to this profile only.',
+                          style: TextStyle(
+                            color: Colors.blue.shade800,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               ExpansionPanelList(
                 expandedHeaderPadding: const EdgeInsets.all(0),
                 expansionCallback: (int index, bool isExpanded) {
@@ -1006,30 +1096,34 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  ElevatedButton(
-                    onPressed: _testConnection,
-                    child: const Text(
-                      'Test Connection',
-                      style: TextStyle(fontSize: 14),
+                  if (!widget.isEditingProfile) ...[
+                    ElevatedButton(
+                      onPressed: _testConnection,
+                      child: const Text(
+                        'Test Connection',
+                        style: TextStyle(fontSize: 14),
+                      ),
                     ),
-                  ),
+                  ],
                   ElevatedButton(
                     onPressed: _saveSettingsToDatabase,
-                    child: const Text(
-                      'Save Settings',
-                      style: TextStyle(fontSize: 14),
+                    child: Text(
+                      widget.isEditingProfile ? 'Save Profile' : 'Save Settings',
+                      style: const TextStyle(fontSize: 14),
                     ),
                   ),
                 ],
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Connection Status: $_connectionStatus',
-                  style: const TextStyle(fontSize: 14),
-                  overflow: TextOverflow.ellipsis,
+              if (!widget.isEditingProfile) ...[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Connection Status: $_connectionStatus',
+                    style: const TextStyle(fontSize: 14),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
+              ],
               const SizedBox(height: 32),
             ],
           ),

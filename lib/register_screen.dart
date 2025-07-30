@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'root_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   static const routeName = "/RegisterScreen";
@@ -39,6 +40,64 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  Map<String, dynamic> _getDefaultSettings() {
+    return {
+      'mode': 'Both',
+      'alertMethod': 'Time To Impact',
+      'enableAlert1': 'Enable',
+      'enableAlert2': 'Disable',
+      'enableAlert3': 'Disable',
+      'alertTiming1': 2.0,
+      'alertTiming2': 1.5,
+      'alertTiming3': 1.0,
+      'alertVibration1': 'Double',
+      'alertVibration2': 'Pulse',
+      'alertVibration3': 'Pulse',
+      'alertSound1': 'Collision_warning_hebrew',
+      'alertSound2': 'Alarm_clock_4_beeps',
+      'alertSound3': 'Alert1',
+      'userHeight': 175,
+      'systemHeight': 80,
+      'volume': 3,
+      'minimalHeight': 90,
+      'headSafetyMargin': 10,
+      'enableCamera': 'Enable'
+    };
+  }
+
+  Future<void> _createUserProfiles(String userId) async {
+    try {
+      final DatabaseReference userRef = FirebaseDatabase.instance.ref().child('Users/$userId');
+
+      Map<String, dynamic> defaultSettings = _getDefaultSettings();
+
+      // Create default profiles for the user
+      await userRef.child('profiles').set({
+        'DEFAULT': defaultSettings,
+        'HOME': {
+          ...defaultSettings,
+          'mode': 'Sound',
+          'volume': 2,
+          'alertTiming1': 1.8,
+        },
+        'OUTDOOR': {
+          ...defaultSettings,
+          'mode': 'Both',
+          'volume': 5,
+          'alertTiming1': 2.2,
+        },
+      });
+
+      // Set default active profile
+      await userRef.child('activeProfile').set('DEFAULT');
+
+      print('User profiles created successfully');
+    } catch (e) {
+      print('Error creating user profiles: $e');
+      throw e;
+    }
+  }
+
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -55,10 +114,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      await _auth.createUserWithEmailAndPassword(
+      // Create user account
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      // Update user profile with display name
+      await userCredential.user?.updateDisplayName(_nameController.text.trim());
+
+      // Create default profiles for the new user
+      await _createUserProfiles(userCredential.user!.uid);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -68,7 +134,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (!mounted) return;
-      Navigator.of(context).pop();
+      Navigator.pushReplacementNamed(context, RootScreen.routeName);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

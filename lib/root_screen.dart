@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'settings_screen.dart';
+import 'profile_selection_screen.dart';
 
 class RootScreen extends StatefulWidget {
   static const routeName = '/RootScreen';
@@ -90,7 +90,7 @@ class _RootScreenState extends State<RootScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const SettingsQuestionnaire(),
+                          builder: (context) => const ProfileSelectionScreen(),
                         ),
                       );
                     },
@@ -108,7 +108,7 @@ class _RootScreenState extends State<RootScreen> {
                         Icon(Icons.settings, size: 20),
                         SizedBox(width: 8),
                         Text(
-                          'Settings',
+                          'Profiles',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
