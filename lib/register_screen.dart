@@ -61,7 +61,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'volume': 3,
       'minimalHeight': 90,
       'headSafetyMargin': 10,
-      'enableCamera': 'Enable'
+      'enableCamera': 'Enable',
+      'enableHeightSpecificAlerts': 'Disable',
+      'enableObstacleIdentification': 'Disable'
     };
   }
 

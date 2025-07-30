@@ -419,6 +419,10 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
         'enableCamera': _data.firstWhere((item) => item.headerValue == '23. Camera',
             orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
+        'enableHeightSpecificAlerts': _data.firstWhere((item) => item.headerValue == '24. Height Specific Alerts',
+            orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
+        'enableObstacleIdentification': _data.firstWhere((item) => item.headerValue == '25. Obstacle Identification',
+            orElse: () => SettingsItem(headerValue: '', expandedValue: '', options: [])).selectedOption,
 
         // Alert timings (doubles)
         'alertTiming1': double.tryParse(_data.firstWhere((item) => item.headerValue == '6. Alert 1 Timing',
@@ -701,6 +705,16 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
         expandedValue: 'Enable or disable camera',
         options: ['Enable', 'Disable'],
       ),
+      SettingsItem(
+        headerValue: '24. Height Specific Alerts',
+        expandedValue: 'Enable or disable height specific alerts',
+        options: ['Enable', 'Disable'],
+      ),
+      SettingsItem(
+        headerValue: '25. Obstacle Identification',
+        expandedValue: 'Enable or disable obstacle identification',
+        options: ['Enable', 'Disable'],
+      ),
     ];
   }
 
@@ -759,7 +773,9 @@ class _SettingsQuestionnaireState extends State<SettingsQuestionnaire> {
       'volume': '20. Volume Sound',
       'minimalHeight': '21. Minimal Height',
       'headSafetyMargin': '22. Head Safety Margin',
-      'enableCamera': '23. Camera'
+      'enableCamera': '23. Camera',
+      'enableHeightSpecificAlerts': '24. Height Specific Alerts',
+      'enableObstacleIdentification': '25. Obstacle Identification'
     };
 
     settings.forEach((key, value) {
